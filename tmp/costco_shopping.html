@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>美國好市多保養品採購清單</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f5f7;
+      color: #1a1a1a;
+      padding: 24px 16px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    header .badge {
+      display: inline-block;
+      background: #E31837;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 4px 12px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+
+    header h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #003087;
+    }
+
+    header p {
+      font-size: 13px;
+      color: #666;
+      margin-top: 6px;
+    }
+
+    /* ── 商品卡片 ── */
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+      max-width: 960px;
+      margin: 0 auto 36px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.07);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: contain;
+      background: #fafafa;
+      padding: 16px;
+    }
+
+    .card-body {
+      padding: 14px 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      color: #888;
+    }
+
+    .card-name {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.4;
+      color: #111;
+    }
+
+    .card-spec {
+      font-size: 12px;
+      color: #777;
+    }
+
+    .card-price {
+      margin-top: auto;
+      font-size: 22px;
+      font-weight: 800;
+      color: #E31837;
+    }
+
+    .card-price span {
+      font-size: 13px;
+      font-weight: 500;
+      color: #888;
+    }
+
+    .card-link {
+      display: inline-block;
+      font-size: 11px;
+      color: #005DAA;
+      text-decoration: none;
+      margin-top: 2px;
+    }
+
+    .card-link:hover { text-decoration: underline; }
+
+    /* ── 採購分配表 ── */
+    .section-title {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: #003087;
+      margin-bottom: 16px;
+      letter-spacing: .5px;
+    }
+
+    .table-wrap {
+      max-width: 960px;
+      margin: 0 auto 36px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,.07);
+    }
+
+    th {
+      background: #003087;
+      color: #fff;
+      padding: 12px 16px;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    th.left { text-align: left; }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 13px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    td.left { text-align: left; }
+
+    tr:last-child td { border-bottom: none; }
+
+    tr:nth-child(even) td { background: #fafbfd; }
+
+    .qty {
+      font-size: 18px;
+      font-weight: 800;
+      color: #003087;
+    }
+
+    .qty-empty { color: #ddd; font-size: 18px; }
+
+    .note {
+      font-size: 11px;
+      color: #E31837;
+      font-style: italic;
+    }
+
+    .total-row td {
+      background: #003087 !important;
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    /* ── 費用試算 ── */
+    .cost-wrap {
+      max-width: 960px;
+      margin: 0 auto 36px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .cost-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 16px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      text-align: center;
+    }
+
+    .cost-card .label {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 6px;
+    }
+
+    .cost-card .amount {
+      font-size: 24px;
+      font-weight: 800;
+      color: #003087;
+    }
+
+    .cost-card .sub {
+      font-size: 11px;
+      color: #bbb;
+      margin-top: 4px;
+    }
+
+    .cost-card.total {
+      background: #003087;
+      color: #fff;
+    }
+
+    .cost-card.total .label { color: rgba(255,255,255,.7); }
+    .cost-card.total .amount { color: #FFD700; font-size: 28px; }
+    .cost-card.total .sub { color: rgba(255,255,255,.5); }
+
+    footer {
+      text-align: center;
+      font-size: 11px;
+      color: #bbb;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="badge">COSTCO USA</div>
+  <h1>好市多保養品採購清單</h1>
+  <p>以下價格來源：costco.com，僅供參考，實際以結帳為準</p>
+</header>
+
+<!-- ── 商品資訊 ── -->
+<p class="section-title">商品資訊</p>
+<div class="products">
+
+  <!-- 1. Omega-3 -->
+  <div class="card">
+    <img class="card-img"
+      src="https://bfasset.costco-static.com/U447IH35/as/b5mz23pxzmbmw5c6w6b3sk4/1683859-847__1?auto=webp&format=jpg"
+      alt="Sports Research Omega-3"
+      onerror="this.src='https://via.placeholder.com/300x300?text=Omega-3'">
+    <div class="card-body">
+      <div class="card-tag">魚油 / Fish Oil</div>
+      <div class="card-name">Sports Research Triple Strength Omega-3</div>
+      <div class="card-spec">150 Fish Softgels · EPA 690mg + DHA 310mg</div>
+      <div class="card-price">$32.90 <span>/ 瓶</span></div>
+      <a class="card-link" href="https://www.costco.com/p/-/sports-research-triple-strength-omega-3-fish-oil-150-fish-softgels/4000038003" target="_blank">Costco 商品頁 &rarr;</a>
+    </div>
+  </div>
+
+  <!-- 2. D3 -->
+  <div class="card">
+    <img class="card-img"
+      src="https://www.instacart.com/assets/domains/product-image/file/large_679ed62e-47c6-4a2a-a7ea-9ecb04436c7c.jpeg"
+      alt="Kirkland D3"
+      onerror="this.src='https://via.placeholder.com/300x300?text=Vitamin+D3'">
+    <div class="card-body">
+      <div class="card-tag">維生素 D / Vitamin D</div>
+      <div class="card-name">Kirkland Signature Extra Strength D3 2000 IU</div>
+      <div class="card-spec">600 Softgels · 50 mcg per softgel</div>
+      <div class="card-price">$11.91 <span>/ 瓶</span></div>
+      <a class="card-link" href="https://www.costco.com/kirkland-signature-extra-strength-d3-50-mcg.%2C-600-softgels.product.11467951.html" target="_blank">Costco 商品頁 &rarr;</a>
+    </div>
+  </div>
+
+  <!-- 3. TruNature Lutein -->
+  <div class="card">
+    <img class="card-img"
+      src="https://bfasset.costco-static.com/U447IH35/as/3xgh8gvfpqj8bq2zttq4bzqq/681272-847__1?auto=webp&format=jpg&width=1024&height=1024&fit=bounds&canvas=1024%2C1024"
+      alt="TruNature Lutein"
+      onerror="this.src='https://via.placeholder.com/300x300?text=Lutein'">
+    <div class="card-body">
+      <div class="card-tag">葉黃素（40 歲適用）</div>
+      <div class="card-name">trunature Vision Complex Lutein &amp; Zeaxanthin</div>
+      <div class="card-spec">140 Softgels · 適合眼睛乾澀、常看螢幕</div>
+      <div class="card-price">$19.99 <span>/ 瓶</span></div>
+      <a class="card-link" href="https://www.costco.com/p/-/trunature-vision-complex-lutein-zeaxanthin-140-softgels/100003048" target="_blank">Costco 商品頁 &rarr;</a>
+    </div>
+  </div>
+
+  <!-- 4. PreserVision -->
+  <div class="card">
+    <img class="card-img"
+      src="https://bfasset.costco-static.com/U447IH35/as/hsj32mcjbpc62wt764c5vz87/1148964-inc__1?auto=webp&format=jpg"
+      alt="PreserVision AREDS 2"
+      onerror="this.src='https://via.placeholder.com/300x300?text=PreserVision'">
+    <div class="card-body">
+      <div class="card-tag">葉黃素（60 歲長輩適用）</div>
+      <div class="card-name">PreserVision AREDS 2 Formula</div>
+      <div class="card-spec">210 Soft Gels · Lutein + Zeaxanthin + Vitamins C&amp;E + Zinc</div>
+      <div class="card-price">$43.69 <span>/ 瓶</span></div>
+      <a class="card-link" href="https://www.costco.com/p/-/preservision-areds-2-formula-210-soft-gels/100353011" target="_blank">Costco 商品頁 &rarr;</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── 採購分配表 ── -->
+<p class="section-title">採購分配</p>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="left">商品</th>
+        <th>單價</th>
+        <th>立</th>
+        <th>立爸媽</th>
+        <th>朱爸媽</th>
+        <th>合計瓶數</th>
+        <th>小計</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Omega-3 -->
+      <tr>
+        <td class="left">
+          <strong>Sports Research Omega-3</strong><br>
+          <span class="note">若不行就 2 瓶</span>
+        </td>
+        <td>$32.90</td>
+        <td><span class="qty">1</span></td>
+        <td><span class="qty">2</span></td>
+        <td><span class="qty">2</span></td>
+        <td><span class="qty">5</span></td>
+        <td>$164.50</td>
+      </tr>
+      <!-- D3 -->
+      <tr>
+        <td class="left">
+          <strong>Kirkland D3 2000 IU</strong>
+        </td>
+        <td>$11.91</td>
+        <td><span class="qty">1</span></td>
+        <td><span class="qty-empty">-</span></td>
+        <td><span class="qty-empty">-</span></td>
+        <td><span class="qty">1</span></td>
+        <td>$11.91</td>
+      </tr>
+      <!-- TruNature -->
+      <tr>
+        <td class="left">
+          <strong>trunature 葉黃素（40歲）</strong><br>
+          <span class="note">若不行就 1 瓶</span>
+        </td>
+        <td>$19.99</td>
+        <td><span class="qty">2</span></td>
+        <td><span class="qty-empty">-</span></td>
+        <td><span class="qty-empty">-</span></td>
+        <td><span class="qty">2</span></td>
+        <td>$39.98</td>
+      </tr>
+      <!-- PreserVision -->
+      <tr>
+        <td class="left">
+          <strong>PreserVision AREDS 2（60歲）</strong><br>
+          <span class="note">若不行就各 1 瓶</span>
+        </td>
+        <td>$43.69</td>
+        <td><span class="qty-empty">-</span></td>
+        <td><span class="qty">2</span></td>
+        <td><span class="qty">2</span></td>
+        <td><span class="qty">4</span></td>
+        <td>$174.76</td>
+      </tr>
+      <!-- 合計 -->
+      <tr class="total-row">
+        <td class="left" colspan="2">合計</td>
+        <td>3 瓶</td>
+        <td>4 瓶</td>
+        <td>4 瓶</td>
+        <td>12 瓶</td>
+        <td>$391.15</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── 費用試算 ── -->
+<p class="section-title">各方費用試算</p>
+<div class="cost-wrap">
+  <div class="cost-card">
+    <div class="label">立</div>
+    <div class="amount">$84.79</div>
+    <div class="sub">Omega×1 + D3×1 + trunature×2</div>
+  </div>
+  <div class="cost-card">
+    <div class="label">立爸媽</div>
+    <div class="amount">$153.18</div>
+    <div class="sub">Omega×2 + PreserVision×2</div>
+  </div>
+  <div class="cost-card">
+    <div class="label">朱爸媽</div>
+    <div class="amount">$153.18</div>
+    <div class="sub">Omega×2 + PreserVision×2</div>
+  </div>
+  <div class="cost-card total">
+    <div class="label">總計（正常量）</div>
+    <div class="amount">$391.15</div>
+    <div class="sub">12 瓶，約 NT$12,700</div>
+  </div>
+</div>
+
+<!-- ── 備用方案 ── -->
+<p class="section-title">備用方案（若貨量不足）</p>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="left">商品</th>
+        <th>正常量</th>
+        <th>備用量</th>
+        <th>正常小計</th>
+        <th>備用小計</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="left">Sports Research Omega-3</td>
+        <td>5 瓶</td>
+        <td>2 瓶</td>
+        <td>$164.50</td>
+        <td>$65.80</td>
+      </tr>
+      <tr>
+        <td class="left">Kirkland D3 2000 IU</td>
+        <td>1 瓶</td>
+        <td>1 瓶</td>
+        <td>$11.91</td>
+        <td>$11.91</td>
+      </tr>
+      <tr>
+        <td class="left">trunature 葉黃素（40歲）</td>
+        <td>2 瓶</td>
+        <td>1 瓶</td>
+        <td>$39.98</td>
+        <td>$19.99</td>
+      </tr>
+      <tr>
+        <td class="left">PreserVision AREDS 2（60歲）</td>
+        <td>4 瓶（各2）</td>
+        <td>2 瓶（各1）</td>
+        <td>$174.76</td>
+        <td>$87.38</td>
+      </tr>
+      <tr class="total-row">
+        <td class="left">合計</td>
+        <td>12 瓶</td>
+        <td>6 瓶</td>
+        <td>$391.15</td>
+        <td>$185.08</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>
+  價格來源：costco.com（2025 年，僅供參考）· 匯率估算：1 USD = 32.5 NTD
+</footer>
+
+</body>
+</html>

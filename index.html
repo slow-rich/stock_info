@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>指數化投資分析</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="慢富工具" />
+  <meta name="theme-color" content="#0f172a" />
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-R2C2QRTPBD"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-R2C2QRTPBD');
+  </script>
+
+  <!-- ==============================
+       資料檔案 — 只需更新這裡
+       新增標的時，加一行 <script src="data_xxx.js"> 即可
+  ============================== -->
+  <script src="data_live.js"></script>
+
+  <style>
+    /* ════════════════════════════
+       即時行情區塊
+    ════════════════════════════ */
+    .live-bar {
+      background: #fff;
+      border-bottom: 1px solid #e8e8e8;
+      padding: 20px 24px;
+    }
+    .live-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .live-section {
+      width: 100%;
+    }
+    .live-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #999;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .live-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .live-card {
+      flex: 1;
+      min-width: 120px;
+      background: #f9f9f9;
+      border-radius: 10px;
+      padding: 14px 16px;
+      border: 1px solid #efefef;
+    }
+    .live-card .lc-label  { font-size: 11px; color: #888; margin-bottom: 6px; }
+    .live-card .lc-value  { font-size: 22px; font-weight: 600; color: #1a1a1a; line-height: 1.2; }
+    .live-card .lc-sub    { font-size: 11px; color: #aaa; margin-top: 4px; }
+    .live-card .lc-value.live-drop-pos { color: #e24b4a; }
+    .live-card .lc-value.live-drop-neg { color: #10b981; }
+    .live-divider {
+      height: 1px;
+      background: #e8e8e8;
+      width: 100%;
+    }
+    .dd-wrap {
+      margin-top: 14px;
+      padding: 0 2px;
+    }
+    .dd-scale {
+      position: relative;
+      height: 14px;
+      border-radius: 7px;
+      background: linear-gradient(
+        to right,
+        #f0fdf4 0%,
+        #f0fdf4 20%,
+        #22c55e 100%
+      );
+    }
+    .dd-pointer {
+      position: absolute;
+      top: -5px;
+      width: 3px;
+      height: 24px;
+      background: #1a1a1a;
+      border-radius: 2px;
+      transform: translateX(-50%);
+      z-index: 1;
+    }
+    .dd-ticks {
+      position: relative;
+      height: 20px;
+      margin-top: 3px;
+    }
+    .dd-tick {
+      position: absolute;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: #bbb;
+      white-space: nowrap;
+    }
+    .dd-tick::before {
+      content: '';
+      display: block;
+      width: 1px;
+      height: 4px;
+      background: #ddd;
+      margin: 0 auto 2px;
+    }
+    .dd-tick.dd-tick-active {
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+    .dd-tick.dd-tick-active::before { background: #1a1a1a; }
+    .live-card.ath-card { background: #fff1f1; border-color: #fca5a5; }
+    .live-card.ath-card .lc-label { color: #e24b4a; }
+    .live-card.ath-card .lc-value { color: #e24b4a; font-size: 20px; }
+    .dd-pointer.ath-pointer { background: #e24b4a; width: 4px; }
+    .ath-ytd-badge {
+      font-size: 11px; font-weight: 600;
+      background: #fff1f1; color: #e24b4a;
+      border: 1px solid #fca5a5; border-radius: 20px;
+      padding: 2px 10px; letter-spacing: 0; text-transform: none;
+    }
+    .ath-banner {
+      display: flex; align-items: center; gap: 8px;
+      background: #fff1f1; border: 1px solid #fca5a5;
+      border-radius: 8px; padding: 10px 16px; margin-bottom: 12px;
+      color: #e24b4a; font-size: 14px; font-weight: 600;
+    }
+    .ath-dot {
+      width: 8px; height: 8px; background: #e24b4a;
+      border-radius: 50%; animation: athPulse 1.2s ease-in-out infinite;
+    }
+    @keyframes athPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, "Heiti TC", "Microsoft JhengHei", sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      padding-top: 52px; /* 留給固定導覽列 */
+    }
+
+    /* ════════════════════════════
+       頂部固定導覽列
+    ════════════════════════════ */
+    .top-nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 52px;
+      background: #1a1a1a;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 100;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.25);
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .nav-logo-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+    .nav-logo-zh {
+      font-size: 14px;
+      font-weight: 700;
+      color: #D4AF37;
+      letter-spacing: 1px;
+    }
+    .nav-logo-en {
+      font-size: 9px;
+      font-weight: 300;
+      color: rgba(212,175,55,0.6);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .nav-views {
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      margin-left: 14px;
+      white-space: nowrap;
+    }
+    .nav-views span {
+      color: rgba(255,255,255,0.75);
+      font-weight: 600;
+    }
+    .nav-links {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    /* 群組觸發按鈕 */
+    .nav-group { position: relative; }
+    .nav-group-label {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 14px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .nav-group-label:hover,
+    .nav-group.active .nav-group-label {
+      color: #fff;
+      background: rgba(255,255,255,0.1);
+    }
+    .nav-group.active .nav-group-label { background: rgba(255,255,255,0.18); }
+    .nav-arrow { font-size: 9px; opacity: 0.5; }
+
+    /* 下拉選單 */
+    .nav-dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      padding-top: 8px; /* 透明橋接，滑鼠不會在空隙斷開 */
+      min-width: 150px;
+      z-index: 200;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .nav-dropdown::before {
+      content: '';
+      position: absolute;
+      top: 8px; left: 0; right: 0; bottom: 0;
+      background: #2a2a2a;
+      border-radius: 8px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+      z-index: -1;
+    }
+    .nav-dropdown .nav-link:first-child { margin-top: 6px; }
+    .nav-dropdown .nav-link:last-child  { margin-bottom: 6px; }
+    .nav-group:hover .nav-dropdown { display: flex; }
+
+    .nav-link {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      text-decoration: none;
+      padding: 7px 14px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .nav-link:hover  { color: #fff; background: rgba(255,255,255,0.1); }
+    .nav-link.active { color: #fff; background: rgba(255,255,255,0.15); }
+
+    /* ════════════════════════════
+       各區塊通用
+    ════════════════════════════ */
+    .page-section {
+      scroll-margin-top: 60px; /* 捲動定位時留出導覽列高度 */
+    }
+    .section-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px 40px;
+    }
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    .section-header h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    .section-header .section-sub {
+      font-size: 13px;
+      color: #888;
+    }
+
+    /* 區塊分隔線 */
+    .page-section + .page-section {
+      border-top: 1px solid #e8e8e8;
+    }
+
+    /* ════════════════════════════
+       投資試算區塊
+    ════════════════════════════ */
+    .sim-inputs {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      align-items: flex-start;
+    }
+    .sim-field { display: flex; flex-direction: column; gap: 6px; }
+    .sim-field label { font-size: 12px; color: #888; }
+    .sim-field input[type=number] {
+      font-size: 14px;
+      padding: 7px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 160px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .sim-field input[type=number]:focus { border-color: #555; }
+    .sim-field .unit { font-size: 12px; color: #aaa; margin-top: 2px; }
+    .sim-rate-group { display: flex; flex-direction: column; gap: 6px; }
+    .sim-rate-group label { font-size: 12px; color: #888; }
+    .sim-rate-checks { display: flex; gap: 10px; flex-wrap: wrap; }
+    .sim-rate-checks label {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 13px; cursor: pointer; color: #444;
+    }
+    .sim-calc-btn {
+      font-size: 13px; padding: 8px 24px;
+      background: #1a1a1a; color: #fff;
+      border: none; border-radius: 6px;
+      cursor: pointer; transition: background 0.15s;
+      align-self: flex-end;
+    }
+    .sim-calc-btn:hover { background: #333; }
+
+    .sim-phase-block {
+      display: flex; flex-direction: column; gap: 8px;
+      padding: 12px 16px;
+      background: #f8f9fa; border-radius: 8px; border: 1px solid #e8e8e8;
+    }
+    .sim-phase-tag {
+      font-size: 11px; font-weight: 600; color: #888; letter-spacing: .06em;
+    }
+    .sim-phase-fields { display: flex; gap: 14px; align-items: flex-end; }
+
+    .sim-chart-wrap {
+      background: #fff; border-radius: 10px; padding: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+    }
+    .sim-chart-container { position: relative; width: 100%; height: 400px; }
+
+    .sim-table-wrap {
+      background: #fff; border-radius: 10px; padding: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      overflow-x: auto;
+    }
+    .sim-table-wrap h3 { font-size: 15px; font-weight: 500; margin-bottom: 14px; }
+    .sim-table {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+    }
+    .sim-table th {
+      background: #f5f5f5; padding: 8px 14px;
+      text-align: right; font-weight: 500;
+      border-bottom: 1px solid #e0e0e0;
+      white-space: nowrap;
+    }
+    .sim-table th:first-child { text-align: center; }
+    .sim-table td {
+      padding: 7px 14px; text-align: right;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .sim-table td:first-child { text-align: center; color: #888; }
+    .sim-table tr:hover td { background: #fafafa; }
+    .sim-table-toggle {
+      cursor: pointer; user-select: none;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .sim-table-toggle:hover { color: #555; }
+    .sim-table-arrow { font-size: 11px; color: #aaa; transition: transform 0.2s; }
+
+    .sim-crossover-wrap {
+      background: #fff; border-radius: 10px; padding: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      margin-top: 20px;
+    }
+    .sim-crossover-wrap h3 { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
+    .sim-crossover-note { font-size: 12px; color: #aaa; margin-bottom: 14px; }
+    .sim-crossover-cards {
+      display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px;
+    }
+    .crossover-card {
+      flex: 1; min-width: 140px;
+      border-radius: 8px; padding: 14px 18px;
+      border: 2px solid; text-align: center;
+      background: #fffdf7;
+    }
+    .crossover-card .cc-rate { font-size: 12px; color: #888; margin-bottom: 4px; }
+    .crossover-card .cc-year { font-size: 24px; font-weight: 600; }
+    .crossover-card .cc-label { font-size: 12px; color: #666; margin-top: 4px; }
+    .crossover-card .cc-detail { font-size: 11px; color: #aaa; margin-top: 5px; }
+
+    /* ── 結論區塊 ── */
+    .sim-conclusion {
+      margin-top: 28px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px 24px;
+      border: 1px solid #e8e8e8;
+    }
+    .sim-conclusion h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .conclusion-summary { font-size: 13px; color: #666; margin-bottom: 18px; }
+    .milestone-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .milestone-table th {
+      padding: 8px 14px; text-align: center;
+      font-weight: 500; color: #555;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    .milestone-table th:first-child { text-align: left; }
+    .milestone-table td { padding: 9px 14px; text-align: center; border-bottom: 1px solid #f0f0f0; }
+    .milestone-table td:first-child { text-align: left; font-weight: 600; color: #333; font-size: 14px; }
+    .milestone-table tr:last-child td { border-bottom: none; }
+    .ms-not-reached { color: #ccc; font-size: 12px; }
+    .ms-already { color: #34d399; font-size: 12px; }
+
+    /* ═══════════════════════════════════════
+     Pull-to-refresh 指示器
+  ═══════════════════════════════════════ */
+  #ptr-indicator {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 0;
+    overflow: hidden;
+    background: #0f172a;
+    z-index: 9999;
+    transition: height 0.1s;
+    color: #94a3b8;
+    font-size: 13px;
+    gap: 8px;
+  }
+  #ptr-indicator.ptr-ready { color: #22c55e; }
+  .ptr-spinner {
+    width: 18px; height: 18px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: ptr-spin 0.7s linear infinite;
+  }
+  @keyframes ptr-spin { to { transform: rotate(360deg); } }
+
+  </style>
+</head>
+<body>
+<div id="ptr-indicator">
+  <div class="ptr-spinner"></div>
+  <span id="ptr-text">放開即可更新</span>
+</div>
+
+<style>
+  .top-nav { flex-wrap: wrap; height: auto; min-height: 52px; row-gap: 0; }
+  .nav-links { order: 2; }
+  .nav-views { order: 3; width: 100%; padding: 2px 0 6px; }
+  .nav-logo { display:flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap;flex-shrink:0; }
+  .nav-logo-text { display:flex;flex-direction:column;line-height:1.2; }
+  .nav-logo-zh { font-size:14px;font-weight:700;color:#D4AF37;letter-spacing:1px; }
+  .nav-logo-en { font-size:9px;font-weight:300;color:rgba(212,175,55,0.6);letter-spacing:2px;text-transform:uppercase; }
+</style>
+<!-- ════════════════════════════════════════
+     固定導覽列
+════════════════════════════════════════ -->
+<nav class="top-nav">
+  <a class="nav-logo" href="https://www.youtube.com/@slowrich.invest" target="_blank" rel="noopener">
+    <svg viewBox="0 0 100 100" width="30" height="30" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-nav"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-nav)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2.5" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="4.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div class="nav-logo-text">
+      <span class="nav-logo-zh">慢富</span>
+      <span class="nav-logo-en">slow rich</span>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="#sec-live"       class="nav-link active" data-section="sec-live">最新行情</a>
+    <a href="#sec-simulator"  class="nav-link"        data-section="sec-simulator">投資試算</a>
+    <a href="#sec-withdrawal" class="nav-link"        data-section="sec-withdrawal">提領法則</a>
+  </div>
+  <div class="nav-views">已瀏覽 <span id="pageViewCount">—</span> 次</div>
+</nav>
+
+<!-- 即時行情 -->
+<div class="live-bar page-section" id="sec-live"></div>
+
+<section id="sec-simulator" class="page-section">
+  <div class="section-inner">
+    <div class="section-header">
+      <h2>投資試算</h2>
+      <span class="section-sub">定期定額複利成長模擬</span>
+    </div>
+
+    <div class="sim-inputs">
+      <div class="sim-field">
+        <label>初始本金</label>
+        <input type="number" id="simPrincipal" value="0" min="0" step="1">
+        <span class="unit">萬元</span>
+      </div>
+      <div class="sim-phase-block">
+        <div class="sim-phase-tag">第一階段</div>
+        <div class="sim-phase-fields">
+          <div class="sim-field">
+            <label>每月投入</label>
+            <input type="number" id="simMonthly1" value="1" min="0" step="0.1">
+            <span class="unit">萬元</span>
+          </div>
+          <div class="sim-field">
+            <label>連續投入</label>
+            <input type="number" id="simInvestYears1" value="20" min="0" max="50" step="1">
+            <span class="unit">年</span>
+          </div>
+        </div>
+      </div>
+      <div class="sim-phase-block">
+        <div class="sim-phase-tag">第二階段</div>
+        <div class="sim-phase-fields">
+          <div class="sim-field">
+            <label>每月投入</label>
+            <input type="number" id="simMonthly2" value="1" min="0" step="0.1">
+            <span class="unit">萬元</span>
+          </div>
+          <div class="sim-field">
+            <label>連續投入</label>
+            <input type="number" id="simInvestYears2" value="20" min="0" max="50" step="1">
+            <span class="unit">年</span>
+          </div>
+        </div>
+      </div>
+      <div class="sim-field">
+        <label>觀察總年限</label>
+        <input type="number" id="simYears" value="30" min="1" max="50" step="1">
+        <span class="unit">年（1～50）</span>
+      </div>
+      <div class="sim-rate-group">
+        <label>年化報酬率</label>
+        <div class="sim-rate-checks">
+          <label><input type="checkbox" value="6"  checked> 6%</label>
+          <label><input type="checkbox" value="8"  checked> 8%</label>
+          <label><input type="checkbox" value="10" checked> 10%</label>
+          <label><input type="checkbox" value="12" checked> 12%</label>
+        </div>
+      </div>
+      <button class="sim-calc-btn" onclick="runSimulator()">計算</button>
+    </div>
+
+    <div class="sim-chart-wrap">
+      <div class="sim-chart-container">
+        <canvas id="simChart"></canvas>
+      </div>
+    </div>
+
+    <div class="sim-table-wrap">
+      <h3 id="simTableTitle" class="sim-table-toggle" onclick="toggleSimTable()">
+        年度資產對照表
+        <span id="simTableArrow" class="sim-table-arrow">▶</span>
+      </h3>
+      <div id="simTableBody" style="display:none">
+        <table class="sim-table" id="simTable"></table>
+      </div>
+    </div>
+
+    <div class="sim-crossover-wrap">
+      <h3>每年報酬 vs 每年投入</h3>
+      <p class="sim-crossover-note">綠線：每年資產成長（純報酬，不含當年投入）　灰虛線：每年固定投入金額</p>
+      <div class="sim-chart-container" style="height:340px">
+        <canvas id="crossoverChart"></canvas>
+      </div>
+      <div id="crossoverCards" class="sim-crossover-cards"></div>
+    </div>
+
+    <div id="simConclusion" class="sim-conclusion" style="display:none"></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     Section：提領法則模擬
+════════════════════════════════════════ -->
+<section id="sec-withdrawal" class="page-section">
+  <div class="section-inner">
+    <div class="section-header">
+      <h2>提領法則模擬</h2>
+      <span class="section-sub">設定退休本金與通膨率，比較 3% 與 4% 提領率在不同報酬假設下的資產壽命</span>
+    </div>
+
+    <div class="sim-inputs">
+      <div class="sim-field">
+        <label>退休本金</label>
+        <input type="number" id="wdPrincipal" value="1000" min="1" step="10">
+        <span class="unit">萬元</span>
+      </div>
+      <div class="sim-field">
+        <label>觀察年限</label>
+        <input type="number" id="wdYears" value="40" min="5" max="60" step="1">
+        <span class="unit">年（5～60）</span>
+      </div>
+      <div class="sim-field">
+        <label>通膨率</label>
+        <input type="number" id="wdInflation" value="2" min="0" max="10" step="0.5">
+        <span class="unit">% / 年（0 = 固定提領）</span>
+      </div>
+      <div class="sim-rate-group">
+        <label>假設年化報酬率</label>
+        <div class="sim-rate-checks" id="wdReturnChecks">
+          <label><input type="checkbox" value="0"> 0%</label>
+          <label><input type="checkbox" value="3" checked> 3%</label>
+          <label><input type="checkbox" value="5" checked> 5%</label>
+          <label><input type="checkbox" value="7" checked> 7%</label>
+          <label><input type="checkbox" value="10"> 10%</label>
+        </div>
+      </div>
+      <button class="sim-calc-btn" onclick="runWithdrawal()">計算</button>
+    </div>
+
+    <div id="wdAmountCards" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px"></div>
+
+    <div class="sim-chart-wrap">
+      <div id="wdChartHint" style="font-size:12px;color:#aaa;margin-bottom:10px">實線 = 3% 提領　虛線 = 4% 提領</div>
+      <div class="sim-chart-container" style="height:420px">
+        <canvas id="wdChart"></canvas>
+      </div>
+    </div>
+
+    <div id="wdStats" style="margin-top:20px"></div>
+
+    <div id="wdConclusion" style="margin-top:20px"></div>
+
+    <p class="data-note">每年提領金額以退休本金計算，通膨率 &gt; 0 時逐年調升；不含稅金與配息再投入；4% 法則源自 1998 年 Trinity Study</p>
+  </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+
+// ════════════════════════════════════════
+// 即時行情區塊
+// ════════════════════════════════════════
+(function initLiveBar() {
+  const el = document.getElementById('sec-live');
+  if (!el || typeof DATA_LIVE === 'undefined') return;
+
+  const d = DATA_LIVE;
+  const fmtN = n => n.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtUSD = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const DD_MAX   = 25;
+  const DD_TICKS = [0, 5, 10, 15, 20, 25];
+
+  function drawdownBar(dropPct, isAth = false) {
+    const drop   = Math.abs(Math.min(dropPct, 0));
+    const posPct = Math.min(drop / DD_MAX * 100, 100);
+    const nearTick = DD_TICKS.reduce((a, b) =>
+      Math.abs(b - drop) < Math.abs(a - drop) ? b : a);
+    const ticksHtml = DD_TICKS.map(t => {
+      const pos   = t / DD_MAX * 100;
+      const label = t === 0 ? '最高點' : `-${t}%`;
+      const cls   = t === nearTick ? 'dd-tick dd-tick-active' : 'dd-tick';
+      return `<div class="${cls}" style="left:${pos}%">${label}</div>`;
+    }).join('');
+    const ptrCls = isAth ? 'dd-pointer ath-pointer' : 'dd-pointer';
+    return `
+      <div class="dd-wrap">
+        <div class="dd-scale">
+          <div class="${ptrCls}" style="left:${posPct}%"></div>
+        </div>
+        <div class="dd-ticks">${ticksHtml}</div>
+      </div>`;
+  }
+
+  function isAthToday(asset) {
+    return asset.athDate && asset.currentDate && asset.athDate === asset.currentDate;
+  }
+
+  function ytdBadge(asset) {
+    if (!asset.athYtdCount) return '';
+    return `<span class="ath-ytd-badge">今年創新高 ${asset.athYtdCount} 次</span>`;
+  }
+
+  function dropCard(asset, subText, fmtFn) {
+    if (isAthToday(asset)) {
+      return `
+        <div class="live-card ath-card">
+          <div class="lc-label">距歷史最高點</div>
+          <div class="lc-value">創新高</div>
+          <div class="lc-sub">今日盤中最高</div>
+        </div>`;
+    }
+    return `
+      <div class="live-card">
+        <div class="lc-label">距歷史最高點</div>
+        <div class="lc-value live-drop-neg">${asset.dropFromAth}%</div>
+        <div class="lc-sub">${subText}</div>
+      </div>`;
+  }
+
+  const t = d.taiex || {};
+  const v = d.vt    || {};
+
+  function athBanner(asset, label) {
+    if (!isAthToday(asset)) return '';
+    return `<div class="ath-banner"><div class="ath-dot"></div>${label} 今日盤中創新高</div>`;
+  }
+
+  const tSection = `
+    <div class="live-section">
+      ${athBanner(t, '台股加權指數 TAIEX')}
+      <div class="live-section-title">台股加權指數 TAIEX ${ytdBadge(t)}</div>
+      <div class="live-group">
+        <div class="live-card">
+          <div class="lc-label">歷史最高點</div>
+          <div class="lc-value">${t.ath ? fmtN(t.ath) : '—'}</div>
+          <div class="lc-sub">${t.athDate || ''}</div>
+        </div>
+        <div class="live-card">
+          <div class="lc-label">目前指數</div>
+          <div class="lc-value">${t.current ? fmtN(t.current) : '—'}</div>
+          <div class="lc-sub">${t.currentDate || ''}</div>
+        </div>
+        ${dropCard(t, t.current && t.ath ? '相差 ' + fmtN(Math.abs(t.current - t.ath)) + ' 點' : '')}
+      </div>
+      ${drawdownBar(t.dropFromAth || 0, isAthToday(t))}
+    </div>`;
+
+  const vSection = `
+    <div class="live-divider"></div>
+    <div class="live-section">
+      ${athBanner(v, 'VT 全球股票 ETF')}
+      <div class="live-section-title">VT 全球股票 ETF ${ytdBadge(v)}</div>
+      <div class="live-group">
+        <div class="live-card">
+          <div class="lc-label">歷史最高點</div>
+          <div class="lc-value">${v.ath ? fmtUSD(v.ath) : '—'}</div>
+          <div class="lc-sub">${v.athDate || ''}</div>
+        </div>
+        <div class="live-card">
+          <div class="lc-label">目前股價</div>
+          <div class="lc-value">${v.current ? fmtUSD(v.current) : '—'}</div>
+          <div class="lc-sub">${v.currentDate || ''}</div>
+        </div>
+        ${dropCard(v, v.current && v.ath ? '相差 ' + fmtUSD(Math.abs(v.current - v.ath)) : '')}
+      </div>
+      ${drawdownBar(v.dropFromAth || 0, isAthToday(v))}
+    </div>`;
+
+  el.innerHTML = `
+    <div class="live-inner">
+      ${tSection}
+      ${vSection}
+      <div style="text-align:right">
+        <span class="lc-sub">資料更新：${d.updatedAt}（每 10 分鐘更新，非即時報價）</span>
+      </div>
+    </div>`;
+})();
+
+// ════════════════════════════════════════
+// 導覽列：Intersection Observer 自動高亮
+// ════════════════════════════════════════
+(function initNav() {
+  const sections = document.querySelectorAll('.page-section');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(a => {
+          a.classList.toggle('active', a.dataset.section === id);
+        });
+      }
+    });
+  }, {
+    rootMargin: '-52px 0px -60% 0px',
+    threshold: 0,
+  });
+
+  sections.forEach(s => observer.observe(s));
+})();
+
+// ════════════════════════════════════════
+// 投資試算
+// ════════════════════════════════════════
+let simChartInst = null;
+
+const SIM_COLORS = {
+  '6':  { line: '#94a3b8', fill: 'rgba(148,163,184,0.12)' },
+  '8':  { line: '#60a5fa', fill: 'rgba(96,165,250,0.12)'  },
+  '10': { line: '#34d399', fill: 'rgba(52,211,153,0.12)'  },
+  '12': { line: '#f87171', fill: 'rgba(248,113,113,0.12)' },
+};
+
+function fmtMoney(v) {
+  if (v >= 1e8) return (v / 1e8).toFixed(1) + ' 億';
+  if (v >= 1e4) return (v / 1e4).toFixed(0) + ' 萬';
+  return v.toFixed(0);
+}
+
+function fmtMoneyFull(v) {
+  return Math.round(v).toLocaleString('zh-TW') + ' 元';
+}
+
+function calcGrowth(principal, monthly1, investYears1, monthly2, investYears2, ratePercent, years) {
+  const r = ratePercent / 100 / 12;
+  const result = [{ year: 0, value: principal }];
+  let val = principal;
+  for (let y = 1; y <= years; y++) {
+    let m;
+    if (y <= investYears1)                      m = monthly1;
+    else if (y <= investYears1 + investYears2)  m = monthly2;
+    else                                         m = 0;
+    for (let i = 0; i < 12; i++) val = val * (1 + r) + m;
+    result.push({ year: y, value: val });
+  }
+  return result;
+}
+
+function runSimulator() {
+  const principal    = (parseFloat(document.getElementById('simPrincipal').value)    || 0) * 10000;
+  const monthly1     = (parseFloat(document.getElementById('simMonthly1').value)     || 0) * 10000;
+  const investYears1 = Math.min(50, Math.max(0, parseInt(document.getElementById('simInvestYears1').value) || 0));
+  const monthly2     = (parseFloat(document.getElementById('simMonthly2').value)     || 0) * 10000;
+  const investYears2 = Math.min(50, Math.max(0, parseInt(document.getElementById('simInvestYears2').value) || 0));
+  const totalInvestYears = investYears1 + investYears2;
+  const years = Math.min(50, Math.max(totalInvestYears || 1, parseInt(document.getElementById('simYears').value) || 30));
+
+  const checked = [...document.querySelectorAll('#sec-simulator .sim-rate-checks input:checked')].map(el => el.value);
+  if (checked.length === 0) { alert('請至少勾選一個報酬率'); return; }
+
+  const seriesMap = {};
+  checked.forEach(r => {
+    seriesMap[r] = calcGrowth(principal, monthly1, investYears1, monthly2, investYears2, parseFloat(r), years);
+  });
+
+  const labels = seriesMap[checked[0]].map(d => d.year + ' 年');
+
+  const datasets = checked.map(r => ({
+    label: r + '%',
+    data: seriesMap[r].map(d => d.value),
+    borderColor: SIM_COLORS[r]?.line ?? '#888',
+    backgroundColor: SIM_COLORS[r]?.fill ?? 'transparent',
+    borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, fill: false, tension: 0.3,
+  }));
+
+  const ctx = document.getElementById('simChart').getContext('2d');
+  if (simChartInst) simChartInst.destroy();
+  simChartInst = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: true, position: 'top', labels: { font: { size: 12 }, boxWidth: 20, padding: 16 } },
+        tooltip: {
+          backgroundColor: 'rgba(255,255,255,0.97)', borderColor: '#ccc', borderWidth: 1,
+          titleColor: '#111', bodyColor: '#333', padding: 12,
+          callbacks: {
+            title: items => items[0].label + ' 後',
+            label: item => `  ${item.dataset.label} 年化：${fmtMoneyFull(item.parsed.y)}`,
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, maxTicksLimit: 11 } },
+        y: { ticks: { font: { size: 11 }, callback: v => fmtMoney(v) }, grid: { color: 'rgba(0,0,0,0.06)' } }
+      }
+    }
+  });
+
+  // 累積投入輔助
+  function getCumulativeInvested(y) {
+    if (y <= investYears1)                     return principal + monthly1 * 12 * y;
+    if (y <= investYears1 + investYears2)      return principal + monthly1 * 12 * investYears1 + monthly2 * 12 * (y - investYears1);
+    return principal + monthly1 * 12 * investYears1 + monthly2 * 12 * investYears2;
+  }
+
+  // 表格標題
+  const principalW = document.getElementById('simPrincipal').value;
+  const m1W = document.getElementById('simMonthly1').value;
+  const m2W = document.getElementById('simMonthly2').value;
+  const iy1W = document.getElementById('simInvestYears1').value;
+  const iy2W = document.getElementById('simInvestYears2').value;
+  let phaseNote = `第一階段 ${m1W} 萬 × ${iy1W} 年`;
+  if (investYears2 > 0) phaseNote += `，第二階段 ${m2W} 萬 × ${iy2W} 年`;
+  const stopNote = totalInvestYears < years ? `，第 ${totalInvestYears} 年後停止投入` : '';
+  const titleText = `年度資產對照表（本金 ${principalW} 萬元，${phaseNote}${stopNote}）`;
+  const arrowEl = document.getElementById('simTableArrow');
+  document.getElementById('simTableTitle').textContent = titleText;
+  document.getElementById('simTableTitle').appendChild(arrowEl);
+
+  // 建立表格
+  const thead = `<thead><tr>
+    <th>年數</th>
+    ${checked.map(r => `<th>${r}% 年化</th>`).join('')}
+    <th>累積投入</th>
+  </tr></thead>`;
+
+  const rows = seriesMap[checked[0]].map((_, i) => {
+    const invested = getCumulativeInvested(i);
+    const yearLabel = i === 0 ? '起始' : `第 ${i} 年`;
+    const isPhase1End = i === investYears1 && investYears2 > 0;
+    const isStopEnd   = i === totalInvestYears && totalInvestYears < years && (!isPhase1End);
+    const rowStyle    = i > totalInvestYears ? ' style="color:#aaa"' :
+                        (investYears2 > 0 && i > investYears1 && i <= totalInvestYears) ? ' style="color:#888"' : '';
+    let mark = '';
+    if (isPhase1End) mark = ` <span style="font-size:11px;color:#60a5fa">↓ 進入第二階段</span>`;
+    if (i === totalInvestYears && investYears2 > 0 && totalInvestYears < years)
+      mark = ` <span style="font-size:11px;color:#f59e0b">↓ 停止投入</span>`;
+    if (isStopEnd) mark = ` <span style="font-size:11px;color:#f59e0b">↓ 停止投入</span>`;
+    const cells = checked.map(r => `<td>${fmtMoneyFull(seriesMap[r][i].value)}</td>`).join('');
+    return `<tr${rowStyle}><td>${yearLabel}${mark}</td>${cells}<td>${fmtMoneyFull(invested)}</td></tr>`;
+  }).join('');
+
+  document.getElementById('simTable').innerHTML = thead + `<tbody>${rows}</tbody>`;
+
+  buildCrossoverChart(principal, monthly1, investYears1, monthly2, investYears2, years, checked);
+  buildConclusion(principal, monthly1, investYears1, monthly2, investYears2, years, checked);
+}
+
+function toggleSimTable() {
+  const body  = document.getElementById('simTableBody');
+  const arrow = document.getElementById('simTableArrow');
+  const open  = body.style.display === 'none';
+  body.style.display  = open ? '' : 'none';
+  arrow.textContent   = open ? '▼' : '▶';
+}
+
+// ── 交叉點圖表 ──
+let crossoverChartInst = null;
+
+function buildCrossoverChart(principal, monthly1, investYears1, monthly2, investYears2, years, checked) {
+  const totalInvestYears = investYears1 + investYears2;
+  const getAnnualContrib = y => {
+    if (y <= investYears1)            return monthly1 * 12;
+    if (y <= totalInvestYears)        return monthly2 * 12;
+    return 0;
+  };
+  const labels = Array.from({length: years}, (_, i) => (i + 1) + ' 年');
+
+  // 各報酬率的「純報酬成長」= 資產增加量 - 當年實際投入
+  const growthSeries = {};
+  const crossoverYear = {};
+  checked.forEach(r => {
+    const series = calcGrowth(principal, monthly1, investYears1, monthly2, investYears2, parseFloat(r), years);
+    const growth = [];
+    for (let y = 1; y <= years; y++) {
+      growth.push(series[y].value - series[y - 1].value - getAnnualContrib(y));
+    }
+    growthSeries[r] = growth;
+    // 交叉點：純報酬 >= 當年投入（且有投入）
+    const idx = growth.findIndex((g, i) => {
+      const contrib = getAnnualContrib(i + 1);
+      return contrib > 0 && g >= contrib;
+    });
+    crossoverYear[r] = idx >= 0 ? idx + 1 : null;
+  });
+
+  // 貢獻基準線（依階段變化）
+  const contribLineData = Array.from({length: years}, (_, i) => getAnnualContrib(i + 1) / 10000);
+  const contribIdx = checked.length;
+
+  const datasets = checked.map(r => ({
+    label: r + '%',
+    data: growthSeries[r].map(v => v / 10000),
+    borderColor: SIM_COLORS[r]?.line ?? '#888',
+    borderWidth: 2,
+    pointRadius: 0,
+    pointHoverRadius: 5,
+    tension: 0.3,
+    fill: {
+      target: contribIdx,
+      above: SIM_COLORS[r]?.fill ?? 'rgba(100,100,100,0.1)',
+      below: 'rgba(226,75,74,0.07)',
+    },
+  }));
+
+  datasets.push({
+    label: '每年投入',
+    data: contribLineData,
+    borderColor: '#94a3b8',
+    borderWidth: 2,
+    borderDash: [6, 4],
+    pointRadius: 0,
+    fill: false,
+    tension: 0,
+  });
+
+  // 垂直交叉線 plugin
+  const crossoverPlugin = {
+    id: 'crossoverLines',
+    afterDraw(chart) {
+      const { ctx, scales: { x }, chartArea } = chart;
+      checked.forEach(r => {
+        const cy = crossoverYear[r];
+        if (!cy) return;
+        const xPos = x.getPixelForValue(cy - 1);
+        ctx.save();
+        ctx.beginPath();
+        ctx.strokeStyle = SIM_COLORS[r]?.line ?? '#888';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.moveTo(xPos, chartArea.top);
+        ctx.lineTo(xPos, chartArea.bottom);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      });
+    }
+  };
+
+  const ctx = document.getElementById('crossoverChart').getContext('2d');
+  if (crossoverChartInst) crossoverChartInst.destroy();
+  crossoverChartInst = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    plugins: [crossoverPlugin],
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true, position: 'top',
+          labels: { font: { size: 12 }, boxWidth: 20, padding: 16 }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(255,255,255,0.97)',
+          borderColor: '#ccc', borderWidth: 1,
+          titleColor: '#111', bodyColor: '#333', padding: 12,
+          callbacks: {
+            title: items => items[0].label + ' 後',
+            label: item => {
+              const v = item.parsed.y;
+              if (item.dataset.label === '每年投入') return `  每年投入：${fmtMoneyFull(v * 10000)}`;
+              return `  ${item.dataset.label} 年化成長：${fmtMoneyFull(v * 10000)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, maxTicksLimit: 11 } },
+        y: {
+          ticks: { font: { size: 11 }, callback: v => fmtMoney(v * 10000) },
+          grid: { color: 'rgba(0,0,0,0.06)' }
+        }
+      }
+    }
+  });
+
+  // Stat cards
+  document.getElementById('crossoverCards').innerHTML = checked.map(r => {
+    const cy = crossoverYear[r];
+    const color = SIM_COLORS[r]?.line ?? '#888';
+    const growthAtCrossover = cy ? growthSeries[r][cy - 1] : null;
+    const contribAtCrossover = cy ? getAnnualContrib(cy) : 0;
+    const body = cy
+      ? `<div class="cc-year" style="color:${color}">第 ${cy} 年</div>
+         <div class="cc-label">每年報酬 &gt; 每年投入</div>
+         <div class="cc-detail">成長 ${fmtMoney(growthAtCrossover)} vs 投入 ${fmtMoney(contribAtCrossover)}</div>`
+      : `<div class="cc-year" style="color:#bbb">—</div>
+         <div class="cc-label">觀察期內未達交叉</div>`;
+    return `<div class="crossover-card" style="border-color:${color}">
+      <div class="cc-rate">${r}% 年化</div>
+      ${body}
+    </div>`;
+  }).join('');
+}
+
+function buildConclusion(principal, monthly1, investYears1, monthly2, investYears2, years, checked) {
+  const MILESTONES = [300, 1000, 2000, 3000, 4000, 5000, 6000, 8000]; // 單位：萬
+  const MAX_YEARS  = 50;
+
+  function findMilestoneYear(ratePercent, targetVal) {
+    if (principal >= targetVal) return 0;
+    const r = ratePercent / 100 / 12;
+    let val = principal;
+    for (let mo = 1; mo <= MAX_YEARS * 12; mo++) {
+      const curYear = Math.ceil(mo / 12);
+      let m;
+      if (curYear <= investYears1)                       m = monthly1;
+      else if (curYear <= investYears1 + investYears2)   m = monthly2;
+      else                                               m = 0;
+      val = val * (1 + r) + m;
+      if (val >= targetVal) return mo / 12;
+    }
+    return null;
+  }
+
+  const principalW = Math.round(principal / 10000);
+  const m1W = (monthly1 / 10000).toFixed(1).replace(/\.0$/, '');
+  const m2W = (monthly2 / 10000).toFixed(1).replace(/\.0$/, '');
+  const totalInvestYears = investYears1 + investYears2;
+  let phaseDesc = `第一階段 ${m1W} 萬 × ${investYears1} 年`;
+  if (investYears2 > 0) phaseDesc += `，第二階段 ${m2W} 萬 × ${investYears2} 年`;
+  const stopNote = totalInvestYears < years ? `，第 ${totalInvestYears} 年後停止投入，觀察 ${years} 年` : `，觀察 ${years} 年`;
+  const summary = `初始本金 ${principalW} 萬元，${phaseDesc}${stopNote}`;
+
+  const thead = `<thead><tr>
+    <th>目標資產</th>
+    ${checked.map(r => `<th style="color:${SIM_COLORS[r]?.line ?? '#888'}">${r}% 年化</th>`).join('')}
+  </tr></thead>`;
+
+  let tbody = '<tbody>';
+  for (const m of MILESTONES) {
+    const targetVal   = m * 10000;
+    const label       = m >= 10000 ? (m / 10000) + ' 億' : m + ' 萬';
+    let row = `<tr><td>${label}</td>`;
+    for (const r of checked) {
+      const yr = findMilestoneYear(parseFloat(r), targetVal);
+      if (yr === 0) {
+        row += `<td class="ms-already">已達標</td>`;
+      } else if (yr === null) {
+        row += `<td class="ms-not-reached">${MAX_YEARS} 年內未達</td>`;
+      } else {
+        const yrs    = Math.floor(yr);
+        const months = Math.round((yr - yrs) * 12);
+        const txt    = months > 0 ? `第 ${yrs} 年 ${months} 個月` : `第 ${yrs} 年`;
+        row += `<td>${txt}</td>`;
+      }
+    }
+    row += '</tr>';
+    tbody += row;
+  }
+  tbody += '</tbody>';
+
+  const totalInvested = principal + monthly1 * 12 * investYears1 + monthly2 * 12 * investYears2;
+  const totalInvestedW = (totalInvested / 10000).toLocaleString('zh-TW', { maximumFractionDigits: 1 });
+
+  const el = document.getElementById('simConclusion');
+  el.style.display = '';
+  el.innerHTML = `
+    <h3>結論</h3>
+    <p class="conclusion-summary">${summary}</p>
+    <div style="display:inline-flex;align-items:baseline;gap:8px;margin-bottom:18px;
+                padding:10px 20px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;">
+      <span style="font-size:12px;color:#166534;">總共投入金額</span>
+      <span style="font-size:1.4rem;font-weight:700;color:#15803d;">${totalInvestedW} 萬元</span>
+    </div>
+    <table class="milestone-table">${thead}${tbody}</table>
+  `;
+}
+
+// 頁面載入時自動執行一次
+runSimulator();
+
+// ════════════════════════════════════════
+// 提領法則模擬
+// ════════════════════════════════════════
+(function initWithdrawal() {
+  const RETURN_COLORS = {
+    '0':  '#94a3b8',
+    '3':  '#34d399',
+    '5':  '#3b82f6',
+    '7':  '#f59e0b',
+    '10': '#a855f7',
+  };
+  const WITHDRAWAL_RATES = ['3', '4'];
+
+  let wdChartInst = null;
+
+  // 計算資產序列；回傳每年資產餘額與當年提領金額
+  function calcSeries(principal, returnRate, withdrawalRate, maxYears, inflationRate) {
+    let annual = principal * withdrawalRate / 100;
+    const r    = returnRate  / 100;
+    const inf  = inflationRate / 100;
+    const pts        = [principal]; // 第 0 年 = 退休時
+    const withdrawals = [0];        // 第 0 年無提領
+    let val = principal;
+    let depletedYear = null;
+    for (let y = 1; y <= maxYears; y++) {
+      if (y > 1) annual *= (1 + inf);   // 通膨調升提領金額
+      val = val * (1 + r) - annual;
+      if (val <= 0 && depletedYear === null) depletedYear = y;
+      pts.push(Math.max(0, val));
+      withdrawals.push(annual);
+    }
+    return { pts, withdrawals, depletedYear, firstAnnual: principal * withdrawalRate / 100 };
+  }
+
+  window.runWithdrawal = function() {
+    const principalMW = parseFloat(document.getElementById('wdPrincipal').value) || 1000;
+    const principal   = principalMW * 10000;
+    const maxYears    = Math.min(60, Math.max(5, parseInt(document.getElementById('wdYears').value) || 40));
+    const inflation   = Math.max(0, parseFloat(document.getElementById('wdInflation').value) || 0);
+    const returnRates = [...document.querySelectorAll('#wdReturnChecks input:checked')].map(el => el.value);
+    if (!returnRates.length) { alert('請至少選擇一個報酬率'); return; }
+
+    // 更新圖例提示
+    document.getElementById('wdChartHint').textContent =
+      inflation > 0
+        ? `實線 = 3% 提領　虛線 = 4% 提領　（通膨 ${inflation}% / 年，提領金額逐年調升）`
+        : '實線 = 3% 提領　虛線 = 4% 提領';
+
+    // 提領金額卡片
+    document.getElementById('wdAmountCards').innerHTML = WITHDRAWAL_RATES.map(wr => {
+      const first    = principalMW * parseFloat(wr) / 100;
+      const color    = wr === '3' ? '#3b82f6' : '#ef4444';
+      const yr10     = first * Math.pow(1 + inflation / 100, 9);
+      const yr20     = first * Math.pow(1 + inflation / 100, 19);
+      const bodyHtml = inflation > 0
+        ? `<div style="font-size:1.3rem;font-weight:700;color:${color}">第 1 年　${first.toFixed(1)} 萬</div>
+           <div style="font-size:12px;color:#666;margin-top:6px;line-height:2">
+             第 10 年　${yr10.toFixed(1)} 萬<br>
+             第 20 年　${yr20.toFixed(1)} 萬
+           </div>`
+        : `<div style="font-size:1.7rem;font-weight:700;color:${color}">${first.toFixed(0)} 萬 / 年</div>
+           <div style="font-size:13px;color:#666;margin-top:5px">每月約 ${(first / 12).toFixed(1)} 萬元</div>`;
+      return `
+        <div style="flex:1;min-width:180px;background:#fff;border-radius:10px;padding:18px 22px;
+                    box-shadow:0 1px 4px rgba(0,0,0,0.08);border-left:4px solid ${color}">
+          <div style="font-size:12px;color:#888;margin-bottom:8px">
+            ${wr}% 提領率${inflation > 0 ? `（通膨 ${inflation}%）` : ''}
+          </div>
+          ${bodyHtml}
+        </div>`;
+    }).join('');
+
+    const labels = Array.from({ length: maxYears + 1 }, (_, i) => i === 0 ? '退休時' : `第 ${i} 年`);
+
+    // 計算所有組合並建立 datasets
+    const results  = {};
+    const datasets = [];
+
+    returnRates.forEach(rr => {
+      WITHDRAWAL_RATES.forEach(wr => {
+        const key = `${rr}_${wr}`;
+        const res = calcSeries(principal, parseFloat(rr), parseFloat(wr), maxYears, inflation);
+        results[key] = res;
+        const color = RETURN_COLORS[rr] ?? '#888';
+        datasets.push({
+          label:            `年化 ${rr}%・${wr}% 提領`,
+          _key:             key,
+          data:             res.pts.map(v => v / 10000),
+          borderColor:      color,
+          backgroundColor:  'transparent',
+          borderWidth:      2,
+          borderDash:       wr === '4' ? [7, 4] : [],
+          pointRadius:      0,
+          pointHoverRadius: 5,
+          tension:          0.2,
+        });
+      });
+    });
+
+    // 本金基準線
+    datasets.push({
+      label:       `本金 ${principalMW} 萬`,
+      data:        Array(maxYears + 1).fill(principalMW),
+      borderColor: '#e5e7eb',
+      borderWidth: 1.5,
+      borderDash:  [3, 3],
+      pointRadius: 0,
+      fill:        false,
+      tension:     0,
+    });
+
+    const ctx = document.getElementById('wdChart').getContext('2d');
+    if (wdChartInst) wdChartInst.destroy();
+    wdChartInst = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            display: true, position: 'top',
+            labels: { font: { size: 12 }, boxWidth: 24, padding: 14 },
+          },
+          tooltip: {
+            backgroundColor: 'rgba(255,255,255,0.97)',
+            borderColor: '#ccc', borderWidth: 1,
+            titleColor: '#111', bodyColor: '#333', padding: 12,
+            callbacks: {
+              title: items => items[0].label,
+              label: item => {
+                if (item.dataset.label.startsWith('本金')) return null;
+                const v = item.parsed.y;
+                if (v === null || v < 0) return null;
+                const key = item.dataset._key;
+                const wd  = results[key]?.withdrawals?.[item.dataIndex];
+                const wdStr = (inflation > 0 && wd != null)
+                  ? `　本年提領 ${(wd / 10000).toFixed(1)} 萬`
+                  : '';
+                return `  ${item.dataset.label}：${fmtMoneyFull(v * 10000)}${wdStr}`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 11 }, maxTicksLimit: 14, autoSkip: true },
+          },
+          y: {
+            min: 0,
+            ticks: { font: { size: 11 }, callback: v => fmtMoney(v * 10000) },
+            grid: { color: 'rgba(0,0,0,0.06)' },
+          },
+        },
+      },
+    });
+
+    // 統計表格
+    const yr1_3  = (principalMW * 0.03).toFixed(0);
+    const yr1_4  = (principalMW * 0.04).toFixed(0);
+    const lastY3 = (principalMW * 0.03 * Math.pow(1 + inflation / 100, maxYears - 1)).toFixed(0);
+    const lastY4 = (principalMW * 0.04 * Math.pow(1 + inflation / 100, maxYears - 1)).toFixed(0);
+
+    const col3Header = inflation > 0
+      ? `3% 提領（第1年 ${yr1_3} 萬 → 第${maxYears}年 ${lastY3} 萬）`
+      : `3% 提領（${yr1_3} 萬/年）`;
+    const col4Header = inflation > 0
+      ? `4% 提領（第1年 ${yr1_4} 萬 → 第${maxYears}年 ${lastY4} 萬）`
+      : `4% 提領（${yr1_4} 萬/年）`;
+
+    let html = `
+      <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.08)">
+        <h3 style="font-size:15px;font-weight:600;margin-bottom:14px">資產壽命總覽</h3>
+        <table class="sim-table">
+          <thead><tr>
+            <th style="text-align:left">假設年化報酬</th>
+            <th>${col3Header}</th>
+            <th>${col4Header}</th>
+          </tr></thead>
+          <tbody>`;
+
+    returnRates.forEach(rr => {
+      function cell(wr) {
+        const res = results[`${rr}_${wr}`];
+        if (!res) return '<td>—</td>';
+        let durStr;
+        if (res.depletedYear === null) {
+          const finalMW = Math.round(res.pts[res.pts.length - 1] / 10000).toLocaleString('zh-TW');
+          durStr = `<span style="color:#10b981;font-weight:600">永續</span><br>
+                    <span style="font-size:11px;color:#aaa">第 ${maxYears} 年剩 ${finalMW} 萬</span>`;
+        } else {
+          durStr = `<span style="color:#e24b4a;font-weight:600">第 ${res.depletedYear} 年耗盡</span>`;
+        }
+        let wdNote = '';
+        if (inflation > 0) {
+          const lastYr  = Math.min(res.depletedYear ?? maxYears, maxYears);
+          const lastWD  = res.withdrawals[lastYr];
+          if (lastWD) wdNote = `<br><span style="font-size:11px;color:#aaa">第 ${lastYr} 年提領 ${(lastWD / 10000).toFixed(1)} 萬</span>`;
+        }
+        return `<td style="text-align:center">${durStr}${wdNote}</td>`;
+      }
+      html += `<tr>
+        <td style="text-align:left;font-weight:600;color:${RETURN_COLORS[rr] ?? '#333'}">${rr}% 報酬</td>
+        ${cell('3')}${cell('4')}
+      </tr>`;
+    });
+
+    html += `</tbody></table></div>`;
+    document.getElementById('wdStats').innerHTML = html;
+
+    // 結論區塊
+    const annual3  = principalMW * 0.03;
+    const annual4  = principalMW * 0.04;
+    const lastAnn3 = annual3 * Math.pow(1 + inflation / 100, maxYears - 1);
+    const lastAnn4 = annual4 * Math.pow(1 + inflation / 100, maxYears - 1);
+
+    // 判斷各提領率最低可永續報酬率
+    function minSustainRate(wr) {
+      for (const rr of ['0','3','5','7','10']) {
+        if (!returnRates.includes(rr)) continue;
+        if (results[`${rr}_${wr}`]?.depletedYear === null) return rr;
+      }
+      return null;
+    }
+    function firstDepletedInfo(wr) {
+      for (const rr of ['0','3','5','7','10']) {
+        if (!returnRates.includes(rr)) continue;
+        const d = results[`${rr}_${wr}`]?.depletedYear;
+        if (d !== null && d !== undefined) return { rr, yr: d };
+      }
+      return null;
+    }
+
+    const sustain3 = minSustainRate('3');
+    const sustain4 = minSustainRate('4');
+    const depleted3 = firstDepletedInfo('3');
+    const depleted4 = firstDepletedInfo('4');
+
+    function sustainLine(wr, sustain, depleted) {
+      const label = `${wr}% 提領`;
+      const annualMW = principalMW * parseFloat(wr) / 100;
+      if (sustain !== null) {
+        const finalMW = Math.round(results[`${sustain}_${wr}`].pts[results[`${sustain}_${wr}`].pts.length - 1] / 10000).toLocaleString('zh-TW');
+        return `<span style="color:#10b981;font-weight:600">${label}</span>：年化 ${sustain}% 以上可永續（第 ${maxYears} 年剩 ${finalMW} 萬）`;
+      } else if (depleted) {
+        return `<span style="color:#e24b4a;font-weight:600">${label}</span>：所選報酬率均會耗盡（最早第 ${depleted.yr} 年）`;
+      }
+      return `<span style="font-weight:600">${label}</span>：—`;
+    }
+
+    // 建議文字
+    let advice = '';
+    if (sustain3 !== null && sustain4 !== null) {
+      if (sustain3 === sustain4) {
+        advice = `年化 ${sustain3}% 以上時，3% 與 4% 提領均可永續；若預期報酬率接近此門檻，建議選擇 3% 提領以留安全邊際。`;
+      } else {
+        advice = `若預期年化報酬率在 ${sustain3}%–${sustain4}% 之間，建議採用 3% 提領；達到 ${sustain4}% 以上時，4% 提領亦可永續。`;
+      }
+    } else if (sustain3 !== null) {
+      advice = `在所選報酬率中，僅 3% 提領可達永續（年化 ${sustain3}% 以上）；4% 提領風險較高，建議保守採用 3%。`;
+    } else if (sustain4 !== null) {
+      advice = `年化 ${sustain4}% 以上時，4% 提領可永續；若報酬率不確定，建議降至 3% 提領以增加安全性。`;
+    } else {
+      advice = `在所選報酬率與年限設定下，兩種提領率均會耗盡。建議降低提領率、增加退休本金，或預期更高報酬率。`;
+    }
+
+    const inflationNote = inflation > 0
+      ? `<div style="margin-top:8px;font-size:13px;color:#6b7280;">
+           通膨 ${inflation}%：${maxYears} 年後年提領金額約為退休初期的
+           <strong>${(Math.pow(1 + inflation / 100, maxYears - 1)).toFixed(2)} 倍</strong>
+           （3% 提領：${lastAnn3.toFixed(1)} 萬／年；4% 提領：${lastAnn4.toFixed(1)} 萬／年）
+         </div>`
+      : '';
+
+    document.getElementById('wdConclusion').innerHTML = `
+      <div style="background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,0.08)">
+        <h3 style="font-size:15px;font-weight:600;margin-bottom:14px">結論摘要</h3>
+
+        <!-- 參數摘要 -->
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+          <span style="background:#f3f4f6;border-radius:20px;padding:4px 14px;font-size:12px;color:#374151;">
+            退休本金　<strong>${principalMW.toLocaleString('zh-TW')} 萬</strong>
+          </span>
+          <span style="background:#f3f4f6;border-radius:20px;padding:4px 14px;font-size:12px;color:#374151;">
+            觀察年限　<strong>${maxYears} 年</strong>
+          </span>
+          <span style="background:#f3f4f6;border-radius:20px;padding:4px 14px;font-size:12px;color:#374151;">
+            通膨率　<strong>${inflation > 0 ? inflation + '% / 年' : '不調整'}</strong>
+          </span>
+          <span style="background:#f3f4f6;border-radius:20px;padding:4px 14px;font-size:12px;color:#374151;">
+            報酬率假設　<strong>${returnRates.map(r => r + '%').join(' / ')}</strong>
+          </span>
+        </div>
+
+        <!-- 提領金額 -->
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+          <div style="flex:1;min-width:180px;background:#eff6ff;border-radius:8px;padding:12px 16px;border-left:3px solid #3b82f6;">
+            <div style="font-size:12px;color:#6b7280;margin-bottom:4px;">3% 提領</div>
+            <div style="font-size:1.3rem;font-weight:700;color:#1d4ed8;">${annual3.toFixed(1)} 萬 / 年</div>
+            <div style="font-size:12px;color:#6b7280;margin-top:3px;">每月約 ${(annual3 / 12).toFixed(1)} 萬</div>
+            ${inflation > 0 ? `<div style="font-size:11px;color:#9ca3af;margin-top:3px;">第 ${maxYears} 年約 ${lastAnn3.toFixed(1)} 萬 / 年</div>` : ''}
+          </div>
+          <div style="flex:1;min-width:180px;background:#fef2f2;border-radius:8px;padding:12px 16px;border-left:3px solid #ef4444;">
+            <div style="font-size:12px;color:#6b7280;margin-bottom:4px;">4% 提領</div>
+            <div style="font-size:1.3rem;font-weight:700;color:#dc2626;">${annual4.toFixed(1)} 萬 / 年</div>
+            <div style="font-size:12px;color:#6b7280;margin-top:3px;">每月約 ${(annual4 / 12).toFixed(1)} 萬</div>
+            ${inflation > 0 ? `<div style="font-size:11px;color:#9ca3af;margin-top:3px;">第 ${maxYears} 年約 ${lastAnn4.toFixed(1)} 萬 / 年</div>` : ''}
+          </div>
+        </div>
+
+        <!-- 永續判斷 -->
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;margin-bottom:12px;">
+          <div>${sustainLine('3', sustain3, depleted3)}</div>
+          <div>${sustainLine('4', sustain4, depleted4)}</div>
+        </div>
+
+        ${inflationNote}
+
+        <!-- 建議 -->
+        <div style="margin-top:12px;background:#f9fafb;border-radius:8px;padding:12px 16px;border-left:3px solid #D4AF37;font-size:13px;color:#374151;line-height:1.7;">
+          <strong style="color:#92400e;">建議：</strong>${advice}
+        </div>
+      </div>`;
+  };
+
+  runWithdrawal();
+})();
+
+// ════════════════════════════════════════
+// Pull-to-refresh
+// ════════════════════════════════════════
+(function() {
+  const el   = document.getElementById('ptr-indicator');
+  const text = document.getElementById('ptr-text');
+  const THRESHOLD = 70;
+  let startY = 0, pulling = false;
+
+  document.addEventListener('touchstart', e => {
+    if (window.scrollY === 0) { startY = e.touches[0].clientY; pulling = true; }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!pulling) return;
+    const dist = Math.min(e.touches[0].clientY - startY, THRESHOLD * 1.5);
+    if (dist <= 0) { pulling = false; el.style.height = '0'; return; }
+    el.style.height = Math.min(dist, THRESHOLD) + 'px';
+    if (dist >= THRESHOLD) {
+      el.classList.add('ptr-ready');
+      text.textContent = '放開即可更新';
+    } else {
+      el.classList.remove('ptr-ready');
+      text.textContent = '下拉更新';
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    if (!pulling) return;
+    pulling = false;
+    if (el.classList.contains('ptr-ready')) {
+      el.style.height = THRESHOLD + 'px';
+      setTimeout(() => location.reload(), 200);
+    } else {
+      el.style.height = '0';
+    }
+  });
+})();
+
+// ════════════════════════════════════════
+// 瀏覽次數計數器
+// ════════════════════════════════════════
+(function() {
+  fetch('https://api.counterapi.dev/v1/alvin5468-stock0050/pageviews/up')
+    .then(r => r.json())
+    .then(data => {
+      const el = document.getElementById('pageViewCount');
+      if (el && data.count != null) {
+        el.textContent = data.count.toLocaleString('zh-TW');
+      }
+    })
+    .catch(() => {});
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+}
+</script>
+</body>
+</html>

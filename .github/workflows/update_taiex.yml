@@ -1,0 +1,65 @@
+name: 更新 TAIEX 即時行情
+
+on:
+  schedule:
+    - cron: '30 8 * * 1-5'   # 台灣時間 16:30（UTC+8），週一至週五
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests yfinance
+
+      - name: Run update script
+        run: python scripts/update_taiex.py
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data_live.js data_0050.js data_vt.js data_spy.js analysis_data.js
+          if git diff --staged --quiet; then
+            echo "NO_CHANGE=true" >> $GITHUB_ENV
+          elif git log -1 --pretty=%s | grep -q "^chore: 更新"; then
+            git commit --amend --no-edit
+            git push --force-with-lease
+          else
+            git commit -m 'chore: 更新 TAIEX 即時行情'
+            git push
+          fi
+
+      - name: Sync data_live.js to public repo
+        if: env.NO_CHANGE != 'true'
+        run: |
+          git clone https://x-access-token:${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/alvin5468/stock_info.git _stock_info
+          cp data_live.js _stock_info/data_live.js
+          cp data_0050.js _stock_info/data_0050.js
+          cp data_vt.js _stock_info/data_vt.js
+          cp data_spy.js _stock_info/data_spy.js
+          cp analysis_data.js _stock_info/analysis_data.js
+          cd _stock_info
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data_live.js data_0050.js data_vt.js data_spy.js analysis_data.js
+          if git diff --staged --quiet; then
+            echo "skip"
+          elif git log -1 --pretty=%s | grep -q "^chore: 更新"; then
+            git commit --amend --no-edit
+            git push --force-with-lease
+          else
+            git commit -m 'chore: 更新即時行情'
+            git push
+          fi

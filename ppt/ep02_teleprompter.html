@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>EP02 旁白 Teleprompter</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0d1520; color:#dde6f0; font-family:-apple-system,"PingFang TC",sans-serif; height:100vh; overflow:hidden; display:flex; flex-direction:column; user-select:none; }
+  .header { padding:14px 32px; background:rgba(212,175,55,0.08); border-bottom:2px solid rgba(212,175,55,0.25); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .ep-label { font-size:0.8rem; color:#D4AF37; font-weight:800; letter-spacing:2px; }
+  .slide-title { font-size:0.95rem; color:#94a3b8; font-weight:500; text-align:center; flex:1; padding:0 24px; }
+  .counter { font-size:0.82rem; color:#475569; font-weight:600; min-width:48px; text-align:right; }
+  .content { flex:1; overflow-y:auto; padding:52px 80px 40px; scroll-behavior:smooth; }
+  .narration { max-width:860px; margin:0 auto; font-size:1.55rem; line-height:2.0; color:#e2eaf5; }
+  .narration p { margin-bottom:1.1em; }
+  .narration p:last-child { margin-bottom:0; }
+  @keyframes slideIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .slide-anim { animation:slideIn 0.28s ease; }
+  .content::-webkit-scrollbar { width:5px; }
+  .content::-webkit-scrollbar-track { background:transparent; }
+  .content::-webkit-scrollbar-thumb { background:rgba(212,175,55,0.2); border-radius:3px; }
+  .footer { padding:12px 32px; background:rgba(0,0,0,0.35); border-top:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:20px; flex-shrink:0; }
+  .nav-hint { font-size:0.72rem; color:#334155; white-space:nowrap; }
+  .progress-bar { flex:1; height:3px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,#D4AF37,#f0d060); border-radius:2px; transition:width 0.35s ease; }
+  .btn-row { display:flex; gap:8px; }
+  .btn { background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.25); color:#D4AF37; border-radius:6px; padding:4px 14px; font-size:0.75rem; cursor:pointer; font-family:inherit; }
+  .btn:hover { background:rgba(212,175,55,0.22); }
+</style>
+</head>
+<body>
+<div class="header">
+  <span class="ep-label">EP.02</span>
+  <span class="slide-title" id="slideTitle">—</span>
+  <span class="counter" id="counter">1 / 8</span>
+</div>
+<div class="content" id="content">
+  <div class="narration slide-anim" id="narration"></div>
+</div>
+<div class="footer">
+  <div class="btn-row">
+    <button class="btn" onclick="prev()">← 上一頁</button>
+    <button class="btn" onclick="next()">下一頁 →</button>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <span class="nav-hint">← → Space 換頁 &nbsp;|&nbsp; 滾輪捲動</span>
+</div>
+<script>
+const slides = [
+  { title:'第 1 頁 — 封面', text:[
+    '這一集，我們來聊一個聽起來很厲害、但其實非常簡單的投資方法，叫做「指數化投資」。',
+    '它的核心只有一句話：不選股、買市場、慢慢來、比較快。',
+    '聽完這集，你會知道這個方法是誰發明的、它的四個核心優勢是什麼、推薦哪幾支 ETF，以及為什麼只要採用指數化投資，長期下來就能打敗 85% 的人。',
+  ]},
+  { title:'第 2 頁 — 一場沒人看好的革命', text:[
+    '指數化投資的起點，要從一個人說起，他叫做約翰．柏格，英文名字 John Bogle。',
+    '1974 年，他創立了 Vanguard，也就是先鋒集團。跟一般基金公司不同，他的理念是「為投資人服務」，而不是「讓公司賺錢」。',
+    '隔年，1975 年，他提出了「指數基金」的計劃。當時整個華爾街都在笑他，說這叫做「柏格的愚行」，認為追求市場平均，根本就是在承認自己平庸。',
+    '但柏格不理他們。1976 年，第一支對大眾開放的指數基金正式發行，它就是今天 Vanguard 500 的前身。',
+    '50 年後，Vanguard 管理的資產超過 9 兆美元，成為全球最大的資產管理公司之一。',
+    '巴菲特曾說：「如果要在投資界為貢獻最大的人立碑，那個人非約翰．柏格莫過於此。」',
+    '那個被嘲笑的「愚行」，改變了數億人的財務命運。',
+  ]},
+  { title:'第 3 頁 — 四大核心價值', text:[
+    '那指數化投資到底是什麼？',
+    '說穿了，就是不選股、直接買市場——透過低成本的 ETF，一次買入整個市場指數的所有成分股。',
+    '它有四個核心優勢：',
+    '第一，低成本。費用率低到 0.03%，比傳統主動型基金的 1 到 2% 低非常多。這個差距，長期下來對報酬影響很大。',
+    '第二，分散風險。一次持有數千檔股票。VT 超過一萬檔、S&P 500 有 500 檔、台灣的 0050 有 50 檔。就算某一家公司倒閉，影響也非常有限。',
+    '第三，長期報酬穩定。美國股市廣泛指數年化報酬約 10.3%，台灣 0050 年化約 12.8%，VT 年化也約 10%。',
+    '第四，省時省力。15 年以上，有 85% 到 92% 的主動基金落後指數。你什麼都不用做，只要買指數，就能打敗市場上大多數的基金經理人。',
+  ]},
+  { title:'第 4 頁 — 勝率最高的工具', text:[
+    '選擇指數化投資，核心工具就是市值型 ETF。',
+    '台灣市場，選 0050 或 006208。兩支都追蹤台灣前 50 大企業，費用約 0.22%。',
+    '美國前 500 大，選 VOO。追蹤 S&P 500，持有 503 檔，費用率只要 0.03%。',
+    '美國全市場，選 VTI。持有超過 3,600 檔美國上市公司，費用率同樣 0.03%。',
+    '全球最分散，選 VT。一次持有超過一萬檔，涵蓋全球可投資市值的 98%，費用率 0.06%。',
+    '分散程度從低到高就是：0050、VOO、VTI、最後是 VT。想分散到哪個範圍，取決於你的想法。',
+  ]},
+  { title:'第 5 頁 — 指數化投資，讓 1,500 萬變得有可能', text:[
+    '上一集說過，25 歲開始、每個月投入 1 萬，30 年後可以存到 1,500 萬。',
+    '這個數字背後靠的，就是指數化投資的三件事：',
+    '第一，低費用率，不讓成本侵蝕你的報酬。',
+    '第二，長期持有，讓複利充分發揮，不要頻繁進出。',
+    '第三，不選股，避開大多數人選股輸錢的命運。',
+    '如果是 25 歲開始，同樣每月 1 萬、年化 8%，30 年後是 1,500 萬。如果 35 歲才開始，只剩 20 年，結果只有 580 萬。差了 2.6 倍，只因為晚了 10 年。',
+  ]},
+  { title:'第 6 頁 — 自己試算看看', text:[
+    '剛才說的 1,500 萬，是用每月 1 萬、30 年、年化 8.5% 算出來的。但每個人的狀況不一樣，你可以用這個工具把數字換成你自己的。',
+    '試著調整「每月投入」——如果你現在每個月可以存 2 萬，把滑桿拉到 2 萬，看看結果有什麼不同。',
+    '再來調「投資年限」——你幾歲？打算幾歲退休？把年限填進去。',
+    '重點不是這個數字一定會實現，而是讓你對複利的威力有直覺感受。越早開始，越有優勢。',
+  ]},
+  { title:'第 7 頁 — 巴菲特 10 年賭局', text:[
+    '2007 年，巴菲特公開向華爾街下了戰帖，賭注 100 萬美元。',
+    '他的論點只有一句話：一支低成本的指數基金，長期能勝過所有高收費的主動式避險基金。',
+    '對手是華爾街頂尖避險基金公司 Protégé Partners，他們精挑了 5 檔最優秀的避險基金組合應戰。',
+    '比賽期間是 2008 年到 2017 年，整整 10 年。橫跨金融海嘯、多次大漲大跌。',
+    '結果：巴菲特壓倒性勝利。',
+    '指數基金 10 年年化報酬 7.1%，避險基金扣除費用後年化僅 2.2%。差了 3 倍以上。',
+    '為什麼會輸得這麼慘？避險基金的收費結構是 2% 管理費加上 20% 的獲利抽成，費用吃掉了報酬。',
+    '所以股神巴菲特，還是建議一般大眾買指數型 ETF。',
+  ]},
+  { title:'第 8 頁 — 打敗 85%', text:[
+    '我想用一個數字來收尾這一集。',
+    '根據 SPIVA 的長期追蹤報告，在 10 到 15 年的區間，有 85% 到 92% 的主動基金，績效就是落後指數。',
+    '這不只是基金經理人。主動選股的散戶、買主動型 ETF 的人，長期下來也是同樣的結果。',
+    '還有一類很常見的選擇：高股息 ETF。像 0056、00878、00919，如果把「股價加上配息」的總報酬跟市值型 ETF 相比，長期下來往往就輸了。',
+    '而你，只要買市值型 ETF，不要猜高低點，持續買進，不需要特別厲害，不需要每天盯盤——時間到了，你就贏 85% 的人。',
+    '這集到這裡。下一集，我們會來討論巴菲特雪球理論。我們下集見，bye-bye。',
+  ]},
+];
+let current = 0;
+function render(animate=true) {
+  const slide = slides[current], total = slides.length;
+  document.getElementById('slideTitle').textContent = slide.title;
+  document.getElementById('counter').textContent = `${current+1} / ${total}`;
+  document.getElementById('progressFill').style.width = `${((current+1)/total)*100}%`;
+  const el = document.getElementById('narration');
+  el.innerHTML = slide.text.map(t=>`<p>${t}</p>`).join('');
+  document.getElementById('content').scrollTop = 0;
+  if (animate) { el.classList.remove('slide-anim'); void el.offsetWidth; el.classList.add('slide-anim'); }
+}
+function next() { if (current < slides.length-1) { current++; render(); _bc.postMessage({ slide: current }); } }
+function prev() { if (current > 0) { current--; render(); _bc.postMessage({ slide: current }); } }
+document.addEventListener('keydown', e => {
+  if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); next(); }
+  else if (['ArrowLeft','ArrowUp'].includes(e.key)) { e.preventDefault(); prev(); }
+});
+const _bc = new BroadcastChannel('ep02_sync');
+_bc.onmessage = e => { const i=e.data.slide; if(i>=0&&i<slides.length&&i!==current){current=i;render();} };
+render(false);
+</script>
+</body>
+</html>
