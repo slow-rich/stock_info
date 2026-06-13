@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>預期報酬率的真相</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue:   #1B3A6B;
+    --green:  #2E5FA3;
+    --red:    #dc2626;
+    --gray:   #6b7280;
+    --light:  #f0f4fa;
+    --accent: #D4AF37;
+  }
+  .reveal { font-family: -apple-system, "PingFang TC", sans-serif; }
+  .reveal h2 { font-size: 1.5rem; color: var(--blue); font-weight: 700; border-bottom: 3px solid var(--accent); padding-bottom: 8px; margin-bottom: 20px; }
+  .reveal p, .reveal li { font-size: 0.85rem; line-height: 1.7; }
+  .reveal .slides section { text-align: left; }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  .card { background: var(--light); border-radius: 10px; padding: 16px 20px; border-left: 4px solid var(--accent); }
+  .card.green { border-left-color: var(--green); }
+  .card.red   { border-left-color: var(--red); }
+  .card .label { font-size: 0.7rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
+  .card .value { font-size: 1.3rem; font-weight: 700; color: var(--blue); margin: 4px 0; }
+
+  .note { background: #fefce8; border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.78rem; color: #713f12; margin-top: 12px; }
+  .highlight-box { text-align: center; background: linear-gradient(135deg, #1B3A6B, #2E5FA3); color: #fff; border-radius: 12px; padding: 20px; }
+  .highlight-box p { color: #bfdbfe; font-size: 0.85rem; }
+  .chart-wrap { position: relative; height: 280px; }
+
+  /* 市場比較卡 */
+  .market-card {
+    border-radius: 10px; padding: 16px 18px;
+    border-top: 4px solid var(--accent);
+    background: var(--light);
+  }
+  .market-card .ticker { font-size: 1.4rem; font-weight: 900; color: var(--blue); }
+  .market-card .region { font-size: 0.7rem; color: var(--gray); margin-bottom: 10px; }
+  .market-card .row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.78rem; }
+  .market-card .row:last-child { border-bottom: none; }
+  .market-card .row .key { color: var(--gray); }
+  .market-card .row .val { font-weight: 700; color: var(--blue); }
+
+  /* 頂部品牌橫條 */
+  .slide-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 46px; z-index: 200; pointer-events: none;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px;
+    background: rgba(255,255,255,0.96);
+    border-bottom: 2px solid #D4AF37;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: opacity 0.3s;
+  }
+  .reveal .slides section:not(.cover-slide) { padding-top: 52px !important; }
+  .slide-logo { display: none; }
+</style>
+</head>
+<body>
+
+<div class="slide-header">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <svg viewBox="0 0 100 100" width="36" height="36" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-hdr"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-hdr)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="3.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:18px;color:#1B3A6B;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:7.5px;color:#888;letter-spacing:2.2px;text-transform:uppercase;margin-top:3px;">Slow Rich</div>
+    </div>
+  </div>
+  <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:12px;color:#6b7280;">
+    <span style="color:#D4AF37;font-weight:800;margin-right:6px;">EP.04</span>預期報酬率的真相
+  </div>
+</div>
+
+<div class="reveal">
+<div class="slides">
+
+<!-- ── 1. 封面 ──────────────────────────────── -->
+<section class="cover-slide" data-background-gradient="linear-gradient(150deg, #080f1f 0%, #0d1b35 55%, #080f1f 100%)" style="padding:40px 56px;text-align:left !important;position:relative;">
+  <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;" viewBox="0 0 1100 650" preserveAspectRatio="none">
+    <defs>
+      <filter id="peak-glow" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g transform="translate(-73,18)">
+    <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160 L1055,650 L680,650 Z" fill="#D4AF37" opacity="0.05"/>
+    <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160" stroke="#D4AF37" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.05"/>
+    <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160" stroke="#D4AF37" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
+    <circle cx="1055" cy="160" r="24" fill="#D4AF37" opacity="0.12" filter="url(#peak-glow)"/>
+    <circle cx="1055" cy="160" r="10" fill="#D4AF37" opacity="0.55"/>
+    <circle cx="1055" cy="160" r="5" fill="#D4AF37" opacity="0.95"/>
+      </g>
+  </svg>
+  <div id="cover-logo" style="position:absolute;top:9px;right:123px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.35);border-radius:14px;padding:10px 18px 10px 12px;">
+    <svg viewBox="0 0 100 100" width="80" height="80" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-cover-1"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-cover-1)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="21" cy="63" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="26" cy="80" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="35" cy="52" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="42" cy="67" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="51" cy="40" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="57" cy="57" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="67" cy="24" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="73" cy="36" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="14" cy="82" r="2.5" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="4.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:26px;color:#D4AF37;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:400;font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">Slow Rich</div>
+    </div>
+  </div>
+  <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.45);border-radius:20px;padding:5px 16px;margin-bottom:30px;">
+    <span style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:11px;color:#D4AF37;font-weight:800;letter-spacing:1.5px;">EP.04</span>
+    <span style="width:1px;height:10px;background:rgba(212,175,55,0.4);display:inline-block;"></span>
+    <span style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:11px;color:#aaa;letter-spacing:0.5px;">用數據認識市場</span>
+  </div>
+  <div style="margin-bottom:14px;line-height:1.05;">
+    <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:3.5rem;font-weight:900;color:#fff;margin-bottom:4px;">預期報酬率</div>
+    <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:4.4rem;font-weight:900;color:#D4AF37;text-shadow:0 0 36px rgba(212,175,55,0.35);">的真相</div>
+  </div>
+  <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:1rem;font-weight:300;color:#aaa;letter-spacing:1px;margin-bottom:28px;">「8~12% 是長期平均，不是每年保證」</div>
+  <div id="cover-cards" style="display:flex;align-items:stretch;gap:12px;max-width:680px;transform:scale(0.9);transform-origin:left top;">
+    <div style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;font-family:-apple-system,'PingFang TC',sans-serif;">單年最大漲幅</div>
+      <div style="font-size:1rem;font-weight:700;color:#D4AF37;font-family:-apple-system,'PingFang TC',sans-serif;">+73%（台股 2009）</div>
+    </div>
+    <div style="background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;font-family:-apple-system,'PingFang TC',sans-serif;">單年最大跌幅</div>
+      <div style="font-size:1rem;font-weight:700;color:#dc2626;font-family:-apple-system,'PingFang TC',sans-serif;">−46%（台股 2008）</div>
+    </div>
+    <div style="background:rgba(46,95,163,0.08);border:1px solid rgba(46,95,163,0.2);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;font-family:-apple-system,'PingFang TC',sans-serif;">持有 15 年以上</div>
+      <div style="font-size:1rem;font-weight:700;color:#2E5FA3;font-family:-apple-system,'PingFang TC',sans-serif;">虧損機率 → 0%</div>
+    </div>
+  </div>
+  <p style="position:absolute;bottom:14px;left:56px;color:#2e4a6b;font-size:0.68rem;font-family:-apple-system,sans-serif;">按 → 翻頁 &nbsp;|&nbsp; F 全螢幕 &nbsp;|&nbsp; ESC 總覽</p>
+</section>
+
+<!-- ── 2. 年度報酬率的真實樣貌 ────────────── -->
+<section>
+  <h2>台股年度報酬率：每年都不一樣（2004–2026）</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>一般人常聽到「年化報酬率 8~12%」，直覺以為每年大概都這樣。<br>但真實數字是這樣的：</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:16px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(220,38,38,0.06);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">最大漲幅</span>
+          <span style="font-size:1.1rem;font-weight:800;color:var(--red);">+83.3%（2009）</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(21,128,61,0.06);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">最大跌幅</span>
+          <span style="font-size:1.1rem;font-weight:800;color:#16a34a;">−43.1%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(212,175,55,0.08);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">真正落在 8~12% 的年份</span>
+          <span style="font-size:1.1rem;font-weight:800;color:var(--accent);">23 年中只有 2 年</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:var(--light);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">負報酬年份</span>
+          <span style="font-size:1.1rem;font-weight:800;color:var(--blue);">20 年中有 5 年</span>
+        </div>
+      </div>
+      <div class="note">資料來源：<strong>發行量加權股價報酬指數</strong>（TWSE 官方，<strong>含股利再投入</strong>）。8~12% 是長期平均，不是每年都這樣。23 年中只有 <strong>2 年（2005、2014）</strong> 精準落在此範圍。<br><span style="font-size:0.75em;opacity:0.8;">* 2026 為 YTD（截至 5 月），非全年數據。</span></div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:300px;">
+        <canvas id="taiexChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 3. SPY 年度報酬率 ──────────────────── -->
+<section>
+  <h2>S&amp;P 500（SPY）年度報酬率：每年都不一樣（2004–2026）</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>美國 S&amp;P 500 是全球最受矚目的指數，長期表現出色，但短期波動同樣劇烈：</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:16px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(220,38,38,0.06);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">最大漲幅</span>
+          <span style="font-size:1.1rem;font-weight:800;color:var(--red);">+32.3%（2013）</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(21,128,61,0.06);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">最大跌幅</span>
+          <span style="font-size:1.1rem;font-weight:800;color:#16a34a;">−36.8%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(212,175,55,0.08);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">真正落在 8~12% 的年份</span>
+          <span style="font-size:1.1rem;font-weight:800;color:var(--accent);">23 年中只有 3 年</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:var(--light);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">負報酬年份</span>
+          <span style="font-size:1.1rem;font-weight:800;color:var(--blue);">23 年中有 3 年</span>
+        </div>
+      </div>
+      <div class="note">S&amp;P 500 長期平均約 <strong>10~13%（含股利再投入）</strong>，但每一年的實際報酬率仍然高度不規律。23 年中只有 <strong>3 年（2004、2016、2026*）</strong> 精準落在 8~12% 範圍。<br><span style="font-size:0.75em;opacity:0.8;">資料來源：SPY Adj Close（Yahoo Finance）。* 2026 為 YTD（截至 5 月），非全年數據。</span></div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:300px;">
+        <canvas id="spyChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4. VT 年度報酬率 ───────────────────── -->
+<section>
+  <h2>VT（全球股市）年度報酬率：每年都不一樣（2009–2026）</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>VT 分散全球 47 個國家、10,000+ 檔股票，波動相對較小，但仍無法完全避免大跌：</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:16px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(220,38,38,0.06);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">最大漲幅</span>
+          <span style="font-size:1.1rem;font-weight:800;color:var(--red);">+32.7%（2009）</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(21,128,61,0.06);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">最大跌幅</span>
+          <span style="font-size:1.1rem;font-weight:800;color:#16a34a;">−18.0%（2022）</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(212,175,55,0.08);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">真正落在 8~12% 的年份</span>
+          <span style="font-size:1.1rem;font-weight:800;color:var(--accent);">18 年中只有 2 年</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:var(--light);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">負報酬年份</span>
+          <span style="font-size:1.1rem;font-weight:800;color:var(--blue);">18 年中有 4 年</span>
+        </div>
+      </div>
+      <div class="note">VT 的跌幅相對台股和 SPY 較小，體現了<strong>全球分散降低波動</strong>的效果。18 年中只有 <strong>2 年（2016、2026*）</strong> 精準落在 8~12% 範圍。<br><span style="font-size:0.75em;opacity:0.8;">資料來源：VT Adj Close（月報酬率年度累乘）。* 2026 為 YTD（截至 5 月），非全年數據。</span></div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:300px;">
+        <canvas id="vtChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 5. VT 延伸年度報酬率（含 2008）────── -->
+<section>
+  <h2>VT（全球股市）年度報酬率：延伸至 2004（含代理數據）</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>2004–2008 使用 <strong>VTSMX 58% + VGTSX 42%</strong> 代理（含息），2009 起為 VT Adj Close。納入 <strong>2008 金融海嘯</strong>，看清真實的全球股市跌幅：</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:16px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(220,38,38,0.06);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">最大漲幅</span>
+          <span style="font-size:1.1rem;font-weight:800;color:var(--red);">+32.7%（2009）</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(21,128,61,0.06);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">最大跌幅</span>
+          <span style="font-size:1.1rem;font-weight:800;color:#16a34a;">−39.6%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(212,175,55,0.08);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">真正落在 8~12% 的年份</span>
+          <span style="font-size:1.1rem;font-weight:800;color:var(--accent);">23 年中只有 4 年</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:var(--light);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">負報酬年份</span>
+          <span style="font-size:1.1rem;font-weight:800;color:var(--blue);">23 年中有 5 年</span>
+        </div>
+      </div>
+      <div class="note">2004–2008：VTSMX + VGTSX 代理（含息）。2009 起：VT Adj Close（含息）。VT 分散全球雖然波動較小，但 2008 金融海嘯仍跌了 <strong>近 40%</strong>。<br><span style="font-size:0.75em;opacity:0.8;">* 2026 為 YTD（截至 5 月），非全年數據。</span></div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:300px;">
+        <canvas id="vtExtYearChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 7. 三大市場比較 ─────────────────────── -->
+<section>
+  <h2>三大市場：預期報酬率 vs 波動程度</h2>
+  <div class="three-col" style="margin-bottom:16px;">
+    <div class="market-card">
+      <div class="ticker">0050</div>
+      <div class="region">台灣前 50 大企業</div>
+      <div class="row"><span class="key">預期年化報酬</span><span class="val" style="color:var(--accent);">8~12%</span></div>
+      <div class="row"><span class="key">歷史實際平均（含息）</span><span class="val" style="font-size:0.78rem;">+15.9%（2004~2026/5）</span></div>
+      <div class="row"><span class="key">波動度（標準差）</span><span class="val" style="color:var(--red);">24.8%</span></div>
+      <div class="row"><span class="key">2008 年跌幅</span><span class="val">約 −43.1%</span></div>
+      <div class="row"><span class="key">風險來源</span><span class="val" style="font-size:0.72rem;">台灣單市場<br>半導體集中</span></div>
+    </div>
+    <div class="market-card" style="border-top-color:var(--green);">
+      <div class="ticker">VOO</div>
+      <div class="region">S&amp;P 500（美國前 500 大）</div>
+      <div class="row"><span class="key">預期年化報酬</span><span class="val" style="color:var(--accent);">10~13%</span></div>
+      <div class="row"><span class="key">歷史實際平均（含息）</span><span class="val" style="font-size:0.78rem;">+10.0%（2004~2026/5）</span></div>
+      <div class="row"><span class="key">波動度（標準差）</span><span class="val" style="color:var(--green);">17.4%</span></div>
+      <div class="row"><span class="key">2008 年跌幅</span><span class="val">約 −36.8%</span></div>
+      <div class="row"><span class="key">優勢</span><span class="val" style="font-size:0.72rem;">成分股多為<br>跨國企業</span></div>
+    </div>
+    <div class="market-card" style="border-top-color:var(--blue);">
+      <div class="ticker">VT</div>
+      <div class="region">全球 47 個國家</div>
+      <div class="row"><span class="key">預期年化報酬</span><span class="val" style="color:var(--accent);">8~10%</span></div>
+      <div class="row"><span class="key">歷史實際平均（含息）</span><span class="val" style="font-size:0.78rem;">+10.1%（2004~2026/5）</span></div>
+      <div class="row"><span class="key">波動度（標準差）</span><span class="val" style="color:var(--blue);">13.6%</span></div>
+      <div class="row"><span class="key">2008 年跌幅</span><span class="val">約 −39.6%</span></div>
+      <div class="row"><span class="key">優勢</span><span class="val" style="font-size:0.72rem;">10,000+ 檔<br>全球分散</span></div>
+    </div>
+  </div>
+  <div class="note">
+    報酬率較高的市場，波動也較大；波動較小的市場，報酬率通常也較低。沒有「又高報酬又低風險」的市場。<br>
+    <span style="margin-top:6px;display:block;">
+      <strong>說明：</strong>三市場統一採用 <strong>2004~2026/5（23 年）</strong>同期比較，均含股利再投入且涵蓋 2008 金融海嘯。SPY 與 VT 幾乎相同（10.0% vs 10.1%），因為 VT 約 60% 為美國持股，高度追蹤 SPY——這正是「分散」未必降低報酬的具體證明。VT 的 +10.1% 中，<strong>2004~2008 為 VTSMX+VGTSX 代理數據</strong>，2009 起為 VT 真實 Adj Close。
+    </span>
+  </div>
+</section>
+
+<!-- ── 7. 台股滾動報酬率 ──────────────────── -->
+<section data-visibility="hidden">
+  <h2>持有越久，報酬越穩定：台股滾動報酬率</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>以<strong>發行量加權股價報酬指數</strong>（TWSE 官方，2004–2026，<strong>含股利再投入</strong>）計算：</p>
+      <div style="position:relative;padding-top:16px;margin:10px 0;">
+        <div style="position:absolute;left:37%;top:0;bottom:0;width:1px;background:rgba(0,0,0,0.18);z-index:1;"></div>
+        <div style="font-size:0.6rem;color:#9ca3af;position:absolute;left:35%;top:2px;">0%</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 1 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:5.1%;top:0;bottom:0;width:93.6%;background:rgba(220,38,38,0.7);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:#dc2626;min-width:140px;">−43.1% ～ +83.3%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 3 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:31.6%;top:0;bottom:0;width:33.7%;background:rgba(220,38,38,0.7);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:#dc2626;min-width:140px;">−7.3% ～ +38.2% <span style="font-size:0.65rem;background:#fee2e2;color:#b91c1c;border-radius:3px;padding:1px 5px;">1 次負報酬</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 5 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:38.4%;top:0;bottom:0;width:15.8%;background:rgba(46,95,163,0.8);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:var(--green);font-weight:600;min-width:140px;">+1.8% ～ +23.1% <span style="font-size:0.65rem;background:#dcfce7;color:#15803d;border-radius:3px;padding:1px 5px;">從未負報酬</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 10 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:41.1%;top:0;bottom:0;width:11.4%;background:rgba(27,58,107,0.9);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:var(--blue);font-weight:700;min-width:140px;">+5.5% ～ +20.9% <span style="font-size:0.65rem;background:#dcfce7;color:#15803d;border-radius:3px;padding:1px 5px;">從未負報酬</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 15 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:42.5%;top:0;bottom:0;width:7%;background:rgba(27,58,107,0.9);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:var(--blue);font-weight:700;min-width:140px;">+7.4% ～ +16.9% <span style="font-size:0.65rem;background:#dcfce7;color:#15803d;border-radius:3px;padding:1px 5px;">從未負報酬</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 20 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:45.1%;top:0;bottom:0;width:1.5%;background:rgba(27,58,107,0.9);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:var(--blue);font-weight:700;min-width:140px;">+10.9% ～ +12.9% <span style="font-size:0.65rem;background:#dcfce7;color:#15803d;border-radius:3px;padding:1px 5px;">從未負報酬</span></span>
+          </div>
+        </div>
+      </div>
+      <div class="note">發行量加權股價報酬指數（TWSE，2004–2026，<strong>含股利再投入</strong>）。持有 <strong>5 年以上從未出現負報酬</strong>。<br>注意：資料從 2004 起，不含 2000–2002 科技泡沫，實際風險可能更高，建議以 <strong>10 年以上</strong>為目標。</div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:300px;">
+        <canvas id="rollingChart"></canvas>
+      </div>
+      <p style="font-size:0.72rem;color:var(--gray);text-align:center;margin-top:4px;">台股不同持有年限的年化報酬率範圍（1993–2026）</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 8. 台股延伸滾動報酬率（1993–2026）──── -->
+<section>
+  <h2>滾動報酬率分析：台股（1993–2026）</h2>
+  <div class="two-col" style="align-items:start;">
+    <div>
+      <p style="margin-bottom:12px;">以<strong>加權指數 + 估算股利 2.5%/年</strong>代理 1993–2002，接回 2003 年後的 TWSE <strong>報酬指數（真實含息）</strong>，延伸至 1993 年（含 2000–2002 科技泡沫）：</p>
+      <div style="position:relative;padding-top:18px;margin-bottom:6px;">
+        <div style="position:absolute;left:37%;top:0;bottom:0;width:1px;background:rgba(0,0,0,0.18);z-index:1;"></div>
+        <div style="font-size:0.6rem;color:#9ca3af;position:absolute;left:35%;top:2px;">0%</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 1 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:5.1%;top:0;bottom:0;width:94.4%;background:rgba(220,38,38,0.65);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:#dc2626;min-width:150px;">−43.1% ～ +84.3%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 3 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:24.3%;top:0;bottom:0;width:41%;background:rgba(220,38,38,0.65);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:#dc2626;min-width:150px;">−17.2% ～ +38.2% <span style="font-size:0.65rem;background:#fee2e2;color:#b91c1c;border-radius:3px;padding:1px 5px;">5 次虧損</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 5 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:30.2%;top:0;bottom:0;width:23.9%;background:rgba(234,88,12,0.65);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:#ea580c;min-width:150px;">−9.2% ～ +23.1% <span style="font-size:0.65rem;background:#ffedd5;color:#c2410c;border-radius:3px;padding:1px 5px;">5 次虧損</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 10 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:33.2%;top:0;bottom:0;width:19.3%;background:rgba(220,38,38,0.6);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:#dc2626;min-width:150px;">−5.2% ～ +20.9% <span style="font-size:0.65rem;background:#fee2e2;color:#b91c1c;border-radius:3px;padding:1px 5px;">3 次虧損</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 15 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:38.1%;top:0;bottom:0;width:11.4%;background:rgba(27,58,107,0.9);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:var(--blue);font-weight:700;min-width:150px;">+1.5% ～ +16.9% <span style="font-size:0.65rem;background:#dcfce7;color:#15803d;border-radius:3px;padding:1px 5px;">從未虧損</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 20 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:38.9%;top:0;bottom:0;width:7.6%;background:rgba(27,58,107,0.9);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:var(--blue);font-weight:700;min-width:150px;">+2.6% ～ +12.9% <span style="font-size:0.65rem;background:#dcfce7;color:#15803d;border-radius:3px;padding:1px 5px;">從未虧損</span></span>
+          </div>
+        </div>
+      </div>
+      <div class="note" style="margin-top:10px;font-size:0.72rem;">
+        1993–2002：加權指數（^TWII）+ 估算股利 2.5%/年。2003 起：TWSE 報酬指數（真實含息）。2003 年因資料拼接缺少，共 33 年數據。
+      </div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:270px;">
+        <canvas id="taiexExtendedChart"></canvas>
+      </div>
+      <div class="note" style="margin-top:10px;background:rgba(27,58,107,0.06);border-left-color:var(--blue);">
+        <strong>結論：</strong>含 2000–2002 科技泡沫後，台股持有 10 年仍有 3 次虧損。<strong>15 年以上</strong>才從未虧損——和 SPY、VT 的結論一致。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 9. SPY 滾動報酬率 ───────────────────── -->
+<section>
+  <h2>滾動報酬率分析：S&amp;P 500（1993–2026）</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>以 SPY（1993–2026，<strong>含股利再投入 1.6%/年</strong>，含科網泡沫）計算：</p>
+      <div style="position:relative;padding-top:16px;margin:10px 0;">
+        <div style="position:absolute;left:51.9%;top:0;bottom:0;width:1px;background:rgba(0,0,0,0.18);z-index:1;"></div>
+        <div style="font-size:0.6rem;color:#9ca3af;position:absolute;left:49.9%;top:2px;">0%</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 1 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:3.5%;top:0;bottom:0;width:96.4%;background:rgba(220,38,38,0.7);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:#dc2626;min-width:140px;">−37.3% ～ +36.9%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 3 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:33.4%;top:0;bottom:0;width:58.4%;background:rgba(220,38,38,0.7);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:#dc2626;min-width:140px;">−14.3% ～ +30.7%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 5 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:48.6%;top:0;bottom:0;width:40.3%;background:rgba(234,88,12,0.7);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:#ea580c;min-width:140px;">−2.6% ～ +28.4%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 10 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:50%;top:0;bottom:0;width:22.9%;background:rgba(220,38,38,0.65);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:#dc2626;min-width:140px;">−1.5% ～ +16.1% <span style="font-size:0.65rem;background:#fee2e2;color:#b91c1c;border-radius:3px;padding:1px 5px;">有負報酬</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 15 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:57%;top:0;bottom:0;width:13.8%;background:rgba(27,58,107,0.9);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:var(--blue);font-weight:700;min-width:140px;">+3.9% ～ +14.5% <span style="font-size:0.65rem;background:#dcfce7;color:#15803d;border-radius:3px;padding:1px 5px;">從未負報酬</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 20 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:58.8%;top:0;bottom:0;width:6.9%;background:rgba(27,58,107,0.9);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:var(--blue);font-weight:700;min-width:140px;">+5.3% ～ +10.6% <span style="font-size:0.65rem;background:#dcfce7;color:#15803d;border-radius:3px;padding:1px 5px;">從未負報酬</span></span>
+          </div>
+        </div>
+      </div>
+      <div class="note">SPY（1993–2026，33 年）<strong>含股利再投入</strong>。持有 <strong>10 年仍有極少數負報酬</strong>，<strong>15 年以上從未虧損</strong>。科網泡沫（2000–2002）是關鍵壓力測試。</div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:300px;">
+        <canvas id="spyRollingChart"></canvas>
+      </div>
+      <p style="font-size:0.72rem;color:var(--gray);text-align:center;margin-top:4px;">SPY 不同持有年限的年化報酬率範圍（1993–2026）</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 10. VT 滾動報酬率 ──────────────────── -->
+<section data-visibility="hidden">
+  <h2>持有越久，報酬越穩定：VT（全球）滾動報酬率</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>以 VT Adj Close（2009–2026，<strong>含股利再投入</strong>）計算不同持有年限的年化報酬率範圍：</p>
+      <div style="margin:14px 0;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="min-width:50px;font-size:0.8rem;font-weight:700;color:var(--blue);">持有 1 年</span>
+          <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:22px;position:relative;">
+            <div style="position:absolute;left:25%;top:0;bottom:0;width:40%;background:rgba(220,38,38,0.7);border-radius:4px;"></div>
+          </div>
+          <span style="font-size:0.75rem;color:var(--gray);min-width:130px;">−19.8% ～ +30.7%</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="min-width:50px;font-size:0.8rem;font-weight:700;color:var(--blue);">持有 3 年</span>
+          <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:22px;position:relative;">
+            <div style="position:absolute;left:43.2%;top:0;bottom:0;width:28.5%;background:rgba(46,95,163,0.8);border-radius:4px;"></div>
+          </div>
+          <span style="font-size:0.75rem;color:var(--green);font-weight:600;min-width:130px;">+0.9% ～ +18.0%</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="min-width:50px;font-size:0.8rem;font-weight:700;color:var(--blue);">持有 5 年</span>
+          <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:22px;position:relative;">
+            <div style="position:absolute;left:45%;top:0;bottom:0;width:17.5%;background:rgba(46,95,163,0.8);border-radius:4px;"></div>
+          </div>
+          <span style="font-size:0.75rem;color:var(--green);font-weight:600;min-width:130px;">+2.0% ～ +12.5%</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="min-width:50px;font-size:0.8rem;font-weight:700;color:var(--blue);">持有 10 年</span>
+          <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:22px;position:relative;">
+            <div style="position:absolute;left:51%;top:0;bottom:0;width:7.3%;background:rgba(27,58,107,0.9);border-radius:4px;"></div>
+          </div>
+          <span style="font-size:0.75rem;color:var(--blue);font-weight:700;min-width:130px;">+5.6% ～ +10.0%</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="min-width:50px;font-size:0.8rem;font-weight:700;color:var(--blue);">持有 15 年</span>
+          <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:22px;position:relative;">
+            <div style="position:absolute;left:53.2%;top:0;bottom:0;width:3.5%;background:rgba(27,58,107,0.9);border-radius:4px;"></div>
+          </div>
+          <span style="font-size:0.75rem;color:var(--blue);font-weight:700;min-width:130px;">+6.9% ～ +9.0%</span>
+        </div>
+      </div>
+      <div class="note" style="background:rgba(46,95,163,0.06);border-left-color:var(--green);">
+        VT 全球分散效果：持有 3 年以上，在 2009–2026 這段期間從未出現負報酬。但此段恰好是多頭市場，下一頁補充 1998 年以來含危機的完整數據。
+      </div>
+      <div class="note" style="margin-top:8px;background:rgba(107,114,128,0.06);border-left-color:var(--gray);color:#374151;">
+        ⚠️ 資料限制：VT ETF 成立於 2008 年，以上數據未含 2000–2002 年網路泡沫。若納入更長歷史，3 年持有仍有虧損可能。詳見下一頁。
+      </div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:300px;">
+        <canvas id="vtRollingChart"></canvas>
+      </div>
+      <p style="font-size:0.72rem;color:var(--gray);text-align:center;margin-top:4px;">VT 不同持有年限的年化報酬率範圍</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 11. VT 延伸滾動報酬率（1993–2026）─── -->
+<section>
+  <h2>滾動報酬率分析：VT 全球（1993–2026）</h2>
+  <div class="two-col" style="align-items:start;">
+    <div>
+      <p style="margin-bottom:12px;">1993–1997：<strong>VTSMX 代理</strong>（美國全市場）；1998–2008：<strong>VTSMX 58% + VGTSX 42%</strong>；2009 起：<strong>VT Adj Close</strong>（含 2000–2002 泡沫、2008 金融海嘯）</p>
+      <div style="position:relative;padding-top:18px;margin-bottom:6px;">
+        <div style="position:absolute;left:52.9%;top:0;bottom:0;width:1px;background:rgba(0,0,0,0.18);z-index:1;"></div>
+        <div style="font-size:0.6rem;color:#9ca3af;position:absolute;left:50.9%;top:2px;">0%</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 1 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:6.4%;top:0;bottom:0;width:88.8%;background:rgba(220,38,38,0.65);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:#dc2626;min-width:145px;">−39.6% ～ +35.9%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 3 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:34.9%;top:0;bottom:0;width:43.6%;background:rgba(220,38,38,0.65);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:#dc2626;min-width:145px;">−15.3% ～ +21.8% <span style="font-size:0.65rem;background:#fee2e2;color:#b91c1c;border-radius:3px;padding:1px 5px;margin-left:3px;">6 次虧損</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 5 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:50.9%;top:0;bottom:0;width:28.5%;background:rgba(234,88,12,0.65);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:#ea580c;min-width:145px;">−1.7% ～ +22.5% <span style="font-size:0.65rem;background:#ffedd5;color:#c2410c;border-radius:3px;padding:1px 5px;margin-left:3px;">4 次虧損</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 10 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:53.6%;top:0;bottom:0;width:13.5%;background:rgba(27,58,107,0.9);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:var(--blue);font-weight:700;min-width:145px;">+0.6% ～ +12.1% <span style="font-size:0.65rem;background:#dcfce7;color:#15803d;border-radius:3px;padding:1px 5px;margin-left:3px;">從未虧損</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 15 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:57.3%;top:0;bottom:0;width:8.7%;background:rgba(27,58,107,0.9);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:var(--blue);font-weight:700;min-width:145px;">+3.7% ～ +11.1% <span style="font-size:0.65rem;background:#dcfce7;color:#15803d;border-radius:3px;padding:1px 5px;margin-left:3px;">從未虧損</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="min-width:56px;font-size:0.78rem;font-weight:700;color:var(--blue);">持有 20 年</span>
+            <div style="flex:1;background:#f3f4f6;border-radius:4px;overflow:hidden;height:20px;position:relative;">
+              <div style="position:absolute;left:58.7%;top:0;bottom:0;width:4.0%;background:rgba(27,58,107,0.9);border-radius:4px;"></div>
+            </div>
+            <span style="font-size:0.72rem;color:var(--blue);font-weight:700;min-width:145px;">+4.9% ～ +8.3% <span style="font-size:0.65rem;background:#dcfce7;color:#15803d;border-radius:3px;padding:1px 5px;margin-left:3px;">從未虧損</span></span>
+          </div>
+        </div>
+      </div>
+      <div class="note" style="margin-top:10px;font-size:0.72rem;">
+        年化報酬率使用年度資料計算（34 年滾動）。1993–1995 僅有 VTSMX（美國市場），1996 起加入 VGTSX（國際市場）。
+      </div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:270px;">
+        <canvas id="vtExtendedChart"></canvas>
+      </div>
+      <div class="note" style="margin-top:10px;background:rgba(27,58,107,0.06);border-left-color:var(--blue);">
+        <strong>結論：</strong>VT 全球分散，含所有重大危機後，<strong>持有 10 年以上從未虧損</strong>（最差 +0.6%）。台股、SPY、VT 三市場一致：10 年是安全門檻。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 越分散，波動越小 ─────────────────── -->
+<section>
+  <h2>越分散，波動越小：三大市場年化波動度</h2>
+  <div class="two-col" style="align-items:center;gap:32px;">
+    <div>
+      <p style="margin-bottom:18px;">以 <strong>年化標準差</strong> 衡量波動度——數字越大，每年報酬率的起伏越劇烈，投資人越難堅持長期持有。</p>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:0.85rem;font-weight:700;color:var(--blue);">台股加權指數（0050）</span>
+            <span style="font-size:1rem;font-weight:800;color:var(--red);">28.1%</span>
+          </div>
+          <div style="background:#f3f4f6;border-radius:6px;overflow:hidden;height:26px;">
+            <div style="width:82.7%;height:100%;background:rgba(220,38,38,0.7);border-radius:6px;display:flex;align-items:center;padding-left:10px;">
+              <span style="font-size:0.72rem;color:#fff;font-weight:600;">單一市場集中，波動最大</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:0.85rem;font-weight:700;color:var(--blue);">S&amp;P 500（SPY）</span>
+            <span style="font-size:1rem;font-weight:800;color:var(--green);">17.4%</span>
+          </div>
+          <div style="background:#f3f4f6;border-radius:6px;overflow:hidden;height:26px;">
+            <div style="width:58%;height:100%;background:rgba(46,95,163,0.75);border-radius:6px;display:flex;align-items:center;padding-left:10px;">
+              <span style="font-size:0.72rem;color:#fff;font-weight:600;">500 檔美股，分散效果明顯</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:0.85rem;font-weight:700;color:var(--blue);">VT（全球 47 國）</span>
+            <span style="font-size:1rem;font-weight:800;color:var(--blue);">17.5%</span>
+          </div>
+          <div style="background:#f3f4f6;border-radius:6px;overflow:hidden;height:26px;">
+            <div style="width:58.3%;height:100%;background:rgba(27,58,107,0.85);border-radius:6px;display:flex;align-items:center;padding-left:10px;">
+              <span style="font-size:0.72rem;color:#fff;font-weight:600;">10,000+ 檔全球，波動與 SPY 相近</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="note" style="margin-top:16px;">
+        資料來源：台股加權指數（1993–2026）、SPY（1993–2026）、VT（1993–2026*，含代理數據）年度收盤價計算。
+      </div>
+    </div>
+    <div>
+      <div class="highlight-box" style="margin-bottom:16px;">
+        <div style="font-size:1.1rem;font-weight:800;color:#D4AF37;margin-bottom:8px;">三市場波動相近，VT 稍低</div>
+        <p>同期 1993–2026 比較：台股（28.1%）明顯最高，SPY 與 VT 標準差幾乎相同（17.4% vs 17.5%）。分散的效果更多體現在「不集中於單一市場風險」，而非大幅壓低整體波動。</p>
+      </div>
+      <div class="card green" style="margin-bottom:12px;">
+        <div class="label">分散降低的是集中風險</div>
+        <p>VT 涵蓋全球 47 國，單一國家市場崩盤對整體影響有限。<strong>分散的價值在於降低非系統性風險，而非壓低整體波動幅度。</strong></p>
+      </div>
+      <div class="card" style="border-left-color:var(--accent);">
+        <div class="label">實際影響</div>
+        <p>波動越大，投資人越容易在低點恐慌賣出，反而錯失反彈。<strong>能撐過波動繼續持有的人，往往就是最後拿到好報酬的人。</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 10. 龐氏騙局警示 ────────────────────── -->
+<section>
+  <h2>警示：有人「保證」每年固定高報酬？</h2>
+  <div class="two-col">
+    <div>
+      <p>真實市場充滿波動，沒有任何合法投資能<strong>保證</strong>每年固定的高報酬率。</p>
+      <p style="margin-top:10px;">如果有人宣稱：</p>
+      <div style="margin:12px 0;display:flex;flex-direction:column;gap:8px;">
+        <div style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);border-radius:8px;padding:10px 14px;font-size:0.82rem;">
+          「不管市場漲跌，每年穩定 10~12% 報酬」
+        </div>
+        <div style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);border-radius:8px;padding:10px 14px;font-size:0.82rem;">
+          「已連續幾十年從未虧損」
+        </div>
+        <div style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);border-radius:8px;padding:10px 14px;font-size:0.82rem;">
+          「報酬率異常穩定，完全不受市場波動影響」
+        </div>
+      </div>
+      <div class="note" style="background:rgba(220,38,38,0.06);border-left-color:var(--red);color:#7f1d1d;">
+        <strong>這是龐氏騙局（Ponzi Scheme）的典型特徵。</strong><br>
+        真正的投資，一定有波動。波動才是正常。
+      </div>
+    </div>
+    <div>
+      <div class="card red" style="margin-bottom:14px;">
+        <div class="label">美國史上最大金融詐騙</div>
+        <div class="value" style="font-size:1rem;">馬多夫案（Bernie Madoff）</div>
+        <p>以「Split-strike conversion」策略為名，號稱每年穩定獲利 10~12%，<strong>實際以後金補前金</strong>，長達數十年。</p>
+        <p style="margin-top:6px;color:var(--red);font-weight:600;">最終損失：約 650 億美元</p>
+      </div>
+      <div class="highlight-box">
+        <div style="font-size:1rem;font-weight:800;color:#D4AF37;margin-bottom:8px;">真實市場的樣子</div>
+        <p>有大漲、有大跌、有平淡。<br><strong style="color:#fff;">波動不是風險，離場才是。</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+</div>
+
+<div class="slide-logo"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  transition: 'slide',
+  transitionSpeed: 'fast',
+  controls: true,
+  progress: true,
+  slideNumber: true,
+  width: 1100,
+  height: 650,
+});
+
+const _header = document.querySelector('.slide-header');
+_header.style.opacity = '0';
+Reveal.on('slidechanged', e => {
+  _header.style.opacity = e.indexh === 0 ? '0' : '1';
+});
+
+// 同步旁白 Teleprompter（含 hidden slide 對照）
+const _ep04map = [0,1,2,3,3,4,5,5,6,7,7,8,9];
+const _ep04revmap = [0,1,2,3,5,6,8,9,11,12]; // TP index → 第一個對應的 PPT index
+const _bc = new BroadcastChannel('ep04_sync');
+Reveal.on('slidechanged', e => { _bc.postMessage({ slide: _ep04map[e.indexh] ?? e.indexh }); });
+_bc.onmessage = e => { const p = _ep04revmap[e.data.slide]; if (p !== undefined && Reveal.getIndices().h !== p) Reveal.slide(p); };
+
+const TAIEX = [
+  { y: '2004', r: 7.6 },  { y: '2005', r: 10.9 },  { y: '2006', r: 24.4 },
+  { y: '2007', r: 12.5 }, { y: '2008', r: -43.1 }, { y: '2009', r: 83.3 },
+  { y: '2010', r: 13.6 }, { y: '2011', r: -18.0 }, { y: '2012', r: 12.9 },
+  { y: '2013', r: 15.1 }, { y: '2014', r: 11.4 },  { y: '2015', r: -6.9 },
+  { y: '2016', r: 15.6 }, { y: '2017', r: 19.5 },  { y: '2018', r: -4.8 },
+  { y: '2019', r: 28.9 }, { y: '2020', r: 27.1 },  { y: '2021', r: 27.1 },
+  { y: '2022', r: -18.7 },{ y: '2023', r: 31.5 },  { y: '2024', r: 31.7 },
+  { y: '2025', r: 29.5 }, { y: '2026*', r: 54.8 },
+]; // 發行量加權股價報酬指數（TWSE 官方），含股利再投入
+
+Reveal.on('slidechanged', function(e) {
+
+  // 投影片 2：台股年度報酬率
+  if (e.indexh === 1 && !window._taiex) {
+    const labels = TAIEX.map(d => d.y);
+    const rets   = TAIEX.map(d => d.r);
+    window._taiex = new Chart(document.getElementById('taiexChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: '年度報酬率 (%)',
+            data: rets,
+            backgroundColor: rets.map(r =>
+              (r >= 8 && r <= 12) ? 'rgba(212,175,55,0.95)' :
+              r >= 0 ? 'rgba(220,38,38,0.85)' : 'rgba(21,128,61,0.85)'
+            ),
+            order: 2,
+          },
+          {
+            type: 'line',
+            label: '8~12% 平均預期',
+            data: labels.map(() => 10),
+            borderColor: 'rgba(212,175,55,0.9)',
+            borderWidth: 2, borderDash: [6, 4],
+            pointRadius: 0, fill: false, order: 1,
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true, labels: { filter: i => i.text !== '年度報酬率 (%)', font: { size: 11 } } } },
+        scales: {
+          x: { ticks: { font: { size: 9 }, maxRotation: 90, minRotation: 90, autoSkip: false } },
+          y: { title: { display: true, text: '報酬率 (%)' }, ticks: { callback: v => v + '%' } }
+        }
+      }
+    });
+  }
+
+  // 投影片 3：SPY 年度報酬率
+  if (e.indexh === 2 && !window._spy) {
+    const spyData = [
+      { y: '2004', r: 8.7 },  { y: '2005', r: 3.0 },   { y: '2006', r: 13.7 },
+      { y: '2007', r: 5.1 },  { y: '2008', r: -36.8 }, { y: '2009', r: 26.4 },
+      { y: '2010', r: 15.1 }, { y: '2011', r: 1.9 },   { y: '2012', r: 16.0 },
+      { y: '2013', r: 32.3 }, { y: '2014', r: 13.5 },  { y: '2015', r: 1.2 },
+      { y: '2016', r: 12.0 }, { y: '2017', r: 21.7 },  { y: '2018', r: -4.6 },
+      { y: '2019', r: 31.2 }, { y: '2020', r: 18.3 },  { y: '2021', r: 28.7 },
+      { y: '2022', r: -18.2 },{ y: '2023', r: 26.2 },  { y: '2024', r: 24.9 },
+      { y: '2025', r: 17.7 }, { y: '2026*', r: 11.2 },
+    ]; // SPY Adj Close（Yahoo Finance，含股利再投入）
+    const labels = spyData.map(d => d.y);
+    const rets   = spyData.map(d => d.r);
+    window._spy = new Chart(document.getElementById('spyChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: '年度報酬率 (%)',
+            data: rets,
+            backgroundColor: rets.map(r =>
+              (r >= 8 && r <= 12) ? 'rgba(212,175,55,0.95)' :
+              r >= 0 ? 'rgba(220,38,38,0.85)' : 'rgba(21,128,61,0.85)'
+            ),
+            order: 2,
+          },
+          {
+            type: 'line', label: '8~12% 平均預期',
+            data: labels.map(() => 10),
+            borderColor: 'rgba(212,175,55,0.9)', borderWidth: 2,
+            borderDash: [6, 4], pointRadius: 0, fill: false, order: 1,
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true, labels: { filter: i => i.text !== '年度報酬率 (%)', font: { size: 11 } } } },
+        scales: {
+          x: { ticks: { font: { size: 9 }, maxRotation: 90, minRotation: 90, autoSkip: false } },
+          y: { title: { display: true, text: '報酬率 (%)' }, ticks: { callback: v => v + '%' } }
+        }
+      }
+    });
+  }
+
+  // 投影片 4：VT 年度報酬率
+  if (e.indexh === 3 && !window._vt) {
+    const vtData = [
+      { y: '2009', r: 32.7 }, { y: '2010', r: 13.1 }, { y: '2011', r: -7.5 },
+      { y: '2012', r: 17.1 }, { y: '2013', r: 22.9 }, { y: '2014', r: 3.7 },
+      { y: '2015', r: -1.9 }, { y: '2016', r: 8.5 },  { y: '2017', r: 24.5 },
+      { y: '2018', r: -9.8 }, { y: '2019', r: 26.8 }, { y: '2020', r: 16.6 },
+      { y: '2021', r: 18.3 }, { y: '2022', r: -18.0 },{ y: '2023', r: 22.0 },
+      { y: '2024', r: 16.5 }, { y: '2025', r: 22.4 }, { y: '2026*', r: 9.6 },
+    ]; // VT Adj Close 月報酬率累乘（Yahoo Finance，含股利再投入）
+    const labels = vtData.map(d => d.y);
+    const rets   = vtData.map(d => d.r);
+    window._vt = new Chart(document.getElementById('vtChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: '年度報酬率 (%)',
+            data: rets,
+            backgroundColor: rets.map(r =>
+              (r >= 8 && r <= 12) ? 'rgba(212,175,55,0.95)' :
+              r >= 0 ? 'rgba(220,38,38,0.85)' : 'rgba(21,128,61,0.85)'
+            ),
+            order: 2,
+          },
+          {
+            type: 'line', label: '8~12% 平均預期',
+            data: labels.map(() => 10),
+            borderColor: 'rgba(212,175,55,0.9)', borderWidth: 2,
+            borderDash: [6, 4], pointRadius: 0, fill: false, order: 1,
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true, labels: { filter: i => i.text !== '年度報酬率 (%)', font: { size: 11 } } } },
+        scales: {
+          x: { ticks: { font: { size: 9 }, maxRotation: 90, minRotation: 90, autoSkip: false } },
+          y: { title: { display: true, text: '報酬率 (%)' }, ticks: { callback: v => v + '%' } }
+        }
+      }
+    });
+  }
+
+  // 投影片 5：VT 延伸年度報酬率（含 2008）
+  if (e.indexh === 4 && !window._vtExtYear) {
+    const vtExtData = [
+      { y: '2004', r: 15.7 }, { y: '2005', r: 10.1 },  { y: '2006', r: 20.0 },
+      { y: '2007', r: 9.5 },  { y: '2008', r: -39.6 }, { y: '2009', r: 32.7 },
+      { y: '2010', r: 13.1 }, { y: '2011', r: -7.5 },  { y: '2012', r: 17.1 },
+      { y: '2013', r: 22.9 }, { y: '2014', r: 3.7 },   { y: '2015', r: -1.9 },
+      { y: '2016', r: 8.5 },  { y: '2017', r: 24.5 },  { y: '2018', r: -9.8 },
+      { y: '2019', r: 26.8 }, { y: '2020', r: 16.6 },  { y: '2021', r: 18.3 },
+      { y: '2022', r: -18.0 },{ y: '2023', r: 22.0 },  { y: '2024', r: 16.5 },
+      { y: '2025', r: 22.4 }, { y: '2026*', r: 9.6 },
+    ];
+    const labels = vtExtData.map(d => d.y);
+    const rets   = vtExtData.map(d => d.r);
+    window._vtExtYear = new Chart(document.getElementById('vtExtYearChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: '年度報酬率 (%)',
+            data: rets,
+            backgroundColor: rets.map(r =>
+              (r >= 8 && r <= 12) ? 'rgba(212,175,55,0.95)' :
+              r >= 0 ? 'rgba(220,38,38,0.85)' : 'rgba(21,128,61,0.85)'
+            ),
+            order: 2,
+          },
+          {
+            type: 'line', label: '8~12% 平均預期',
+            data: labels.map(() => 10),
+            borderColor: 'rgba(212,175,55,0.9)', borderWidth: 2,
+            borderDash: [6, 4], pointRadius: 0, fill: false, order: 1,
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true, labels: { filter: i => i.text !== '年度報酬率 (%)', font: { size: 11 } } } },
+        scales: {
+          x: { ticks: { font: { size: 9 }, maxRotation: 90, minRotation: 90, autoSkip: false } },
+          y: { title: { display: true, text: '報酬率 (%)' }, ticks: { callback: v => v + '%' } }
+        }
+      }
+    });
+  }
+
+  // 投影片 8：台股滾動報酬率
+  if (e.indexh === 7 && !window._rolling) {
+    window._rolling = new Chart(document.getElementById('rollingChart'), {
+      type: 'bar',
+      data: {
+        labels: ['持有 1 年', '持有 3 年', '持有 5 年', '持有 10 年', '持有 15 年', '持有 20 年'],
+        datasets: [
+          {
+            label: '年化報酬率範圍（min～max）',
+            data: [[-43.1, 83.3], [-7.3, 38.2], [1.8, 23.1], [5.5, 20.9], [7.4, 16.9], [10.9, 12.9]],
+            backgroundColor: [
+              'rgba(220,38,38,0.65)',
+              'rgba(220,38,38,0.65)',
+              'rgba(234,88,12,0.70)',
+              'rgba(220,38,38,0.60)',
+              'rgba(46,95,163,0.75)',
+              'rgba(27,58,107,0.85)',
+            ],
+            borderRadius: 4,
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { font: { size: 11 } } },
+          y: {
+            title: { display: true, text: '年化報酬率 (%)' },
+            ticks: { callback: v => v + '%' },
+            grid: { color: ctx => ctx.tick.value === 0 ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)' }
+          }
+        }
+      }
+    });
+  }
+
+  // 投影片 9：台股延伸滾動報酬率
+  if (e.indexh === 7 && !window._taiexExtended) {
+    window._taiexExtended = new Chart(document.getElementById('taiexExtendedChart'), {
+      type: 'bar',
+      data: {
+        labels: ['持有 1 年', '持有 3 年', '持有 5 年', '持有 10 年', '持有 15 年', '持有 20 年'],
+        datasets: [{
+          label: '年化報酬率範圍（1993–2026）',
+          data: [[-43.1, 84.3], [-17.2, 38.2], [-9.2, 23.1], [-5.2, 20.9], [1.5, 16.9], [2.6, 12.9]],
+          backgroundColor: [
+            'rgba(220,38,38,0.65)',
+            'rgba(220,38,38,0.65)',
+            'rgba(234,88,12,0.65)',
+            'rgba(220,38,38,0.60)',
+            'rgba(27,58,107,0.9)',
+            'rgba(27,58,107,0.9)',
+          ],
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { font: { size: 10 } } },
+          y: {
+            title: { display: true, text: '年化報酬率 (%)' },
+            ticks: { callback: v => v + '%' },
+            grid: { color: ctx => ctx.tick.value === 0 ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)' }
+          }
+        }
+      }
+    });
+  }
+
+  // 投影片 10：SPY 滾動報酬率
+  if (e.indexh === 8 && !window._spyRolling) {
+    window._spyRolling = new Chart(document.getElementById('spyRollingChart'), {
+      type: 'bar',
+      data: {
+        labels: ['持有 1 年', '持有 3 年', '持有 5 年', '持有 10 年', '持有 15 年', '持有 20 年'],
+        datasets: [{
+          label: '年化報酬率範圍（min～max）',
+          data: [[-37.3, 36.9], [-14.3, 30.7], [-2.6, 28.4], [-1.5, 16.1], [3.9, 14.5], [5.3, 10.6]],
+          backgroundColor: [
+            'rgba(220,38,38,0.65)',
+            'rgba(220,38,38,0.65)',
+            'rgba(234,88,12,0.70)',
+            'rgba(220,38,38,0.60)',
+            'rgba(27,58,107,0.85)',
+            'rgba(27,58,107,0.85)',
+          ],
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { font: { size: 11 } } },
+          y: {
+            title: { display: true, text: '年化報酬率 (%)' },
+            ticks: { callback: v => v + '%' },
+            grid: { color: ctx => ctx.tick.value === 0 ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)' }
+          }
+        }
+      }
+    });
+  }
+
+  // 投影片 12：VT 延伸滾動報酬率
+  if (e.indexh === 9 && !window._vtExtended) {
+    window._vtExtended = new Chart(document.getElementById('vtExtendedChart'), {
+      type: 'bar',
+      data: {
+        labels: ['持有 1 年', '持有 3 年', '持有 5 年', '持有 10 年', '持有 15 年', '持有 20 年'],
+        datasets: [{
+          label: '年化報酬率範圍（1998–2026）',
+          data: [[-47.4, 59.3], [-17.2, 24.8], [-4.9, 20.3], [-1.6, 13.1], [3.5, 12.2], [3.5, 8.8]],
+          backgroundColor: [
+            'rgba(220,38,38,0.65)',
+            'rgba(220,38,38,0.65)',
+            'rgba(234,88,12,0.65)',
+            'rgba(46,95,163,0.8)',
+            'rgba(27,58,107,0.9)',
+            'rgba(27,58,107,0.9)',
+          ],
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { font: { size: 10 } } },
+          y: {
+            title: { display: true, text: '年化報酬率 (%)' },
+            ticks: { callback: v => v + '%' },
+            grid: { color: ctx => ctx.tick.value === 0 ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)' }
+          }
+        }
+      }
+    });
+  }
+
+  // 投影片 11：VT 滾動報酬率
+  if (e.indexh === 10 && !window._vtRolling) {
+    window._vtRolling = new Chart(document.getElementById('vtRollingChart'), {
+      type: 'bar',
+      data: {
+        labels: ['持有 1 年', '持有 3 年', '持有 5 年', '持有 10 年', '持有 15 年'],
+        datasets: [{
+          label: '年化報酬率範圍（min～max）',
+          data: [[-18.2, 33.3], [2.9, 20.3], [4.0, 14.7], [7.8, 12.2], [9.1, 11.2]],
+          backgroundColor: [
+            'rgba(220,38,38,0.65)',
+            'rgba(46,95,163,0.75)',
+            'rgba(46,95,163,0.75)',
+            'rgba(27,58,107,0.85)',
+            'rgba(27,58,107,0.85)',
+          ],
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { font: { size: 11 } } },
+          y: {
+            title: { display: true, text: '年化報酬率 (%)' },
+            ticks: { callback: v => v + '%' },
+            grid: { color: ctx => ctx.tick.value === 0 ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)' }
+          }
+        }
+      }
+    });
+  }
+
+});
+</script>
+</body>
+</html>

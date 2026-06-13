@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EP05 旁白 Teleprompter</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0d1520;
+    color: #dde6f0;
+    font-family: -apple-system, "PingFang TC", sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+  }
+
+  /* ── 頂部 header ── */
+  .header {
+    padding: 14px 32px;
+    background: rgba(212,175,55,0.08);
+    border-bottom: 2px solid rgba(212,175,55,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .ep-label {
+    font-size: 0.8rem;
+    color: #D4AF37;
+    font-weight: 800;
+    letter-spacing: 2px;
+  }
+  .slide-title {
+    font-size: 0.95rem;
+    color: #94a3b8;
+    font-weight: 500;
+    text-align: center;
+    flex: 1;
+    padding: 0 24px;
+  }
+  .counter {
+    font-size: 0.82rem;
+    color: #475569;
+    font-weight: 600;
+    min-width: 48px;
+    text-align: right;
+  }
+
+  /* ── 主要內容區 ── */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 52px 80px 40px;
+    scroll-behavior: smooth;
+  }
+  .narration {
+    max-width: 860px;
+    margin: 0 auto;
+    font-size: 1.55rem;
+    line-height: 2.0;
+    color: #e2eaf5;
+  }
+  .narration p {
+    margin-bottom: 1.1em;
+  }
+  .narration p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* 進場動畫 */
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .slide-anim {
+    animation: slideIn 0.28s ease;
+  }
+
+  /* scrollbar */
+  .content::-webkit-scrollbar { width: 5px; }
+  .content::-webkit-scrollbar-track { background: transparent; }
+  .content::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.2); border-radius: 3px; }
+  .content::-webkit-scrollbar-thumb:hover { background: rgba(212,175,55,0.4); }
+
+  /* ── 底部 footer ── */
+  .footer {
+    padding: 12px 32px;
+    background: rgba(0,0,0,0.35);
+    border-top: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-shrink: 0;
+  }
+  .nav-hint {
+    font-size: 0.72rem;
+    color: #334155;
+    white-space: nowrap;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #D4AF37, #f0d060);
+    border-radius: 2px;
+    transition: width 0.35s ease;
+  }
+
+  /* ── 按鈕 ── */
+  .btn-row {
+    display: flex;
+    gap: 8px;
+  }
+  .btn {
+    background: rgba(212,175,55,0.12);
+    border: 1px solid rgba(212,175,55,0.25);
+    color: #D4AF37;
+    border-radius: 6px;
+    padding: 4px 14px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn:hover { background: rgba(212,175,55,0.22); }
+  .btn:active { transform: scale(0.96); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="ep-label">EP.05</span>
+  <span class="slide-title" id="slideTitle">—</span>
+  <span class="counter" id="counter">1 / 6</span>
+</div>
+
+<div class="content" id="content">
+  <div class="narration slide-anim" id="narration"></div>
+</div>
+
+<div class="footer">
+  <div class="btn-row">
+    <button class="btn" onclick="prev()">← 上一頁</button>
+    <button class="btn" onclick="next()">下一頁 →</button>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width:16.7%"></div>
+  </div>
+  <span class="nav-hint">← → Space 換頁 &nbsp;|&nbsp; 滾輪捲動</span>
+</div>
+
+<script>
+const slides = [
+  {
+    title: '第 1 頁 — 封面',
+    text: [
+      '大家好，我是科技宅爸。',
+      '這集我們要聊一個很多人都想問的問題——「為什麼不要選股？」',
+      '每個人身邊都有人說，某支股票要漲，某間公司很有潛力。但用數據來看，選股到底是什麼勝率？',
+      '這集我用台灣 0050 的歷史成分股數據，讓數字說話。',
+      '約翰．柏格有一句名言：「別在草堆裡找針，直接買整個草堆。」這集結束後，你會真正明白這句話的意思。',
+    ]
+  },
+  {
+    title: '第 2 頁 — 0050 歷史成分股報酬分佈（108 支）',
+    text: [
+      '0050 自成立以來，共有 108 支個股曾是成分股。我把這 108 支全部回測，看看它們的實際報酬率分佈。',
+      '結果如下：',
+      '40 支，報酬率是負的。其中有 3 支直接下市，股票歸零。',
+      '50 支，雖然正報酬，但報酬率低於 0050 整體。',
+      '只有 18 支，報酬率超過 0050，也就是真正「打敗指數」的個股。',
+      '108 支裡，只有 18 支打敗指數，比例是 17%。',
+      '更重要的是：這 18 支，你在事前根本不知道是哪幾支。',
+    ]
+  },
+  {
+    title: '第 3 頁 — 獲利集中在少數飆股',
+    text: [
+      '那打敗指數的這 18 支，報酬率分佈是怎樣的？',
+      '極度不均。',
+      '台光電 2383，報酬率 +62,053%。金像電 2368，+23,067%。致茂 2360，+9,087%。',
+      '頂端幾支幾乎貢獻了所有的超額報酬。其他大多數打敗指數的股票，報酬率也只是稍微高於 0050 一點點。',
+      '而且，就算你在 2026 年選到了這五支，問題還沒解完——你要在什麼時候賣？',
+      '台光電從成立初期就一路漲，三年賣？五年賣？十年賣？每個時間點賣出，拿到的報酬差距極大。很多人選對了股票，卻在最高點前就出場，或是套牢後不敢賣。',
+      '選股難的不只是「買對」，還有「賣對」。這兩件事都要做對，才算真的贏。',
+      '另一邊，虧損的也很慘烈。中華映管 2019 年破產下市，股票一文不值。宏達電從成分股期間最高點跌了 87%，群創跌了 92%。',
+      '這些公司在當年都是知名大企業，沒有人事先知道它們會走向那個結局。',
+      '所以選股的難題不是「能不能贏」——而是你要怎麼在事前選到那幾支飆股，同時避開那幾支大跌的？',
+      '查理·蒙格說過一句話：「如果我知道自己會死在哪裡，我就永遠不去那裡。」',
+      '把這個邏輯用在投資上——如果我不知道哪支股票最終會下市、會崩跌，那我能做的，就是乾脆不去選個股。',
+      '選了 0050，就算中華映管歸零、宏達電跌 87%，都跟你沒關係。你持有的是「整個草堆」，不用煩惱哪根針會斷。這就是蒙格說的——不去那個地方。',
+    ]
+  },
+  {
+    title: '第 4 頁 — 四個不選股的理由',
+    text: [
+      '你有沒有想過，選股為什麼這麼難？我整理了四個原因，每一個都有數據支撐。',
+      '第一，擊敗大盤的機率極低。根據 SPIVA 報告，專業基金經理人長期有 90% 以上跑輸指數。散戶的資訊、時間、工具都不如專業機構，勝率只會更低。不是不夠努力，而是遊戲規則本來就不利於散戶。',
+      '第二，獲利集中在少數飆股。學術研究（Bessembinder, 2018）指出，市場超額報酬幾乎來自最頂端 4% 的個股。不買整個市場，你很可能剛好錯過那幾支。',
+      '第三，成本摩擦侵蝕報酬。每次交易都有手續費、證交稅、買賣價差。頻繁進出，每次都在支付成本。指數化投資買進後幾乎不交易，費用近零。',
+      '第四，人性弱點難以克服。高漲時追、下跌時砍——這是人類本能，不是意志力的問題。研究一再顯示，投資人實際拿到的報酬，遠低於股票本身的報酬。',
+      '這四個原因會互相疊加。即使你的判斷有六成正確，成本加人性加機率，最後仍可能輸給指數。',
+    ]
+  },
+  {
+    title: '第 5 頁 — 時間越長，主動管理越難打敗指數',
+    text: [
+      '說到機率，我們來看 SPIVA 這份每年更新的報告。',
+      '它追蹤全球主動基金，看看有多少比例能打敗對應的指數。',
+      '持有 1 年，大概有 40% 的主動基金能贏。短期靠運氣，確實有機會。',
+      '持有 5 年，降到 25%。',
+      '持有 10 年，只剩 15%。',
+      '持有 15 年，只剩 8 到 10%。',
+      '時間越長，贏的比例越低。因為時間夠長之後，成本和人性的影響就完全發揮出來了。',
+      '換句話說，這不是某幾個基金特別爛，而是整個行業集體輸給指數。',
+    ]
+  },
+  {
+    title: '第 6 頁 — 選股找針 vs. 指數化：買整個草堆',
+    text: [
+      '總結一下兩種思維的差異。',
+      '選股，就是在草堆裡找針。你需要事先選中那幾支飆股，同時避開那幾支大跌的。勝率不到 10%，時間越長越難，成本和人性還不斷拖累你。',
+      '指數化投資，就是直接買整個草堆。每支成分股你都持有，台光電漲 62,000%，你一定有。費用極低，0050 費率約 0.2%，VT 約 0.06%。不需要擇時判斷，降低人性干擾。',
+      '問題不是「你選不選得到那根針」，而是——為什麼不乾脆買整個草堆？',
+      '約翰．柏格這句話，用數據驗證過了。',
+      '感謝大家看到這裡。這集的重點：108 支中只有 17% 打敗指數，且你事前不知道是哪幾支。如果你跟我一樣，希望用最省力的方式參與市場成長，指數化投資就是答案。下集見。',
+    ]
+  },
+];
+
+let current = 0;
+
+function render(animate = true) {
+  const slide = slides[current];
+  const total = slides.length;
+
+  document.getElementById('slideTitle').textContent = slide.title;
+  document.getElementById('counter').textContent = `${current + 1} / ${total}`;
+  document.getElementById('progressFill').style.width = `${((current + 1) / total) * 100}%`;
+
+  const el = document.getElementById('narration');
+  el.innerHTML = slide.text.map(t => `<p>${t}</p>`).join('');
+
+  document.getElementById('content').scrollTop = 0;
+
+  if (animate) {
+    el.classList.remove('slide-anim');
+    void el.offsetWidth;
+    el.classList.add('slide-anim');
+  }
+}
+
+function next() {
+  if (current < slides.length - 1) { current++; render(); _bc.postMessage({ slide: current }); }
+}
+function prev() {
+  if (current > 0) { current--; render(); _bc.postMessage({ slide: current }); }
+}
+
+document.addEventListener('keydown', e => {
+  if (['ArrowRight', 'ArrowDown', ' '].includes(e.key)) { e.preventDefault(); next(); }
+  else if (['ArrowLeft', 'ArrowUp'].includes(e.key))    { e.preventDefault(); prev(); }
+});
+
+render(false);
+
+// 接收 PPT 同步訊號
+const _bc = new BroadcastChannel('ep05_sync');
+_bc.onmessage = e => {
+  const idx = e.data.slide;
+  if (idx >= 0 && idx < slides.length && idx !== current) {
+    current = idx;
+    render();
+  }
+};
+</script>
+</body>
+</html>

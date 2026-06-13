@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>巴菲特雪球理論</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue:   #1B3A6B;
+    --green:  #2E5FA3;
+    --red:    #dc2626;
+    --gray:   #6b7280;
+    --light:  #f0f4fa;
+    --accent: #D4AF37;
+  }
+  .reveal { font-family: -apple-system, "PingFang TC", sans-serif; }
+  .reveal h2 { font-size: 1.5rem; color: var(--blue); font-weight: 700; border-bottom: 3px solid var(--accent); padding-bottom: 8px; margin-bottom: 20px; }
+  .reveal p, .reveal li { font-size: 0.85rem; line-height: 1.7; }
+  .reveal .slides section { text-align: left; }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  .card { background: var(--light); border-radius: 10px; padding: 16px 20px; border-left: 4px solid var(--accent); }
+  .card.green { border-left-color: var(--green); }
+  .card.red   { border-left-color: var(--red); }
+  .card .label { font-size: 0.7rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
+  .card .value { font-size: 1.3rem; font-weight: 700; color: var(--blue); margin: 4px 0; }
+
+  .note { background: #fefce8; border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.78rem; color: #713f12; margin-top: 12px; }
+  .highlight-box { text-align: center; background: linear-gradient(135deg, #1B3A6B, #2E5FA3); color: #fff; border-radius: 12px; padding: 20px; }
+  .highlight-box p { color: #bfdbfe; font-size: 0.85rem; }
+
+  .chart-wrap { position: relative; height: 280px; }
+  .chart-wrap.tall { height: 320px; }
+  .slider-row { display: flex; align-items: center; gap: 12px; margin: 8px 0; }
+  .slider-row label { font-size: 0.8rem; min-width: 100px; color: var(--gray); }
+  .slider-row input[type=range] { flex: 1; accent-color: var(--accent); }
+  .slider-row .val { font-size: 0.85rem; font-weight: 700; color: var(--accent); min-width: 80px; text-align: right; }
+
+  /* 雪球要素卡片 */
+  .snowball-card {
+    background: var(--light);
+    border-radius: 12px;
+    padding: 18px 20px;
+    border-top: 4px solid var(--accent);
+  }
+  .snowball-card .icon { font-size: 1.8rem; margin-bottom: 8px; }
+  .snowball-card .title { font-size: 0.95rem; font-weight: 800; color: var(--blue); margin-bottom: 4px; }
+  .snowball-card .subtitle { font-size: 0.72rem; color: var(--accent); font-weight: 600; margin-bottom: 8px; }
+  .snowball-card p { font-size: 0.78rem; color: var(--gray); margin: 0; line-height: 1.6; }
+
+  /* 頂部品牌橫條 */
+  .slide-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 46px; z-index: 200; pointer-events: none;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px;
+    background: rgba(255,255,255,0.96);
+    border-bottom: 2px solid #D4AF37;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: opacity 0.3s;
+  }
+  .reveal .slides section:not(.cover-slide) { padding-top: 52px !important; }
+  .slide-logo { display: none; }
+</style>
+</head>
+<body>
+
+<div class="slide-header">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <svg viewBox="0 0 100 100" width="36" height="36" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-hdr"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-hdr)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="3.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:18px;color:#1B3A6B;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:7.5px;color:#888;letter-spacing:2.2px;text-transform:uppercase;margin-top:3px;">Slow Rich</div>
+    </div>
+  </div>
+  <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:12px;color:#6b7280;">
+    <span style="color:#D4AF37;font-weight:800;margin-right:6px;">EP.03</span>巴菲特雪球理論
+  </div>
+</div>
+
+<div class="reveal">
+<div class="slides">
+
+<!-- ── 1. 封面 ──────────────────────────────── -->
+<section class="cover-slide" data-background-gradient="linear-gradient(150deg, #080f1f 0%, #0d1b35 55%, #080f1f 100%)" style="padding:40px 56px;text-align:left !important;position:relative;">
+  <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;" viewBox="0 0 1100 650" preserveAspectRatio="none">
+    <defs>
+      <filter id="peak-glow" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g transform="translate(-73,18)">
+    <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160 L1055,650 L680,650 Z" fill="#D4AF37" opacity="0.05"/>
+    <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160" stroke="#D4AF37" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.05"/>
+    <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160" stroke="#D4AF37" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
+    <circle cx="1055" cy="160" r="24" fill="#D4AF37" opacity="0.12" filter="url(#peak-glow)"/>
+    <circle cx="1055" cy="160" r="10" fill="#D4AF37" opacity="0.55"/>
+    <circle cx="1055" cy="160" r="5" fill="#D4AF37" opacity="0.95"/>
+      </g>
+  </svg>
+  <div id="cover-logo" style="position:absolute;top:9px;right:123px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.35);border-radius:14px;padding:10px 18px 10px 12px;">
+    <svg viewBox="0 0 100 100" width="80" height="80" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-cover-1"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-cover-1)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="21" cy="63" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="26" cy="80" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="35" cy="52" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="42" cy="67" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="51" cy="40" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="57" cy="57" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="67" cy="24" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="73" cy="36" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="14" cy="82" r="2.5" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="4.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:26px;color:#D4AF37;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:400;font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">Slow Rich</div>
+    </div>
+  </div>
+  <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.45);border-radius:20px;padding:5px 16px;margin-bottom:30px;">
+    <span style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:11px;color:#D4AF37;font-weight:800;letter-spacing:1.5px;">EP.03</span>
+    <span style="width:1px;height:10px;background:rgba(212,175,55,0.4);display:inline-block;"></span>
+    <span style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:11px;color:#aaa;letter-spacing:0.5px;">複利與時間的力量</span>
+  </div>
+  <div style="margin-bottom:14px;line-height:1.05;">
+    <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:3.5rem;font-weight:900;color:#fff;margin-bottom:4px;">巴菲特</div>
+    <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:4.4rem;font-weight:900;color:#D4AF37;text-shadow:0 0 36px rgba(212,175,55,0.35);">雪球理論</div>
+  </div>
+  <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:1rem;font-weight:300;color:#aaa;letter-spacing:1px;margin-bottom:28px;font-style:italic;">「人生就像滾雪球，重要的是找到濕的雪和很長的坡道」</div>
+  <div id="cover-cards" style="display:flex;align-items:stretch;gap:12px;max-width:680px;transform:scale(0.9);transform-origin:left top;">
+    <div style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;font-family:-apple-system,'PingFang TC',sans-serif;">濕的雪</div>
+      <div style="font-size:1rem;font-weight:700;color:#D4AF37;font-family:-apple-system,'PingFang TC',sans-serif;">報酬率 8~10%</div>
+    </div>
+    <div style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;font-family:-apple-system,'PingFang TC',sans-serif;">長坡道</div>
+      <div style="font-size:1rem;font-weight:700;color:#D4AF37;font-family:-apple-system,'PingFang TC',sans-serif;">時間 至少 15 年以上</div>
+    </div>
+    <div style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;font-family:-apple-system,'PingFang TC',sans-serif;">初始雪球</div>
+      <div style="font-size:1rem;font-weight:700;color:#D4AF37;font-family:-apple-system,'PingFang TC',sans-serif;">本金 + 持續投入</div>
+    </div>
+  </div>
+  <p style="position:absolute;bottom:14px;left:56px;color:#2e4a6b;font-size:0.68rem;font-family:-apple-system,sans-serif;">按 → 翻頁 &nbsp;|&nbsp; F 全螢幕 &nbsp;|&nbsp; ESC 總覽</p>
+</section>
+
+<!-- ── 2. 雪球的三個要素 ──────────────────── -->
+<section>
+  <h2>雪球理論的三個要素</h2>
+  <div class="three-col">
+    <div class="snowball-card">
+      <div class="title">濕的雪</div>
+      <div class="subtitle">報酬率／核心競爭力</div>
+      <p>雪越濕，滾動時黏住的雪越多。投資上代表<strong>穩定的年化報酬率</strong>——雪不夠濕（報酬率低），雪球就難以壯大。</p>
+      <p style="margin-top:8px;color:var(--blue);font-weight:600;">指數化投資：年化 8~10%</p>
+    </div>
+    <div class="snowball-card" style="border-top-color:var(--green);">
+      <div class="title">很長的坡道</div>
+      <div class="subtitle">時間／長期堅持</div>
+      <p>坡道越長，雪球滾動的距離越遠。投資上代表<strong>投資的總時長</strong>——越早開始，坡道越長，成果越巨大。</p>
+      <p style="margin-top:8px;color:var(--blue);font-weight:600;">關鍵：待在場內，不中途離場</p>
+    </div>
+    <div class="snowball-card" style="border-top-color:var(--blue);">
+      <div class="title">初始雪球</div>
+      <div class="subtitle">本金／持續投入</div>
+      <p>雪球越大，滾動時接觸面越廣，黏住的雪越多。<strong>起點越高，達到目標越快</strong>；持續投入就是不斷往雪球裡塞新雪。</p>
+      <p style="margin-top:8px;color:var(--blue);font-weight:600;">提高儲蓄率 = 加速雪球體積</p>
+    </div>
+  </div>
+  <div class="note" style="margin-top:16px;">
+    三個要素缺一不可，但<strong>時間是唯一買不到的東西</strong>。報酬率可以優化，本金可以累積，但錯過的時間永遠回不來。
+  </div>
+</section>
+
+<!-- ── 3. 套用到指數化投資 ─────────────────── -->
+<section>
+  <h2>把雪球理論套進 0050 / VT</h2>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <div class="label">濕的雪 = 0050 / VT 的穩定報酬</div>
+        <div class="value" style="font-size:1rem;">年化 8~10%（含息）</div>
+        <p>指數化投資透過<strong>分散 + 汰弱留強</strong>參與整體經濟成長。股息持續再投入，就像把掉下來的雪片重新捏回雪球——這是保持「雪濕度」的關鍵。</p>
+      </div>
+      <div class="card green">
+        <div class="label">很長的坡道 = 早開始 + 長期持有</div>
+        <div class="value" style="font-size:1rem;">待在場內（Stay in the Market）</div>
+        <p>遇到市場大跌就賣出，就像雪球滾到一半跳出坡道。<strong>一旦中斷，複利的計時器必須重來。</strong></p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="highlight-box">
+        <div style="font-size:0.75rem;color:#93c5fd;letter-spacing:1px;margin-bottom:6px;">72 法則</div>
+        <div style="font-size:2.8rem;font-weight:900;color:#D4AF37;line-height:1;">72 ÷ 10%</div>
+        <div style="font-size:1.1rem;font-weight:700;color:#fff;margin:6px 0;">= 每 7.2 年翻一倍</div>
+        <p>年報酬率 10%，資產每 7.2 年翻倍一次</p>
+      </div>
+      <div class="note" style="margin-top:0;">
+        <strong>30 年坡道：</strong>翻約 16 倍（2⁴）<br>
+        <strong>10 年坡道：</strong>連 1 倍都翻不到<br>
+        差距不是 3 倍，是 <strong>10 倍以上</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4. 複利試算工具 ─────────────────────── -->
+<section>
+  <h2>複利的時間魔力：自己算算你的數字</h2>
+  <div class="two-col">
+    <div>
+      <p>把你自己的數字填進去，看看雪球能滾多大：</p>
+      <div class="slider-row">
+        <label>每月投入</label>
+        <input type="range" id="ep03MonthlySlider" min="5000" max="50000" step="1000" value="10000">
+        <span class="val" id="ep03MonthlyVal">10,000 元</span>
+      </div>
+      <div class="slider-row">
+        <label>投資年限</label>
+        <input type="range" id="ep03YearsSlider" min="10" max="40" step="1" value="30">
+        <span class="val" id="ep03YearsVal">30 年</span>
+      </div>
+      <div class="slider-row">
+        <label>年化報酬率</label>
+        <input type="range" id="ep03RateSlider" min="5" max="12" step="0.5" value="8">
+        <span class="val" id="ep03RateVal">8%</span>
+      </div>
+      <br>
+      <div class="three-col">
+        <div class="card">
+          <div class="label">預估終值</div>
+          <div class="value" id="ep03FinalVal">—</div>
+        </div>
+        <div class="card">
+          <div class="label">總投入本金</div>
+          <div class="value" id="ep03TotalPrincipal">—</div>
+        </div>
+        <div class="card green">
+          <div class="label">複利報酬</div>
+          <div class="value" id="ep03TotalReturn">—</div>
+        </div>
+      </div>
+      <div id="ep03GoalMsg" class="note" style="margin-top:12px;"></div>
+    </div>
+    <div>
+      <div class="chart-wrap tall">
+        <canvas id="ep03GoalChart"></canvas>
+      </div>
+      <p class="note" style="margin-top:8px;font-size:0.75rem;">雪球越滾越大，是因為後期報酬的基數越來越高——這就是複利的威力。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4b. 初始雪球 ────────────────────────── -->
+<section>
+  <h2>初始雪球的威力：起點越大，終點越遠</h2>
+  <p style="margin-bottom:10px;">把你現有的存款當作「初始本金」，看看雪球從更大的起點出發，差距有多驚人：</p>
+  <div class="two-col">
+    <div>
+      <div class="slider-row">
+        <label>初始本金</label>
+        <input type="range" id="ep03LumpSlider" min="0" max="2000" step="50" value="100">
+        <span class="val" id="ep03LumpVal">100 萬</span>
+      </div>
+      <div class="slider-row">
+        <label>每月投入</label>
+        <input type="range" id="ep03LumpMonthly" min="0" max="100000" step="1000" value="10000">
+        <span class="val" id="ep03LumpMonthlyVal">10,000 元</span>
+      </div>
+      <div class="slider-row">
+        <label>投資年限</label>
+        <input type="range" id="ep03LumpYears" min="5" max="40" step="1" value="30">
+        <span class="val" id="ep03LumpYearsVal">30 年</span>
+      </div>
+      <div class="slider-row">
+        <label>年化報酬率</label>
+        <input type="range" id="ep03LumpRate" min="5" max="12" step="0.5" value="8">
+        <span class="val" id="ep03LumpRateVal">8%</span>
+      </div>
+      <div class="three-col">
+        <div class="card">
+          <div class="label">無初始本金</div>
+          <div class="value" id="ep03LumpA">—</div>
+          <div style="font-size:0.68rem;color:var(--gray);">純定期定額</div>
+        </div>
+        <div class="card green">
+          <div class="label">有初始本金</div>
+          <div class="value" id="ep03LumpB">—</div>
+          <div style="font-size:0.68rem;color:var(--gray);">本金 + 定期定額</div>
+        </div>
+        <div class="card" style="border-left-color:var(--accent);">
+          <div class="label">多賺了</div>
+          <div class="value" style="color:var(--accent);" id="ep03LumpDiff">—</div>
+          <div style="font-size:0.68rem;color:var(--gray);" id="ep03LumpMult">—</div>
+        </div>
+      </div>
+      <div class="note" style="margin-top:12px;" id="ep03LumpMsg"></div>
+    </div>
+    <div>
+      <div class="chart-wrap tall">
+        <canvas id="ep03LumpChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 5. 警語：真實市場的樣貌 ───────────── -->
+<section>
+  <h2>但現實的市場，不是每年給你 8~10%</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>複利試算用的是<strong>長期平均</strong>報酬率。但真實的股票市場，每一年的報酬率差異極大：</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:14px;height:14px;border-radius:3px;background:rgba(220,38,38,0.85);flex-shrink:0;"></div>
+          <span style="font-size:0.82rem;">大漲年份：+73%（2009）、+43%（2026）</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:14px;height:14px;border-radius:3px;background:rgba(21,128,61,0.85);flex-shrink:0;"></div>
+          <span style="font-size:0.82rem;">大跌年份：−45%（2008）、−22%（2022）</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:14px;height:14px;border-radius:3px;background:rgba(212,175,55,0.95);flex-shrink:0;"></div>
+          <span style="font-size:0.82rem;">真正落在 8~12% 的年份：<strong>20 年中只有 6 年</strong></span>
+        </div>
+      </div>
+      <div class="note">
+        這是 Slow Rich 和其他頻道不一樣的地方——<br>
+        用<strong>真實統計數據</strong>，一起對市場有更真實的認識。<br>
+        8~10% 是長期平均，不是每年保證。<strong>短期波動才是常態。</strong>
+      </div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:300px;">
+        <canvas id="realityChart"></canvas>
+      </div>
+      <p style="font-size:0.72rem;color:var(--gray);margin-top:6px;text-align:center;">台股加權指數年度報酬率（2007–2026）</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 6. 你的起點在哪？ ──────────────────── -->
+<section>
+  <h2>不論你的起點在哪，都可以開始</h2>
+  <div class="two-col" style="margin-bottom:16px;">
+    <div class="card" style="border-left-color:var(--green);">
+      <div class="label">剛畢業，沒有本金</div>
+      <div class="value" style="font-size:1rem;color:var(--green);">時間是你最大的優勢</div>
+      <p>你擁有最長的坡道。從第一份薪水開始定期定額，每月即使只投入 3,000~5,000 元，30 年後的複利效果仍然驚人。</p>
+      <p style="margin-top:8px;"><strong>重點：越早開始，坡道越長。</strong></p>
+    </div>
+    <div class="card">
+      <div class="label">已工作一段時間，有存款</div>
+      <div class="value" style="font-size:1rem;">初始雪球已經夠大</div>
+      <p>你的本金就是那顆比別人大的初始雪球。一次投入 + 持續定期定額，在剩餘的坡道上，雪球會滾得更快。</p>
+      <p style="margin-top:8px;"><strong>重點：現在就是開始的好時機。</strong></p>
+    </div>
+  </div>
+  <div class="highlight-box">
+    <div style="font-size:1.2rem;font-weight:800;color:#D4AF37;margin-bottom:8px;">雪球理論的核心訊息</div>
+    <p>濕的雪（0050 / VT）已經準備好了。<br>坡道（時間）每天都在縮短。<br><strong style="color:#fff;font-size:0.95rem;">你唯一需要做的，就是讓雪球開始滾動。</strong></p>
+  </div>
+</section>
+
+</div>
+</div>
+
+<div class="slide-logo"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  transition: 'slide',
+  transitionSpeed: 'fast',
+  controls: true,
+  progress: true,
+  slideNumber: true,
+  width: 1100,
+  height: 650,
+});
+
+const _header = document.querySelector('.slide-header');
+_header.style.opacity = '0';
+Reveal.on('slidechanged', e => {
+  _header.style.opacity = e.indexh === 0 ? '0' : '1';
+});
+
+const _bc = new BroadcastChannel('ep03_sync');
+Reveal.on('slidechanged', e => { _bc.postMessage({ slide: e.indexh }); });
+_bc.onmessage = e => { if (e.data.slide !== Reveal.getIndices().h) Reveal.slide(e.data.slide); };
+
+// 投影片 4：複利互動試算
+Reveal.on('slidechanged', function(e) {
+  if (e.indexh === 3 && !window._ep03chart) {
+    window._ep03chart = new Chart(document.getElementById('ep03GoalChart'), {
+      type: 'line', data: { labels: [], datasets: [] },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+    ep03UpdateGoal();
+    ['ep03MonthlySlider','ep03YearsSlider','ep03RateSlider'].forEach(id =>
+      document.getElementById(id).addEventListener('input', ep03UpdateGoal));
+  }
+
+  // 投影片 5：真實市場年報酬率
+
+  if (e.indexh === 4 && !window._ep03lump) {
+    window._ep03lump = new Chart(document.getElementById('ep03LumpChart'), {
+      type: 'line', data: { labels: [], datasets: [] },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+    ep03UpdateLump();
+    ['ep03LumpSlider','ep03LumpMonthly','ep03LumpYears','ep03LumpRate'].forEach(id =>
+      document.getElementById(id).addEventListener('input', ep03UpdateLump));
+  }
+
+  if (e.indexh === 5 && !window._reality) {
+    const taiexData = [
+      { y: '2007', r: 8.1 },   { y: '2008', r: -45.9 }, { y: '2009', r: 73.3 },
+      { y: '2010', r: 9.1 },   { y: '2011', r: -21.8 }, { y: '2012', r: 8.9 },
+      { y: '2013', r: 11.3 },  { y: '2014', r: 8.0 },   { y: '2015', r: -10.3 },
+      { y: '2016', r: 11.3 },  { y: '2017', r: 15.0 },  { y: '2018', r: -8.8 },
+      { y: '2019', r: 23.4 },  { y: '2020', r: 22.5 },  { y: '2021', r: 23.8 },
+      { y: '2022', r: -22.6 }, { y: '2023', r: 27.1 },  { y: '2024', r: 28.4 },
+      { y: '2025', r: 26.1 },  { y: '2026*', r: 43.5 },
+    ];
+    const labels = taiexData.map(d => d.y);
+    const rets   = taiexData.map(d => d.r);
+    window._reality = new Chart(document.getElementById('realityChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: '年度報酬率 (%)',
+            data: rets,
+            backgroundColor: rets.map(r =>
+              (r >= 8 && r <= 12) ? 'rgba(212,175,55,0.95)' :
+              r >= 0 ? 'rgba(220,38,38,0.85)' :
+              'rgba(21,128,61,0.85)'
+            ),
+            order: 2,
+          },
+          {
+            type: 'line',
+            label: '人們認為的報酬率（約 8%）',
+            data: labels.map(() => 8),
+            borderColor: 'rgba(212,175,55,0.9)',
+            borderWidth: 2,
+            borderDash: [6, 4],
+            pointRadius: 0,
+            fill: false,
+            order: 1,
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            labels: { filter: item => item.text !== '年度報酬率 (%)', boxWidth: 30, font: { size: 11 } }
+          }
+        },
+        scales: {
+          x: { ticks: { font: { size: 9 }, maxRotation: 90, minRotation: 90, autoSkip: false } },
+          y: { title: { display: true, text: '報酬率 (%)' }, ticks: { callback: v => v + '%' } }
+        }
+      }
+    });
+  }
+});
+
+function ep03UpdateLump() {
+  const lump    = +document.getElementById('ep03LumpSlider').value;
+  const monthly = +document.getElementById('ep03LumpMonthly').value;
+  const years   = +document.getElementById('ep03LumpYears').value;
+  const rate    = +document.getElementById('ep03LumpRate').value / 100;
+
+  document.getElementById('ep03LumpVal').textContent        = lump + ' 萬';
+  document.getElementById('ep03LumpMonthlyVal').textContent = monthly.toLocaleString() + ' 元';
+  document.getElementById('ep03LumpYearsVal').textContent   = years + ' 年';
+  document.getElementById('ep03LumpRateVal').textContent    = (rate * 100).toFixed(1) + '%';
+
+  const fvDCA   = monthly * 12 * ((Math.pow(1 + rate, years) - 1) / rate);
+  const lumpFV  = lump * 10000 * Math.pow(1 + rate, years);
+  const fvTotal = fvDCA + lumpFV;
+  const diff    = lumpFV;
+  const mult    = Math.round(Math.pow(1 + rate, years) * 10) / 10;
+
+  const fvA = Math.round(fvDCA / 10000);
+  const fvB = Math.round(fvTotal / 10000);
+  const diffW = Math.round(diff / 10000);
+
+  document.getElementById('ep03LumpA').textContent    = fvA.toLocaleString() + ' 萬';
+  document.getElementById('ep03LumpB').textContent    = fvB.toLocaleString() + ' 萬';
+  document.getElementById('ep03LumpDiff').textContent = lump > 0 ? '+' + diffW.toLocaleString() + ' 萬' : '—';
+  document.getElementById('ep03LumpMult').textContent = lump > 0 ? `${lump} 萬 × ${mult} 倍` : '';
+
+  const msg = document.getElementById('ep03LumpMsg');
+  if (lump > 0) {
+    msg.textContent = `${lump} 萬的初始本金，${years} 年後複利放大成 ${diffW.toLocaleString()} 萬——雪球從更大的起點出發，差距就這麼來的。`;
+  } else {
+    msg.textContent = '把初始本金往上拉，看看現有存款能讓雪球大多少。';
+  }
+
+  const GOLD = '#D4AF37', BLUE = '#1B3A6B';
+  const yrsArr = Array.from({length: years + 1}, (_, i) => `第${i}年`);
+  const lineA  = yrsArr.map((_, i) => Math.round(monthly * 12 * ((Math.pow(1+rate,i)-1)/rate) / 10000));
+  const lineB  = yrsArr.map((_, i) => Math.round((monthly * 12 * ((Math.pow(1+rate,i)-1)/rate) + lump * 10000 * Math.pow(1+rate,i)) / 10000));
+
+  const c = window._ep03lump;
+  c.data.labels   = yrsArr;
+  c.data.datasets = [
+    { label: '純定期定額', data: lineA, borderColor: BLUE, backgroundColor: 'rgba(27,58,107,0.08)', fill: true, tension: 0.4, pointRadius: 0 },
+    { label: `有初始本金 ${lump} 萬`, data: lineB, borderColor: GOLD, backgroundColor: 'rgba(212,175,55,0.10)', fill: true, tension: 0.4, pointRadius: 0 },
+  ];
+  c.options = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top' } },
+    scales: { y: { title: { display: true, text: '萬元' }, ticks: { callback: v => v.toLocaleString() } } }
+  };
+  c.update();
+}
+
+function ep03UpdateGoal() {
+  const monthly = +document.getElementById('ep03MonthlySlider').value;
+  const years   = +document.getElementById('ep03YearsSlider').value;
+  const rate    = +document.getElementById('ep03RateSlider').value / 100;
+
+  document.getElementById('ep03MonthlyVal').textContent = monthly.toLocaleString() + ' 元';
+  document.getElementById('ep03YearsVal').textContent   = years + ' 年';
+  document.getElementById('ep03RateVal').textContent    = (rate * 100).toFixed(1) + '%';
+
+  const fv        = monthly * 12 * ((Math.pow(1 + rate, years) - 1) / rate);
+  const principal = monthly * 12 * years;
+  const returnAmt = fv - principal;
+
+  document.getElementById('ep03FinalVal').textContent       = Math.round(fv / 10000).toLocaleString() + ' 萬';
+  document.getElementById('ep03TotalPrincipal').textContent = Math.round(principal / 10000).toLocaleString() + ' 萬';
+  document.getElementById('ep03TotalReturn').textContent    = Math.round(returnAmt / 10000).toLocaleString() + ' 萬';
+
+  const msg = document.getElementById('ep03GoalMsg');
+  const ratio = Math.round((returnAmt / principal) * 10) / 10;
+  msg.style.background = '#dbeafe'; msg.style.borderLeftColor = '#2E5FA3'; msg.style.color = '#1B3A6B';
+  msg.textContent = `總投入 ${Math.round(principal/10000).toLocaleString()} 萬，複利幫你多賺 ${Math.round(returnAmt/10000).toLocaleString()} 萬（${ratio}×）——這就是雪球效應。`;
+
+  const GOLD = '#D4AF37', GRAY = '#9ca3af';
+  const yrsArr      = Array.from({length: years + 1}, (_, i) => `第${i}年`);
+  const principalLn = yrsArr.map((_, i) => Math.round(monthly * 12 * i / 10000));
+  const fvLine      = yrsArr.map((_, i) => Math.round(monthly * 12 * ((Math.pow(1+rate, i)-1)/rate) / 10000));
+
+  const c = window._ep03chart;
+  c.data.labels = yrsArr;
+  c.data.datasets = [
+    { label: '累計投入本金', data: principalLn, borderColor: GRAY, fill: true, backgroundColor: 'rgba(156,163,175,0.15)', tension: 0, pointRadius: 0, borderDash: [5,4] },
+    { label: '複利資產總值', data: fvLine,      borderColor: GOLD, fill: true, backgroundColor: 'rgba(212,175,55,0.1)',    tension: 0.4, pointRadius: 0 },
+  ];
+  c.options = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top' } },
+    scales: { y: { title: { display: true, text: '萬元' }, ticks: { callback: v => v.toLocaleString() }, suggestedMax: Math.max(Math.round(fv/10000)*1.1, 500) } }
+  };
+  c.update();
+}
+</script>
+</body>
+</html>

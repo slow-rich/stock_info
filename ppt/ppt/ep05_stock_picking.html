@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>為什麼不要選股？</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue:   #1B3A6B;
+    --green:  #2E5FA3;
+    --red:    #dc2626;
+    --gray:   #6b7280;
+    --light:  #f0f4fa;
+    --accent: #D4AF37;
+  }
+  .reveal { font-family: -apple-system, "PingFang TC", sans-serif; }
+  .reveal h2 { font-size: 1.5rem; color: var(--blue); font-weight: 700; border-bottom: 3px solid var(--accent); padding-bottom: 8px; margin-bottom: 20px; }
+  .reveal p, .reveal li { font-size: 0.85rem; line-height: 1.7; }
+  .reveal .slides section { text-align: left; }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .four-col  { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; }
+
+  .card { background: var(--light); border-radius: 10px; padding: 16px 20px; border-left: 4px solid var(--accent); }
+  .card.red   { border-left-color: var(--red); }
+  .card.blue  { border-left-color: var(--blue); }
+  .card .label { font-size: 0.7rem; color: var(--gray); letter-spacing: 1px; }
+  .card .value { font-size: 1.3rem; font-weight: 700; color: var(--blue); margin: 4px 0; }
+
+  .note { background: #fefce8; border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.78rem; color: #713f12; margin-top: 12px; }
+  .chart-wrap { position: relative; height: 280px; }
+
+  /* 頂部品牌橫條 */
+  .slide-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 46px; z-index: 200; pointer-events: none;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px;
+    background: rgba(255,255,255,0.96);
+    border-bottom: 2px solid #D4AF37;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .reveal .slides section:not(.cover-slide) { padding-top: 52px !important; }
+
+  /* reason card for slide 4 */
+  .reason-card {
+    background: var(--light);
+    border-radius: 12px;
+    padding: 18px 16px;
+    border-top: 4px solid var(--accent);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .reason-card.red  { border-top-color: var(--red); }
+  .reason-card.blue { border-top-color: var(--blue); }
+  .reason-card.green { border-top-color: #16a34a; }
+  .reason-card .icon { font-size: 1.6rem; }
+  .reason-card .title { font-size: 0.88rem; font-weight: 800; color: var(--blue); }
+  .reason-card .body  { font-size: 0.75rem; color: var(--gray); line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="slide-header">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <svg viewBox="0 0 100 100" width="36" height="36" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-hdr"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-hdr)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="3.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:18px;color:#1B3A6B;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:7.5px;color:#888;letter-spacing:2.2px;text-transform:uppercase;margin-top:3px;">Slow Rich</div>
+    </div>
+  </div>
+  <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:12px;color:#6b7280;">
+    <span style="color:#D4AF37;font-weight:800;margin-right:6px;">EP.05</span>為什麼不要選股？
+  </div>
+</div>
+
+<div class="reveal">
+<div class="slides">
+
+<!-- ── 1. 封面 ──────────────────────────────── -->
+<section class="cover-slide" data-background-gradient="linear-gradient(150deg, #080f1f 0%, #0d1b35 55%, #080f1f 100%)" style="padding:40px 56px;text-align:left !important;position:relative;">
+  <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;" viewBox="0 0 1100 650" preserveAspectRatio="none">
+    <defs>
+      <filter id="peak-glow" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g transform="translate(-73,18)">
+    <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160 L1055,650 L680,650 Z" fill="#D4AF37" opacity="0.05"/>
+    <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160" stroke="#D4AF37" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.05"/>
+    <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160" stroke="#D4AF37" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
+    <circle cx="1055" cy="160" r="24" fill="#D4AF37" opacity="0.12" filter="url(#peak-glow)"/>
+    <circle cx="1055" cy="160" r="10" fill="#D4AF37" opacity="0.55"/>
+    <circle cx="1055" cy="160" r="5" fill="#D4AF37" opacity="0.95"/>
+      </g>
+  </svg>
+  <div id="cover-logo" style="position:absolute;top:9px;right:123px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.35);border-radius:14px;padding:10px 18px 10px 12px;">
+    <svg viewBox="0 0 100 100" width="80" height="80" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-cover-1"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-cover-1)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="21" cy="63" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="26" cy="80" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="35" cy="52" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="42" cy="67" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="51" cy="40" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="57" cy="57" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="67" cy="24" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="73" cy="36" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="14" cy="82" r="2.5" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="4.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:26px;color:#D4AF37;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:400;font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">Slow Rich</div>
+    </div>
+  </div>
+  <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.45);border-radius:20px;padding:5px 16px;margin-bottom:30px;">
+    <span style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:11px;color:#D4AF37;font-weight:800;letter-spacing:1.5px;">EP.05</span>
+    <span style="width:1px;height:10px;background:rgba(212,175,55,0.4);display:inline-block;"></span>
+    <span style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:11px;color:#aaa;letter-spacing:0.5px;">數據說話</span>
+  </div>
+  <div style="margin-bottom:14px;line-height:1.05;">
+    <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:3.5rem;font-weight:900;color:#fff;margin-bottom:4px;">為什麼</div>
+    <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:4.4rem;font-weight:900;color:#D4AF37;text-shadow:0 0 36px rgba(212,175,55,0.35);">不要選股？</div>
+  </div>
+  <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:1rem;font-weight:300;color:#aaa;letter-spacing:1px;margin-bottom:28px;">「別在草堆裡找針，直接買整個草堆。」— John Bogle</div>
+  <div id="cover-cards" style="display:flex;align-items:stretch;gap:12px;max-width:680px;transform:scale(0.9);transform-origin:left top;">
+    <div style="background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;font-family:-apple-system,'PingFang TC',sans-serif;">成分股中負報酬個股</div>
+      <div style="font-size:1rem;font-weight:700;color:#dc2626;font-family:-apple-system,'PingFang TC',sans-serif;">佔 37%（40 支）</div>
+    </div>
+    <div style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;font-family:-apple-system,'PingFang TC',sans-serif;">長期主動基金勝率</div>
+      <div style="font-size:1rem;font-weight:700;color:#D4AF37;font-family:-apple-system,'PingFang TC',sans-serif;">不到 10%</div>
+    </div>
+    <div style="background:rgba(46,95,163,0.08);border:1px solid rgba(46,95,163,0.2);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;font-family:-apple-system,'PingFang TC',sans-serif;">答案</div>
+      <div style="font-size:1rem;font-weight:700;color:#2E5FA3;font-family:-apple-system,'PingFang TC',sans-serif;">買整個草堆</div>
+    </div>
+  </div>
+  <p style="position:absolute;bottom:14px;left:56px;color:#2e4a6b;font-size:0.68rem;font-family:-apple-system,sans-serif;">按 → 翻頁 &nbsp;|&nbsp; F 全螢幕 &nbsp;|&nbsp; ESC 總覽</p>
+</section>
+
+<!-- ── 2. 0050 成分股全回測 ────────────────── -->
+<section>
+  <h2>0050 歷史成分股報酬分佈（108 支）</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>自 0050 成立以來，共有 <strong>108 支</strong>個股曾是成分股。<br>看看它們的實際報酬分佈：</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(220,38,38,0.06);border-radius:8px;padding:10px 14px;">
+          <div style="width:44px;height:44px;border-radius:50%;background:#dc2626;display:flex;align-items:center;justify-content:center;font-size:0.95rem;font-weight:900;color:#fff;flex-shrink:0;">40支</div>
+          <div>
+            <div style="font-size:0.85rem;font-weight:700;color:#dc2626;">負報酬（含 3 支 −100% 下市）</div>
+            <div style="font-size:0.72rem;color:var(--gray);">看似穩健的大公司，最終也可能虧損或下市</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:var(--light);border-radius:8px;padding:10px 14px;">
+          <div style="width:44px;height:44px;border-radius:50%;background:#93c5fd;display:flex;align-items:center;justify-content:center;font-size:0.95rem;font-weight:900;color:#1B3A6B;flex-shrink:0;">50支</div>
+          <div>
+            <div style="font-size:0.85rem;font-weight:700;color:var(--blue);">正報酬、但低於 0050</div>
+            <div style="font-size:0.72rem;color:var(--gray);">有獲利，但跑輸指數的整體報酬</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(212,175,55,0.08);border-radius:8px;padding:10px 14px;">
+          <div style="width:44px;height:44px;border-radius:50%;background:#D4AF37;display:flex;align-items:center;justify-content:center;font-size:0.95rem;font-weight:900;color:#fff;flex-shrink:0;">18支</div>
+          <div>
+            <div style="font-size:0.85rem;font-weight:700;color:#8B6914;">打敗 0050（報酬 > 869%）</div>
+            <div style="font-size:0.72rem;color:var(--gray);">台光電 +62,053%、金像電 +23,067%、致茂 +9,087% 等</div>
+          </div>
+        </div>
+      </div>
+      <div class="note">108 支中僅 18 支（17%）報酬超過 0050。報酬分佈極度不均，少數飆股撐起整體。<br>選股的難題不是「能不能贏」，而是<strong>事先選到對的那幾支</strong>。</div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:310px;">
+        <canvas id="stockDistChart"></canvas>
+      </div>
+      <p style="font-size:0.65rem;color:var(--gray);margin-top:4px;text-align:center;">各報酬區間成分股數量分佈（含現任與歷任成分股）</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 3. 獲利集中在極少數飆股 ─────────────── -->
+<section>
+  <h2>獲利集中在少數飆股：你事先選得到嗎？</h2>
+  <div class="two-col">
+    <div>
+      <p style="margin-bottom:10px;">表面上有 23 支打敗指數，但<strong>報酬極度不均</strong>。<br>頂端少數幾支幾乎貢獻了所有超額報酬。</p>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+        <div style="font-size:0.72rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:1px;padding:0 4px;">報酬最高前 5 支</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(212,175,55,0.10);border-radius:7px;padding:7px 12px;">
+          <span style="font-size:0.8rem;font-weight:700;">台光電 2383</span>
+          <span style="font-size:0.9rem;font-weight:900;color:#D4AF37;">+62,053%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(212,175,55,0.08);border-radius:7px;padding:7px 12px;">
+          <span style="font-size:0.8rem;font-weight:700;">金像電 2368</span>
+          <span style="font-size:0.9rem;font-weight:900;color:#D4AF37;">+23,067%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(212,175,55,0.06);border-radius:7px;padding:7px 12px;">
+          <span style="font-size:0.8rem;font-weight:700;">致茂 2360</span>
+          <span style="font-size:0.9rem;font-weight:900;color:#D4AF37;">+9,087%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(212,175,55,0.05);border-radius:7px;padding:7px 12px;">
+          <span style="font-size:0.8rem;font-weight:700;">奇鋐 3017</span>
+          <span style="font-size:0.85rem;font-weight:900;color:#b8960a;">+7,451%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(212,175,55,0.04);border-radius:7px;padding:7px 12px;">
+          <span style="font-size:0.8rem;font-weight:700;">智邦 2345</span>
+          <span style="font-size:0.85rem;font-weight:900;color:#b8960a;">+5,928%</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:0.72rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:1px;padding:0 4px;margin-bottom:6px;">下市 / 重大虧損個股</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(220,38,38,0.06);border-radius:7px;padding:7px 12px;">
+          <div>
+            <div style="font-size:0.8rem;font-weight:700;">中華映管 2475</div>
+            <div style="font-size:0.65rem;color:var(--gray);">2019 破產下市，廠房拍賣，股票歸零</div>
+          </div>
+          <span style="font-size:0.9rem;font-weight:900;color:#dc2626;flex-shrink:0;">−100%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(220,38,38,0.04);border-radius:7px;padding:7px 12px;">
+          <div>
+            <div style="font-size:0.8rem;font-weight:700;">奇美電子 3009</div>
+            <div style="font-size:0.65rem;color:var(--gray);">整併下市：2010 年合併為群創，每股換 0.487 股群創</div>
+          </div>
+          <span style="font-size:0.75rem;font-weight:700;color:#6b7280;flex-shrink:0;">整併</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(220,38,38,0.04);border-radius:7px;padding:7px 12px;">
+          <div>
+            <div style="font-size:0.8rem;font-weight:700;">矽品精密 2325</div>
+            <div style="font-size:0.65rem;color:var(--gray);">整併下市：2018 年入日月光投控，可領 $51.2/股現金或換股</div>
+          </div>
+          <span style="font-size:0.75rem;font-weight:700;color:#6b7280;flex-shrink:0;">整併</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(220,38,38,0.05);border-radius:7px;padding:7px 12px;">
+          <span style="font-size:0.8rem;font-weight:700;">群創 3481</span>
+          <span style="font-size:0.85rem;font-weight:900;color:#dc2626;">−92.4%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(220,38,38,0.04);border-radius:7px;padding:7px 12px;">
+          <span style="font-size:0.8rem;font-weight:700;">宏達電 2498</span>
+          <span style="font-size:0.85rem;font-weight:900;color:#dc2626;">−87.3%</span>
+        </div>
+      </div>
+      <div class="note" style="border-left-color:#dc2626;background:#fef2f2;color:#7f1d1d;">「整併下市」不等於股票歸零（股東有換股或現金補償），但真正破產的中華映管，持股確實一文不值。這些在事前都無法預知。</div>
+      <p style="font-size:0.62rem;color:#9ca3af;margin-top:8px;text-align:right;">資料統計日：2026/04/28</p>
+    </div>
+  </div>
+  <div style="margin-top:14px;padding:14px 20px;background:linear-gradient(135deg,rgba(27,58,107,0.06),rgba(212,175,55,0.08));border-radius:12px;border-left:4px solid var(--accent);display:flex;align-items:flex-start;gap:14px;">
+    <div style="font-size:1.4rem;flex-shrink:0;">💬</div>
+    <div>
+      <div style="font-size:0.85rem;font-weight:700;color:var(--blue);margin-bottom:4px;">查理·蒙格（Charlie Munger）</div>
+      <div style="font-size:0.88rem;color:var(--blue);font-style:italic;margin-bottom:6px;">「如果我知道自己會死在哪裡，我就永遠不去那裡。」</div>
+      <div style="font-size:0.75rem;color:var(--gray);">不選個股，就不會選到歸零的那支。買整個草堆，就不用煩惱哪根針會斷。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4. 四大原因不選股 ──────────────────── -->
+<section>
+  <h2>四個不選股的理由</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="reason-card red">
+      <div style="font-size:0.72rem;font-weight:800;color:#dc2626;letter-spacing:1px;">原因 01</div>
+      <div class="title">擊敗大盤的機率極低</div>
+      <div class="body">專業主動基金長期（15 年）只有 8~10% 能打敗指數，散戶更難。不是不夠努力，而是遊戲規則本來就不利於散戶。</div>
+    </div>
+    <div class="reason-card" style="border-top-color:#D4AF37;">
+      <div style="font-size:0.72rem;font-weight:800;color:#D4AF37;letter-spacing:1px;">原因 02</div>
+      <div class="title">獲利集中在少數飆股</div>
+      <div class="body">學術研究指出，市場超額報酬幾乎來自最頂端 4% 的個股（Bessembinder, 2018）。不買整體市場，你很可能錯過那少數幾支。</div>
+    </div>
+    <div class="reason-card blue">
+      <div style="font-size:0.72rem;font-weight:800;color:#1B3A6B;letter-spacing:1px;">原因 03</div>
+      <div class="title">成本摩擦侵蝕報酬</div>
+      <div class="body">頻繁交易帶來手續費、證交稅、價差成本，每次進出都在侵蝕報酬。指數化投資買進後幾乎不交易，費用近零。</div>
+    </div>
+    <div class="reason-card green">
+      <div style="font-size:0.72rem;font-weight:800;color:#16a34a;letter-spacing:1px;">原因 04</div>
+      <div class="title">人性弱點難以克服</div>
+      <div class="body">高漲時追，下跌時砍——這是人類本能。研究一再顯示，散戶實際拿到的報酬，遠低於股票本身的報酬。</div>
+    </div>
+  </div>
+  <div class="note" style="margin-top:14px;">這四個原因相互疊加。即使你的選股判斷有 60% 正確率，成本、人性、機率加起來仍可能讓你輸。</div>
+</section>
+
+<!-- ── 5. SPIVA：時間越長越難 ──────────────── -->
+<section>
+  <h2>時間越長，主動管理越難打敗指數</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>SPIVA（標準普爾指數 vs. 主動基金）每年發布報告，追蹤全球主動基金的長期表現。</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;background:var(--light);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">持有 1 年</span>
+          <span style="font-size:0.95rem;font-weight:800;color:#16a34a;">約 40% 打敗指數</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:var(--light);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">持有 5 年</span>
+          <span style="font-size:0.95rem;font-weight:800;color:#ca8a04;">約 25% 打敗指數</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:var(--light);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">持有 10 年</span>
+          <span style="font-size:0.95rem;font-weight:800;color:#ea580c;">約 15% 打敗指數</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(220,38,38,0.06);border-radius:8px;padding:8px 14px;">
+          <span style="font-size:0.8rem;color:var(--gray);">持有 15 年</span>
+          <span style="font-size:0.95rem;font-weight:800;color:#dc2626;">只剩 8~10% 打敗指數</span>
+        </div>
+      </div>
+      <div class="note">短期靠運氣也許能贏，但時間拉長，成本和人性就會發揮作用，勝率愈來愈低。</div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:310px;">
+        <canvas id="spivaChart"></canvas>
+      </div>
+      <p style="font-size:0.65rem;color:var(--gray);margin-top:4px;text-align:center;">資料來源：SPIVA 全球報告（美國市場主動基金）</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 6. 結語 ────────────────────────────── -->
+<section>
+  <h2>選股找針 vs. 指數化：買整個草堆</h2>
+  <div class="two-col">
+    <div style="background:rgba(220,38,38,0.04);border-radius:14px;padding:22px;border:1px solid rgba(220,38,38,0.15);">
+      <div style="font-size:0.8rem;font-weight:800;color:#dc2626;letter-spacing:1px;margin-bottom:12px;">選股思維</div>
+      <div style="font-size:2rem;margin-bottom:10px;">在草堆裡找針</div>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;align-items:flex-start;gap:8px;font-size:0.8rem;">
+          <span style="color:#dc2626;font-weight:700;flex-shrink:0;">✗</span>
+          <span>報酬極度集中在少數飆股，你需要<strong>事先</strong>選中它們</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:8px;font-size:0.8rem;">
+          <span style="color:#dc2626;font-weight:700;flex-shrink:0;">✗</span>
+          <span>專業法人長期勝率不到 10%</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:8px;font-size:0.8rem;">
+          <span style="color:#dc2626;font-weight:700;flex-shrink:0;">✗</span>
+          <span>交易成本、稅、人性不斷侵蝕報酬</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:8px;font-size:0.8rem;">
+          <span style="color:#dc2626;font-weight:700;flex-shrink:0;">✗</span>
+          <span>持有時間越長，勝率越低</span>
+        </div>
+      </div>
+    </div>
+    <div style="background:rgba(46,95,163,0.04);border-radius:14px;padding:22px;border:1px solid rgba(46,95,163,0.2);">
+      <div style="font-size:0.8rem;font-weight:800;color:#1B3A6B;letter-spacing:1px;margin-bottom:12px;">指數化思維</div>
+      <div style="font-size:2rem;margin-bottom:10px;">直接買整個草堆</div>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;align-items:flex-start;gap:8px;font-size:0.8rem;">
+          <span style="color:#16a34a;font-weight:700;flex-shrink:0;">✓</span>
+          <span>一次持有全部成分股，<strong>保證</strong>抓到每支飆股</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:8px;font-size:0.8rem;">
+          <span style="color:#16a34a;font-weight:700;flex-shrink:0;">✓</span>
+          <span>費用極低（0050 約 0.2%，VT 約 0.06%）</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:8px;font-size:0.8rem;">
+          <span style="color:#16a34a;font-weight:700;flex-shrink:0;">✓</span>
+          <span>不需要判斷、不需要擇時，降低人性干擾</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:8px;font-size:0.8rem;">
+          <span style="color:#16a34a;font-weight:700;flex-shrink:0;">✓</span>
+          <span>長期持有，讓時間成為你的朋友</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:18px;padding:14px;background:linear-gradient(135deg,rgba(27,58,107,0.06),rgba(212,175,55,0.08));border-radius:12px;border:1px solid rgba(212,175,55,0.25);">
+    <span style="font-size:1rem;font-weight:700;color:var(--blue);">不是選不選得到那根針的問題，而是</span>
+    <span style="font-size:1rem;font-weight:900;color:#D4AF37;">「為什麼不乾脆買整個草堆？」</span>
+  </div>
+  <div style="text-align:center;margin-top:14px;">
+    <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:0.88rem;font-weight:400;color:#6b7280;">「別在草堆裡找針，直接買整個草堆。」— John Bogle</div>
+    <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:0.78rem;font-weight:300;color:#9ca3af;font-style:italic;margin-top:4px;">"Don't look for the needle in the haystack. Just buy the haystack!"</div>
+  </div>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({
+  width: 1100, height: 650,
+  margin: 0.04,
+  hash: true,
+  transition: 'slide',
+  transitionSpeed: 'fast',
+  slideNumber: true,
+});
+
+const _header = document.querySelector('.slide-header');
+_header.style.opacity = '0';
+Reveal.on('slidechanged', e => {
+  _header.style.opacity = e.indexh === 0 ? '0' : '1';
+});
+
+// 同步旁白 Teleprompter
+const _bc = new BroadcastChannel('ep05_sync');
+Reveal.on('slidechanged', e => {
+  _bc.postMessage({ slide: e.indexh });
+});
+_bc.onmessage = e => { if (e.data.slide !== Reveal.getIndices().h) Reveal.slide(e.data.slide); };
+
+/* ── Chart 1: 成分股分佈直方圖 ── */
+(function () {
+  const ctx = document.getElementById('stockDistChart');
+  if (!ctx) return;
+
+  /* 分桶（正確數據：14 / 26 / 50 / 18） */
+  const buckets = [
+    { label: '虧損 50% 以上',        count: 14, color: '#dc2626' },
+    { label: '小幅虧損\n(0 ~ −50%)', count: 26, color: '#f87171' },
+    { label: '正報酬\n未超過 0050',   count: 50, color: '#93c5fd' },
+    { label: '打敗 0050\n(>869%)',    count: 18, color: '#D4AF37' },
+  ];
+
+  const counts = buckets.map(b => b.count);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: buckets.map(b => b.label.replace('\n', ' ')),
+      datasets: [{
+        data: counts,
+        backgroundColor: buckets.map(b => b.color),
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.parsed.y} 支（${Math.round(ctx.parsed.y/108*100)}%）`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { font: { size: 10 }, color: '#374151' },
+          grid: { display: false }
+        },
+        y: {
+          title: { display: true, text: '支數', font: { size: 11 } },
+          ticks: { stepSize: 10 },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+})();
+
+/* ── Chart 2: SPIVA 折線圖 ── */
+(function () {
+  const ctx = document.getElementById('spivaChart');
+  if (!ctx) return;
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['1 年', '3 年', '5 年', '10 年', '15 年'],
+      datasets: [{
+        label: '打敗指數的主動基金比例',
+        data: [40, 32, 25, 15, 9],
+        borderColor: '#dc2626',
+        backgroundColor: 'rgba(220,38,38,0.08)',
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: '#dc2626',
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        borderWidth: 2.5,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.parsed.y}% 的主動基金打敗指數`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 11 }, color: '#374151' }
+        },
+        y: {
+          min: 0, max: 50,
+          title: { display: true, text: '打敗指數的比例 (%)', font: { size: 11 } },
+          ticks: {
+            callback: v => v + '%',
+            font: { size: 11 }
+          },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

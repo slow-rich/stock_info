@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>指數化投資是什麼？</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<style>
+  :root {
+    --blue:   #1B3A6B;
+    --green:  #2E5FA3;
+    --red:    #dc2626;
+    --gray:   #6b7280;
+    --light:  #f0f4fa;
+    --accent: #D4AF37;
+  }
+  .reveal { font-family: -apple-system, "PingFang TC", sans-serif; }
+  .reveal h2 { font-size: 1.5rem; color: var(--blue); font-weight: 700; border-bottom: 3px solid var(--accent); padding-bottom: 8px; margin-bottom: 20px; }
+  .reveal h3 { font-size: 1.1rem; color: var(--gray); font-weight: 600; }
+  .reveal p, .reveal li { font-size: 0.85rem; line-height: 1.7; }
+  .reveal .slides section { text-align: left; }
+
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .four-col  { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; }
+
+  .card { background: var(--light); border-radius: 10px; padding: 16px 20px; border-left: 4px solid var(--accent); }
+  .card.green { border-left-color: var(--green); }
+  .card.red   { border-left-color: var(--red); }
+  .card.blue  { border-left-color: var(--blue); }
+  .card .label { font-size: 0.7rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
+  .card .value { font-size: 1.3rem; font-weight: 700; color: var(--blue); margin: 4px 0; }
+
+  .note { background: #fefce8; border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.78rem; color: #713f12; margin-top: 12px; }
+  .chart-wrap { position: relative; height: 280px; }
+  .chart-wrap.tall { height: 320px; }
+  .slider-row { display: flex; align-items: center; gap: 12px; margin: 8px 0; }
+  .slider-row label { font-size: 0.8rem; min-width: 100px; color: var(--gray); }
+  .slider-row input[type=range] { flex: 1; accent-color: var(--accent); }
+  .slider-row .val { font-size: 0.85rem; font-weight: 700; color: var(--accent); min-width: 80px; text-align: right; }
+  .highlight-box { text-align: center; background: linear-gradient(135deg, #1B3A6B, #2E5FA3); color: #fff; border-radius: 12px; padding: 20px; }
+  .highlight-box p { color: #bfdbfe; font-size: 0.85rem; }
+
+  /* 時間軸 */
+  .timeline { display: flex; flex-direction: column; gap: 14px; }
+  .timeline-item { display: flex; gap: 16px; align-items: flex-start; }
+  .timeline-year { min-width: 48px; font-size: 0.85rem; font-weight: 800; color: var(--accent); padding-top: 2px; }
+  .timeline-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); margin-top: 5px; flex-shrink: 0; }
+  .timeline-line { display: flex; flex-direction: column; align-items: center; }
+  .timeline-line .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .timeline-line .line { width: 2px; flex: 1; background: rgba(212,175,55,0.3); min-height: 20px; }
+  .timeline-content { flex: 1; }
+  .timeline-content strong { font-size: 0.85rem; color: var(--blue); }
+  .timeline-content p { font-size: 0.78rem; color: var(--gray); margin: 2px 0 0; line-height: 1.5; }
+
+  /* ETF 卡片 */
+  .etf-card { background: var(--light); border-radius: 10px; padding: 14px 16px; border-top: 3px solid var(--accent); text-align: center; }
+  .etf-card .region { font-size: 0.68rem; color: var(--gray); letter-spacing: 1px; margin-bottom: 6px; }
+  .etf-card .ticker { font-size: 1.4rem; font-weight: 900; color: var(--blue); line-height: 1; margin-bottom: 4px; }
+  .etf-card .name { font-size: 0.72rem; color: var(--gray); }
+  .etf-card.global { border-top-color: var(--green); }
+
+  /* 頂部品牌橫條 */
+  .slide-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 46px; z-index: 200; pointer-events: none;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px;
+    background: rgba(255,255,255,0.96);
+    border-bottom: 2px solid #D4AF37;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: opacity 0.3s;
+  }
+  .reveal .slides section:not(.cover-slide) {
+    padding-top: 52px !important;
+  }
+  .slide-logo { display: none; }
+</style>
+</head>
+<body>
+
+<!-- 頂部品牌橫條 -->
+<div class="slide-header">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <svg viewBox="0 0 100 100" width="36" height="36" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-hdr"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-hdr)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="3.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:18px;color:#1B3A6B;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:7.5px;color:#888;letter-spacing:2.2px;text-transform:uppercase;margin-top:3px;">Slow Rich</div>
+    </div>
+  </div>
+  <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:12px;color:#6b7280;">
+    <span style="color:#D4AF37;font-weight:800;margin-right:6px;">EP.02</span>指數化投資是什麼？
+  </div>
+</div>
+
+<div class="reveal">
+<div class="slides">
+
+<!-- ── 1. 封面 ──────────────────────────────── -->
+<section class="cover-slide" data-background-gradient="linear-gradient(150deg, #080f1f 0%, #0d1b35 55%, #080f1f 100%)" style="padding:40px 56px;text-align:left !important;position:relative;">
+  <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;" viewBox="0 0 1100 650" preserveAspectRatio="none">
+    <defs>
+      <filter id="peak-glow" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g transform="translate(-73,18)">
+    <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160 L1055,650 L680,650 Z" fill="#D4AF37" opacity="0.05"/>
+    <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160" stroke="#D4AF37" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.05"/>
+    <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160" stroke="#D4AF37" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
+    <circle cx="1055" cy="160" r="24" fill="#D4AF37" opacity="0.12" filter="url(#peak-glow)"/>
+    <circle cx="1055" cy="160" r="10" fill="#D4AF37" opacity="0.55"/>
+    <circle cx="1055" cy="160" r="5" fill="#D4AF37" opacity="0.95"/>
+      </g>
+  </svg>
+  <!-- 右上角品牌 Logo -->
+  <div id="cover-logo" style="position:absolute;top:9px;right:123px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.35);border-radius:14px;padding:10px 18px 10px 12px;">
+    <svg viewBox="0 0 100 100" width="80" height="80" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-cover-1"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-cover-1)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="21" cy="63" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="26" cy="80" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="35" cy="52" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="42" cy="67" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="51" cy="40" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="57" cy="57" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="67" cy="24" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="73" cy="36" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="14" cy="82" r="2.5" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="4.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:26px;color:#D4AF37;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:400;font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">Slow Rich</div>
+    </div>
+  </div>
+  <!-- EP 標籤 -->
+  <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.45);border-radius:20px;padding:5px 16px;margin-bottom:30px;">
+    <span style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:11px;color:#D4AF37;font-weight:800;letter-spacing:1.5px;">EP.02</span>
+    <span style="width:1px;height:10px;background:rgba(212,175,55,0.4);display:inline-block;"></span>
+    <span style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:11px;color:#aaa;letter-spacing:0.5px;">指數化投資入門</span>
+  </div>
+  <!-- 主標題 -->
+  <div style="margin-bottom:14px;line-height:1.05;">
+    <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:3.5rem;font-weight:900;color:#fff;margin-bottom:4px;">指數化投資</div>
+    <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:4.4rem;font-weight:900;color:#D4AF37;text-shadow:0 0 36px rgba(212,175,55,0.35);">是什麼？</div>
+  </div>
+  <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:1.05rem;font-weight:300;color:#D4AF37;letter-spacing:3px;margin-bottom:28px;opacity:0.85;">「不選股，買市場，慢慢來，比較快」</div>
+  <!-- 三個關鍵字卡 -->
+  <div id="cover-cards" style="display:flex;align-items:stretch;gap:12px;max-width:680px;transform:scale(0.9);transform-origin:left top;">
+    <div style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:10px 18px;">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:0.7rem;color:#888;margin-bottom:4px;">核心理念</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:1rem;font-weight:700;color:#fff;">追求市場平均報酬</div>
+    </div>
+    <div style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:10px 18px;">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:0.7rem;color:#888;margin-bottom:4px;">工具</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:1rem;font-weight:700;color:#fff;">低成本 ETF</div>
+    </div>
+    <div style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:10px 18px;">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:0.7rem;color:#888;margin-bottom:4px;">優勢</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:1rem;font-weight:700;color:#fff;">打敗 85~92% 主動基金</div>
+    </div>
+  </div>
+  <p style="position:absolute;bottom:14px;left:56px;color:#2e4a6b;font-size:0.68rem;font-family:-apple-system,sans-serif;">按 → 翻頁 &nbsp;|&nbsp; F 全螢幕 &nbsp;|&nbsp; ESC 總覽</p>
+</section>
+
+<!-- ── 2. John Bogle 的革命 ───────────────── -->
+<section>
+  <h2>一場沒人看好的革命</h2>
+  <div class="two-col">
+    <div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div style="display:flex;flex-direction:column;align-items:center;width:14px;flex-shrink:0;margin-top:4px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:#D4AF37;flex-shrink:0;"></div>
+            <div style="width:2px;flex:1;background:rgba(212,175,55,0.3);min-height:24px;"></div>
+          </div>
+          <div style="padding-bottom:14px;">
+            <span style="font-size:0.85rem;font-weight:800;color:#D4AF37;">1974</span>
+            <p style="font-size:0.82rem;color:#1B3A6B;font-weight:600;margin:2px 0;">John Bogle 創立先鋒集團（Vanguard）</p>
+            <p style="font-size:0.76rem;color:#6b7280;margin:0;">以「為投資人服務」而非「為公司獲利」為核心理念</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div style="display:flex;flex-direction:column;align-items:center;width:14px;flex-shrink:0;margin-top:4px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:#D4AF37;flex-shrink:0;"></div>
+            <div style="width:2px;flex:1;background:rgba(212,175,55,0.3);min-height:24px;"></div>
+          </div>
+          <div style="padding-bottom:14px;">
+            <span style="font-size:0.85rem;font-weight:800;color:#D4AF37;">1975</span>
+            <p style="font-size:0.82rem;color:#1B3A6B;font-weight:600;margin:2px 0;">提出指數基金計劃</p>
+            <p style="font-size:0.76rem;color:#6b7280;margin:0;">華爾街嘲笑為「柏格的愚行（Bogle's Folly）」，認為追求平均績效是平庸的</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div style="display:flex;flex-direction:column;align-items:center;width:14px;flex-shrink:0;margin-top:4px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:#D4AF37;flex-shrink:0;"></div>
+          </div>
+          <div>
+            <span style="font-size:0.85rem;font-weight:800;color:#D4AF37;">1976</span>
+            <p style="font-size:0.82rem;color:#1B3A6B;font-weight:600;margin:2px 0;">第一支對大眾開放的指數基金正式發行</p>
+            <p style="font-size:0.76rem;color:#6b7280;margin:0;">「First Index Investment Trust」，即今天 Vanguard 500 的前身</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="label">這場革命的意義</div>
+        <div class="value" style="font-size:1rem;">改寫了整個投資業</div>
+        <p>被動投資理念迫使傳統基金大幅降低手續費，為全球投資人省下了<strong>數十億美元</strong>的成本</p>
+      </div>
+      <div class="note">
+        今天全球最大的資產管理公司 Vanguard，管理資產超過 <strong>9 兆美元</strong>。<br>
+        50 年前那個「愚行」，改變了數億人的財務命運。
+      </div>
+      <div class="card" style="margin-top:14px;border-left-color:var(--blue);">
+        <div class="label">巴菲特評價柏格</div>
+        <p style="font-style:italic;color:var(--blue);margin:0;">「如果要在投資界為對美國投資人貢獻最大的人立碑，那個人非約翰·柏格莫過於此。」</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 3. 指數化投資是什麼 ──────────────── -->
+<section>
+  <h2>指數化投資的四大核心價值</h2>
+  <p style="margin-bottom:16px;">說穿了，就是不選股、直接買市場——透過低成本 ETF，一次持有整個指數的所有成分股。</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <div class="card green">
+      <div class="label">① 低成本</div>
+      <div class="value" style="font-size:1rem;">費用率低至 0.03%</div>
+      <p>不需聘請經理人選股，管理費遠低於主動型基金（主動型基金通常 1~2%）</p>
+    </div>
+    <div class="card">
+      <div class="label">② 分散風險</div>
+      <div class="value" style="font-size:1rem;">一次持有數千檔</div>
+      <p>VT 超過 <strong>10,000 檔</strong>、S&amp;P 500 有 <strong>500 檔</strong>、0050 有 <strong>50 檔</strong>。單一公司倒閉不影響整體資產，避免把雞蛋放在同一個籃子。</p>
+    </div>
+    <div class="card green">
+      <div class="label">③ 長期報酬穩定</div>
+      <div class="value" style="font-size:1rem;">年化 8~10%（含息）</div>
+      <p>美國股市廣泛指數（1926–2026）年化約 <strong>10.3%</strong>；0050 自 2003 年成立至今年化約 <strong>12.8%</strong>；VT 追蹤的 MSCI 全球指數自 1970 年代以來年化約 <strong>10%</strong>。財務規劃保守估算建議用 8~9%。</p>
+    </div>
+    <div class="card">
+      <div class="label">④ 省時省力</div>
+      <div class="value" style="font-size:1rem;">不需每天盯盤</div>
+      <p>10~15 年長期區間內，<strong>85%~92%</strong> 的主動基金績效落後指數（SPIVA 長期報告）。巴菲特稱指數投資為最適合「絕大多數人」的懶人投資法。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4. 勝率最高的工具 ───────────────── -->
+<section>
+  <h2>勝率最高的工具：市值型 ETF</h2>
+  <p style="margin-bottom:18px;">依投資區域選擇對應的市值型 ETF，分散程度越高、風險越低：</p>
+  <div class="four-col" style="margin-bottom:18px;">
+    <div class="etf-card">
+      <div class="region">台灣</div>
+      <div class="ticker">0050</div>
+      <div class="name" style="margin-top:6px;text-align:left;line-height:1.6;">
+        <span style="color:#1B3A6B;font-weight:600;">50</span> 檔（台灣前 50 大）<br>
+        費用率 約 <span style="color:#1B3A6B;font-weight:600;">0.2%</span>
+      </div>
+    </div>
+    <div class="etf-card">
+      <div class="region">美國前 500 大</div>
+      <div class="ticker">VOO</div>
+      <div class="name" style="margin-top:6px;text-align:left;line-height:1.6;">
+        <span style="color:#1B3A6B;font-weight:600;">503</span> 檔（S&amp;P 500）<br>
+        費用率 <span style="color:#1B3A6B;font-weight:600;">0.03%</span>
+      </div>
+    </div>
+    <div class="etf-card">
+      <div class="region">美國全市場</div>
+      <div class="ticker">VTI</div>
+      <div class="name" style="margin-top:6px;text-align:left;line-height:1.6;">
+        <span style="color:#1B3A6B;font-weight:600;">3,600+</span> 檔（美國全市場）<br>
+        費用率 <span style="color:#1B3A6B;font-weight:600;">0.03%</span>
+      </div>
+    </div>
+    <div class="etf-card global">
+      <div class="region">全球分散</div>
+      <div class="ticker" style="color:#2E5FA3;">VT</div>
+      <div class="name" style="margin-top:6px;text-align:left;line-height:1.6;">
+        <span style="color:#1B3A6B;font-weight:600;">10,000+</span> 檔（終極分散）<br>
+        涵蓋全球可投資市值 <span style="color:#1B3A6B;font-weight:600;">98%</span><br>
+        費用率 <span style="color:#1B3A6B;font-weight:600;">0.06%</span>
+      </div>
+    </div>
+  </div>
+  <div class="note">
+    分散程度：台灣（0050）→ 美國（VOO）→ 美國全市場（VTI）→ <strong>全球（VT，分散最廣）</strong><br>
+    想投資的區域越廣，單一國家的風險越小。之後的集數會詳細介紹如何選擇。
+  </div>
+</section>
+
+<!-- ── 5. 你也能存到 1,500 萬 ─────────── -->
+<section>
+  <h2>指數化投資，讓 1,500 萬變得有可能</h2>
+  <div class="two-col">
+    <div>
+      <p>上一集提到，25 歲開始、每月投入 1 萬，30 年後可以存到 <strong>1,500 萬</strong>。</p>
+      <p style="margin-top:8px;">這個數字的背後，靠的就是指數化投資的四大優勢：</p>
+      <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:#f0f4fa;border:2px solid #D4AF37;display:flex;align-items:center;justify-content:center;font-weight:800;color:#1B3A6B;font-size:0.85rem;flex-shrink:0;">1</div>
+          <p style="margin:0;font-size:0.82rem;">低費用率 → 不被成本侵蝕報酬（後面第 10 集會詳細說明）</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:#f0f4fa;border:2px solid #D4AF37;display:flex;align-items:center;justify-content:center;font-weight:800;color:#1B3A6B;font-size:0.85rem;flex-shrink:0;">2</div>
+          <p style="margin:0;font-size:0.82rem;">長期持有 → 讓複利充分發揮，不頻繁進出</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:#f0f4fa;border:2px solid #D4AF37;display:flex;align-items:center;justify-content:center;font-weight:800;color:#1B3A6B;font-size:0.85rem;flex-shrink:0;">3</div>
+          <p style="margin:0;font-size:0.82rem;">不選股 → 避免 80% 選股者的命運（後面第 5 集說明）</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="background:rgba(27,58,107,0.06);border:1px solid rgba(27,58,107,0.2);border-radius:12px;padding:16px 20px;">
+          <div style="font-size:0.72rem;color:#6b7280;margin-bottom:6px;">25 歲開始 · 月投 1 萬 · 30 年 · 年化 8%</div>
+          <div style="font-size:2.6rem;font-weight:900;color:#D4AF37;line-height:1;">1,500 萬</div>
+          <div style="font-size:0.75rem;color:#6b7280;margin-top:4px;">總投入 360 萬，報酬 1,140 萬</div>
+        </div>
+        <div style="background:rgba(220,38,38,0.05);border:1px solid rgba(220,38,38,0.2);border-radius:12px;padding:16px 20px;">
+          <div style="font-size:0.72rem;color:#6b7280;margin-bottom:6px;">35 歲才開始 · 月投 1 萬 · 20 年</div>
+          <div style="font-size:2.6rem;font-weight:900;color:#dc2626;line-height:1;">580 萬</div>
+          <div style="font-size:0.75rem;color:#6b7280;margin-top:4px;">差距 2.6 倍，只因晚了 10 年</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 5b. 互動試算 ────────────────────────── -->
+<section>
+  <h2>自己試算看看：你需要多久存到 1,500 萬？</h2>
+  <div class="two-col">
+    <div>
+      <p>調整以下參數，計算你自己的數字：</p>
+      <div class="slider-row">
+        <label>每月投入</label>
+        <input type="range" id="ep02MonthlySlider" min="5000" max="50000" step="1000" value="10000">
+        <span class="val" id="ep02MonthlyVal">10,000 元</span>
+      </div>
+      <div class="slider-row">
+        <label>投資年限</label>
+        <input type="range" id="ep02YearsSlider" min="10" max="40" step="1" value="30">
+        <span class="val" id="ep02YearsVal">30 年</span>
+      </div>
+      <div class="slider-row">
+        <label>年化報酬率</label>
+        <input type="range" id="ep02RateSlider" min="5" max="12" step="0.5" value="8.5">
+        <span class="val" id="ep02RateVal">8.5%</span>
+      </div>
+      <br>
+      <div class="three-col">
+        <div class="card">
+          <div class="label">預估終值</div>
+          <div class="value" id="ep02FinalVal">—</div>
+        </div>
+        <div class="card">
+          <div class="label">總投入本金</div>
+          <div class="value" id="ep02TotalPrincipal">—</div>
+        </div>
+        <div class="card green">
+          <div class="label">投資報酬</div>
+          <div class="value" id="ep02TotalReturn">—</div>
+        </div>
+      </div>
+      <div id="ep02GoalMsg" class="note" style="margin-top:12px;"></div>
+    </div>
+    <div>
+      <div class="chart-wrap tall">
+        <canvas id="ep02GoalChart"></canvas>
+      </div>
+      <p class="note" style="margin-top:8px;font-size:0.75rem;">以上為理想情境（固定報酬率）。真實市場報酬每年波動劇烈，長期年化僅供參考。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 6. 巴菲特10年賭局 ──────────────────── -->
+<section>
+  <h2>巴菲特10年賭局：指數基金 vs 頂級避險基金</h2>
+  <p style="margin-bottom:14px;">2007 年，巴菲特公開向華爾街下戰帖，賭注 <strong>100 萬美元</strong>。</p>
+  <div class="two-col">
+    <div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="card green">
+          <div class="label">巴菲特陣營</div>
+          <div class="value" style="font-size:1rem;">Vanguard S&amp;P 500 指數基金</div>
+          <p>一支低成本指數基金，費用率 0.04%，不選股、不擇時。</p>
+        </div>
+        <div class="card red">
+          <div class="label">對手陣營（Protégé Partners）</div>
+          <div class="value" style="font-size:1rem;">5 檔頂級避險基金組合</div>
+          <p>華爾街最頂尖的基金經理人精挑細選，2% 管理費 + 20% 獲利抽成。</p>
+        </div>
+      </div>
+      <div class="note" style="margin-top:12px;">
+        比賽期間：<strong>2008/1/1 — 2017/12/31</strong>，整整 10 年，橫跨金融海嘯與多次市場震盪。
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;gap:16px;align-items:stretch;">
+          <div style="flex:1;background:#f0fdf4;border:2px solid #16a34a;border-radius:12px;padding:16px;text-align:center;">
+            <div style="font-size:0.72rem;color:#16a34a;font-weight:600;margin-bottom:6px;">指數基金 年化報酬</div>
+            <div style="font-size:3rem;font-weight:900;color:#16a34a;line-height:1;">7.1%</div>
+          </div>
+          <div style="flex:1;background:#fef2f2;border:2px solid var(--red);border-radius:12px;padding:16px;text-align:center;">
+            <div style="font-size:0.72rem;color:var(--red);font-weight:600;margin-bottom:6px;">避險基金 年化報酬</div>
+            <div style="font-size:3rem;font-weight:900;color:var(--red);line-height:1;">2.2%</div>
+          </div>
+        </div>
+        <div class="highlight-box">
+          <div style="font-size:1rem;font-weight:800;color:#D4AF37;margin-bottom:6px;">獲勝關鍵：費用吃掉報酬</div>
+          <p>高昂的管理費與績效費，是讓主動基金雪球越滾越小的最大原因。<br><strong style="color:#fff;">巴菲特雖然是主動選股，卻還是建議一般大眾買指數型 ETF。</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 7. 打敗 85% ────────────────────────── -->
+<section>
+  <h2>採用指數化投資，10 年後你的報酬率會超過 85% 的人</h2>
+  <p style="margin-bottom:14px;">根據 <strong>SPIVA（標普全球）</strong> 長期追蹤報告，在 10–15 年的區間內：</p>
+  <div class="three-col" style="margin-bottom:16px;">
+    <div class="card red">
+      <div class="label">主動選股</div>
+      <div class="value" style="font-size:0.95rem;">85–92% 落後指數</div>
+      <p>散戶、法人、專業經理人，長期大多輸給大盤。選到好股，但選不到「每次都好」的股。</p>
+    </div>
+    <div class="card red">
+      <div class="label">主動型基金 / 主動型 ETF</div>
+      <div class="value" style="font-size:0.95rem;">85–92% 落後指數</div>
+      <p>即使專業團隊管理，長期仍難以持續擊敗市場。費用率高是最大拖累。</p>
+    </div>
+    <div class="card red">
+      <div class="label">高股息 ETF（0056 / 00878 / 00919）</div>
+      <div class="value" style="font-size:0.95rem;">長期總報酬落後市值型</div>
+      <p>配息感覺很爽，但總報酬（股價＋股息）長期跑輸市值型。後面集數會用數字說明。</p>
+    </div>
+  </div>
+  <div class="highlight-box">
+    <div style="font-size:1.2rem;font-weight:800;color:#D4AF37;margin-bottom:8px;">你不需要特別厲害，只需採用指數化投資</div>
+    <p>買市值型 ETF，不要猜高低點，持續買進，時間到了——<strong style="color:#fff;">你就贏 85% 的人。</strong></p>
+  </div>
+  <div class="note" style="margin-top:10px;font-size:0.75rem;">
+    接下來幾集，我們會一一拆解每個細節——選哪支 ETF、如何定期定額、遇到股災怎麼辦。
+  </div>
+</section>
+
+</div>
+</div>
+
+<div class="slide-logo"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  transition: 'slide',
+  transitionSpeed: 'fast',
+  controls: true,
+  progress: true,
+  slideNumber: true,
+  width: 1100,
+  height: 650,
+});
+
+const _header = document.querySelector('.slide-header');
+_header.style.opacity = '0';
+const _bc = new BroadcastChannel('ep02_sync');
+Reveal.on('slidechanged', e => { _bc.postMessage({ slide: e.indexh }); });
+_bc.onmessage = e => { if (e.data.slide !== Reveal.getIndices().h) Reveal.slide(e.data.slide); };
+
+Reveal.on('slidechanged', e => {
+  _header.style.opacity = e.indexh === 0 ? '0' : '1';
+  if (e.indexh === 5 && !window._ep02chart) {
+    window._ep02chart = new Chart(document.getElementById('ep02GoalChart'), {
+      type: 'line', data: { labels: [], datasets: [] },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+    ep02UpdateGoal();
+    ['ep02MonthlySlider','ep02YearsSlider','ep02RateSlider'].forEach(id =>
+      document.getElementById(id).addEventListener('input', ep02UpdateGoal));
+  }
+});
+
+function ep02UpdateGoal() {
+  const monthly = +document.getElementById('ep02MonthlySlider').value;
+  const years   = +document.getElementById('ep02YearsSlider').value;
+  const rate    = +document.getElementById('ep02RateSlider').value / 100;
+
+  document.getElementById('ep02MonthlyVal').textContent = monthly.toLocaleString() + ' 元';
+  document.getElementById('ep02YearsVal').textContent   = years + ' 年';
+  document.getElementById('ep02RateVal').textContent    = (rate * 100).toFixed(1) + '%';
+
+  const fv        = monthly * 12 * ((Math.pow(1 + rate, years) - 1) / rate);
+  const principal = monthly * 12 * years;
+  const returnAmt = fv - principal;
+
+  document.getElementById('ep02FinalVal').textContent       = Math.round(fv / 10000).toLocaleString() + ' 萬';
+  document.getElementById('ep02TotalPrincipal').textContent = Math.round(principal / 10000).toLocaleString() + ' 萬';
+  document.getElementById('ep02TotalReturn').textContent    = Math.round(returnAmt / 10000).toLocaleString() + ' 萬';
+
+  const target = 15000000;
+  const msg = document.getElementById('ep02GoalMsg');
+  if (fv >= target) {
+    msg.style.background = '#dbeafe'; msg.style.borderLeftColor = '#2E5FA3'; msg.style.color = '#1B3A6B';
+    msg.textContent = `達標！預估終值 ${Math.round(fv/10000).toLocaleString()} 萬，超越 1,500 萬目標 ${Math.round((fv-target)/10000).toLocaleString()} 萬`;
+  } else {
+    msg.style.background = '#fef9c3'; msg.style.borderLeftColor = '#ca8a04'; msg.style.color = '#713f12';
+    const need = Math.ceil(target / (12 * ((Math.pow(1+rate, years)-1)/rate)) / 100) * 100;
+    msg.textContent = `距離 1,500 萬還差 ${Math.round((target-fv)/10000).toLocaleString()} 萬。若維持此年限與報酬率，每月需投入約 ${need.toLocaleString()} 元`;
+  }
+
+  const GOLD = '#D4AF37', GRAY = '#9ca3af';
+  const yrsArr      = Array.from({length: years + 1}, (_, i) => `第${i}年`);
+  const principalLn = yrsArr.map((_, i) => Math.round(monthly * 12 * i / 10000));
+  const fvLine      = yrsArr.map((_, i) => Math.round(monthly * 12 * ((Math.pow(1+rate, i)-1)/rate) / 10000));
+
+  const c = window._ep02chart;
+  c.data.labels = yrsArr;
+  c.data.datasets = [
+    { label: '總投入本金', data: principalLn, borderColor: GRAY, fill: true, backgroundColor: 'rgba(156,163,175,0.15)', tension: 0.3, pointRadius: 0 },
+    { label: '複利終值',   data: fvLine,      borderColor: GOLD, fill: true, backgroundColor: 'rgba(212,175,55,0.1)',    tension: 0.4, pointRadius: 0 },
+  ];
+  c.options = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top' } },
+    scales: { y: { title: { display: true, text: '萬元' }, ticks: { callback: v => v.toLocaleString() }, suggestedMax: Math.max(Math.round(fv/10000)*1.1, 1500) } }
+  };
+  c.update();
+}
+</script>
+</body>
+</html>

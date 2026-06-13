@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Slow Rich — Badge Logo</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #ECEAE4;
+    min-height: 100vh;
+    padding: 44px 32px;
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  }
+  h1 {
+    font-size: 17px; color: #0D1B2A; font-weight: 700;
+    border-bottom: 2px solid #0D1B2A; padding-bottom: 12px; margin-bottom: 36px;
+  }
+  .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; max-width: 920px; }
+  .label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: #888; margin-bottom: 12px;
+  }
+
+  /* 投影片模擬 */
+  .slide {
+    border-radius: 10px;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  }
+  .slide-title {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    text-align: center;
+  }
+  .slide-header { position: absolute; top: 14px; left: 20px; }
+  .slide-footer { position: absolute; bottom: 10px; right: 18px; }
+
+  /* 深色投影片 */
+  .dark-slide { background: #0D1B2A; }
+  .dark-slide .slide-title h2 { color: #E0E1DD; font-size: 18px; font-weight: 300; letter-spacing: 2px; }
+  .dark-slide .slide-title p  { color: #5A7A90; font-size: 10px; margin-top: 6px; letter-spacing: 1px; }
+
+  /* 淺色投影片 */
+  .light-slide { background: #F7F6F3; border: 1px solid #ddd; }
+  .light-slide .slide-title h2 { color: #0D1B2A; font-size: 18px; font-weight: 300; letter-spacing: 2px; }
+  .light-slide .slide-title p  { color: #8A9BAA; font-size: 10px; margin-top: 6px; letter-spacing: 1px; }
+
+  /* SVG 原始碼 */
+  .code-wrap {
+    background: #161B22; border-radius: 10px; padding: 0;
+    overflow: hidden; grid-column: 1 / -1;
+  }
+  .code-header {
+    background: #21262D; padding: 10px 16px;
+    font-size: 11px; color: #8B949E; letter-spacing: 0.5px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  pre {
+    padding: 16px; font-size: 10.5px; line-height: 1.7;
+    color: #e6edf3; font-family: 'Menlo', 'Fira Code', monospace;
+    overflow-x: auto; max-height: 320px; overflow-y: auto;
+  }
+  .t-kw  { color: #ff7b72; }
+  .t-at  { color: #79c0ff; }
+  .t-val { color: #a5d6ff; }
+  .t-cm  { color: #8b949e; font-style: italic; }
+</style>
+</head>
+<body>
+
+<h1>Slow Rich — Badge Logo &nbsp;/&nbsp; Navy × Silver</h1>
+
+<!-- ── 共用 SVG 定義（隱藏，供 use 標籤引用） ───────── -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="sr-badge" viewBox="0 0 200 200">
+    <defs>
+      <!-- 頂弧文字路徑 -->
+      <path id="topArc"    d="M 22 100 A 78 78 0 0 1 178 100"/>
+      <!-- 底弧文字路徑 -->
+      <path id="bottomArc" d="M 30 100 A 70 70 0 0 0 170 100"/>
+      <!-- 裁切圓形 -->
+      <clipPath id="badgeClip">
+        <circle cx="100" cy="100" r="88"/>
+      </clipPath>
+    </defs>
+
+    <!-- ① 背景填色 -->
+    <circle cx="100" cy="100" r="90" fill="var(--bg, #0D1B2A)"/>
+
+    <!-- ② 外框雙環 -->
+    <circle cx="100" cy="100" r="88" fill="none"
+            stroke="var(--fg, #E0E1DD)" stroke-width="1.8"/>
+    <circle cx="100" cy="100" r="80" fill="none"
+            stroke="var(--fg, #E0E1DD)" stroke-width="0.7" opacity="0.4"/>
+
+    <!-- ③ 左右分隔菱形 -->
+    <rect x="17" y="98.2" width="3.6" height="3.6"
+          fill="var(--fg, #E0E1DD)" opacity="0.55"
+          transform="rotate(45 18.8 100)"/>
+    <rect x="179.4" y="98.2" width="3.6" height="3.6"
+          fill="var(--fg, #E0E1DD)" opacity="0.55"
+          transform="rotate(45 181.2 100)"/>
+
+    <!-- ④ 頂部文字：SLOW RICH -->
+    <text font-family="Helvetica Neue, Arial, sans-serif"
+          font-size="11.5" font-weight="700" letter-spacing="5.5"
+          fill="var(--fg, #E0E1DD)">
+      <textPath href="#topArc" startOffset="50%" text-anchor="middle">SLOW RICH</textPath>
+    </text>
+
+    <!-- ⑤ 底部文字：INVESTMENT & EDUCATION -->
+    <text font-family="Helvetica Neue, Arial, sans-serif"
+          font-size="6.8" font-weight="300" letter-spacing="2.2"
+          fill="var(--fg, #E0E1DD)" opacity="0.8">
+      <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">INVESTMENT  &amp;  EDUCATION</textPath>
+    </text>
+
+    <!-- ⑥ 書本：左頁 -->
+    <path d="M 63 141 C 78 137, 94 135, 100 135 L 100 157 C 94 157, 78 159, 63 163 Z"
+          fill="var(--fg, #E0E1DD)"/>
+    <!-- 書本：右頁（淡一點，呈現厚度） -->
+    <path d="M 100 135 C 106 135, 122 137, 137 141 L 137 163 C 122 159, 106 157, 100 157 Z"
+          fill="var(--fg, #E0E1DD)" opacity="0.65"/>
+    <!-- 書脊 -->
+    <line x1="100" y1="134" x2="100" y2="158"
+          stroke="var(--bg, #0D1B2A)" stroke-width="1.6"/>
+    <!-- 左頁行線 -->
+    <line x1="71" y1="144" x2="95" y2="142" stroke="var(--bg, #0D1B2A)" stroke-width="0.55" opacity="0.3"/>
+    <line x1="71" y1="150" x2="95" y2="148" stroke="var(--bg, #0D1B2A)" stroke-width="0.55" opacity="0.3"/>
+    <!-- 右頁行線 -->
+    <line x1="105" y1="142" x2="129" y2="144" stroke="var(--bg, #0D1B2A)" stroke-width="0.55" opacity="0.2"/>
+    <line x1="105" y1="148" x2="129" y2="150" stroke="var(--bg, #0D1B2A)" stroke-width="0.55" opacity="0.2"/>
+
+    <!-- ⑦ 書頁延伸出的上升曲線 -->
+    <path d="M 100 134 C 103 120, 112 110, 120 100 C 128 89, 135 80, 142 67"
+          stroke="var(--fg, #E0E1DD)" stroke-width="2.4"
+          fill="none" stroke-linecap="round"/>
+    <!-- 曲線頂點光點 -->
+    <circle cx="142" cy="66" r="4.2" fill="var(--fg, #E0E1DD)"/>
+    <circle cx="142" cy="66" r="7.5" fill="none"
+            stroke="var(--fg, #E0E1DD)" stroke-width="0.9" opacity="0.28"/>
+  </symbol>
+</svg>
+
+<div class="layout">
+
+  <!-- ── 深色投影片：頁首 ─────────────── -->
+  <div>
+    <p class="label">深色投影片 — 頁首左上角</p>
+    <div class="slide dark-slide">
+      <div class="slide-header">
+        <svg width="48" height="48" style="--bg:#0D1B2A;--fg:#E0E1DD">
+          <use href="#sr-badge"/>
+        </svg>
+      </div>
+      <div class="slide-title">
+        <h2>指數化投資的長期複利邏輯</h2>
+        <p>SLOW RICH INVESTMENT & EDUCATION</p>
+      </div>
+      <div class="slide-footer" style="color:#3a5a70;font-size:9px;letter-spacing:1px">01 / 12</div>
+    </div>
+  </div>
+
+  <!-- ── 淺色投影片：頁尾右下角 ─────────── -->
+  <div>
+    <p class="label">淺色投影片 — 頁尾右下角</p>
+    <div class="slide light-slide">
+      <div class="slide-title">
+        <h2>為什麼要投資？</h2>
+        <p>SLOW RICH INVESTMENT & EDUCATION</p>
+      </div>
+      <div class="slide-footer">
+        <svg width="36" height="36" style="--bg:#F7F6F3;--fg:#0D1B2A">
+          <use href="#sr-badge"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 各尺寸預覽 ──────────────────── -->
+  <div>
+    <p class="label">尺寸預覽（深色背景）</p>
+    <div style="background:#0D1B2A;border-radius:10px;padding:24px;display:flex;align-items:flex-end;gap:20px">
+      <div style="text-align:center">
+        <svg width="32"  height="32"  style="--bg:#0D1B2A;--fg:#E0E1DD;display:block"><use href="#sr-badge"/></svg>
+        <div style="color:#4a6070;font-size:8px;margin-top:4px">32</div>
+      </div>
+      <div style="text-align:center">
+        <svg width="48"  height="48"  style="--bg:#0D1B2A;--fg:#E0E1DD;display:block"><use href="#sr-badge"/></svg>
+        <div style="color:#4a6070;font-size:8px;margin-top:4px">48</div>
+      </div>
+      <div style="text-align:center">
+        <svg width="72"  height="72"  style="--bg:#0D1B2A;--fg:#E0E1DD;display:block"><use href="#sr-badge"/></svg>
+        <div style="color:#4a6070;font-size:8px;margin-top:4px">72</div>
+      </div>
+      <div style="text-align:center">
+        <svg width="110" height="110" style="--bg:#0D1B2A;--fg:#E0E1DD;display:block"><use href="#sr-badge"/></svg>
+        <div style="color:#4a6070;font-size:8px;margin-top:4px">110</div>
+      </div>
+      <div style="text-align:center">
+        <svg width="160" height="160" style="--bg:#0D1B2A;--fg:#E0E1DD;display:block"><use href="#sr-badge"/></svg>
+        <div style="color:#4a6070;font-size:8px;margin-top:4px">160</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 透明背景（棋盤格）─────────────── -->
+  <div>
+    <p class="label">透明背景預覽（棋盤格）</p>
+    <div style="background:repeating-conic-gradient(#ccc 0% 25%,#fff 0% 50%) 0 0 / 14px 14px;border-radius:10px;padding:24px;display:flex;gap:20px;align-items:center">
+      <svg width="80"  height="80"  style="--bg:transparent;--fg:#0D1B2A;display:block"><use href="#sr-badge"/></svg>
+      <svg width="110" height="110" style="--bg:transparent;--fg:#0D1B2A;display:block"><use href="#sr-badge"/></svg>
+    </div>
+    <p style="font-size:10px;color:#aaa;margin-top:6px">淺色背景 / 透明底，使用深色線條版</p>
+  </div>
+
+  <!-- ── SVG 原始碼 ─────────────────────────────── -->
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dot" style="background:#ff5f57"></div>
+      <div class="dot" style="background:#febc2e"></div>
+      <div class="dot" style="background:#28c840"></div>
+      <span style="margin-left:6px">badge-navy.svg &nbsp;— 複製貼入 Keynote / Figma / HTML</span>
+    </div>
+    <pre id="svgCode"></pre>
+  </div>
+
+</div>
+
+<script>
+// 把 symbol 的 innerHTML 轉成可複製的 SVG 字串
+const sym = document.getElementById('sr-badge');
+const inner = sym.innerHTML
+  .replace(/\s+/g, ' ')
+  .replace(/> </g, '>\n  <')
+  .trim();
+
+const svgStr =
+`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"
+     width="200" height="200">
+
+  <!-- ★ 顏色變數：--bg 背景色，--fg 前景色 -->
+  <!-- 深色版：style="--bg:#0D1B2A;--fg:#E0E1DD" -->
+  <!-- 淺色版：style="--bg:#F7F6F3;--fg:#0D1B2A" -->
+  <!-- 透明版：style="--bg:transparent;--fg:#0D1B2A" -->
+
+  ${inner}
+</svg>`;
+
+document.getElementById('svgCode').textContent = svgStr;
+</script>
+
+</body>
+</html>

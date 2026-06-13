@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EP07 投資試算</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue:   #1B3A6B;
+    --green:  #2E5FA3;
+    --red:    #dc2626;
+    --gray:   #6b7280;
+    --light:  #f0f4fa;
+    --accent: #D4AF37;
+  }
+  .reveal { font-family: -apple-system, "PingFang TC", sans-serif; }
+  .reveal h2 { font-size: 1.5rem; color: var(--blue); font-weight: 700; border-bottom: 3px solid var(--accent); padding-bottom: 8px; margin-bottom: 20px; }
+  .reveal p, .reveal li { font-size: 0.85rem; line-height: 1.7; }
+  .reveal .slides section { text-align: left; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .card { background: var(--light); border-radius: 10px; padding: 16px 20px; border-left: 4px solid var(--accent); }
+  .card.blue { border-left-color: var(--blue); }
+  .card.red  { border-left-color: var(--red); }
+  .note { background: #fefce8; border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.78rem; color: #713f12; margin-top: 12px; }
+  .chart-wrap { position: relative; height: 270px; }
+  .slide-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 46px; z-index: 200; pointer-events: none;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px;
+    background: rgba(255,255,255,0.96);
+    border-bottom: 2px solid #D4AF37;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .reveal .slides section:not(.cover-slide) { padding-top: 52px !important; }
+  .calc-table { width: 100%; border-collapse: collapse; font-size: 0.73rem; }
+  .calc-table th { background: var(--blue); color: #fff; padding: 6px 8px; text-align: center; font-weight: 700; font-size: 0.7rem; }
+  .calc-table th:first-child { text-align: left; padding-left: 10px; }
+  .calc-table td { padding: 6px 8px; text-align: center; border-bottom: 1px solid #e5e7eb; }
+  .calc-table td:first-child { text-align: left; padding-left: 10px; font-weight: 700; color: var(--blue); }
+  .calc-table tbody tr:nth-child(even) { background: rgba(240,244,250,0.5); }
+  .calc-table tbody tr.hl { background: rgba(212,175,55,0.07) !important; }
+  .calc-table .r6  { color: var(--gray); }
+  .calc-table .r8  { color: var(--green); font-weight: 600; }
+  .calc-table .r10 { color: #92400e; font-weight: 700; background: rgba(212,175,55,0.13); border-radius: 3px; }
+  .calc-table .sub { color: #9ca3af; font-size: 0.67rem; }
+</style>
+</head>
+<body>
+
+<!-- ── 頂部品牌橫條 ── -->
+<div class="slide-header">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <svg viewBox="0 0 100 100" width="36" height="36" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-hdr"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-hdr)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="3.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:18px;color:#1B3A6B;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:7.5px;color:#888;letter-spacing:2.2px;text-transform:uppercase;margin-top:3px;">Slow Rich</div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:#6b7280;">
+    <span style="color:#D4AF37;font-weight:800;margin-right:6px;">EP.07</span>投資試算
+  </div>
+</div>
+
+<div class="reveal">
+<div class="slides">
+
+<!-- ══ 1. 封面 ══ -->
+<section class="cover-slide" data-background-gradient="linear-gradient(150deg,#080f1f 0%,#0d1b35 55%,#080f1f 100%)" style="padding:40px 56px;text-align:left !important;position:relative;">
+  <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;" viewBox="0 0 1100 650" preserveAspectRatio="none">
+    <defs>
+      <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g transform="translate(-73,18)">
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160 L1055,650 L680,650 Z" fill="#D4AF37" opacity="0.05"/>
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160" stroke="#D4AF37" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.05"/>
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160" stroke="#D4AF37" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
+    <circle cx="1055" cy="160" r="24" fill="#D4AF37" opacity="0.12" filter="url(#glow)"/>
+    <circle cx="1055" cy="160" r="10" fill="#D4AF37" opacity="0.55"/>
+    <circle cx="1055" cy="160" r="5" fill="#D4AF37" opacity="0.95"/>
+      </g>
+  </svg>
+  <!-- Logo -->
+  <div style="position:absolute;top:9px;right:123px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.35);border-radius:14px;padding:10px 18px 10px 12px;">
+    <svg viewBox="0 0 100 100" width="80" height="80" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-cv"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-cv)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <circle cx="85" cy="15" r="4.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:26px;color:#D4AF37;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:400;font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">Slow Rich</div>
+    </div>
+  </div>
+  <!-- Badge -->
+  <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.45);border-radius:20px;padding:5px 16px;margin-bottom:30px;">
+    <span style="font-size:11px;color:#D4AF37;font-weight:800;letter-spacing:1.5px;">EP.07</span>
+    <span style="width:1px;height:10px;background:rgba(212,175,55,0.4);display:inline-block;"></span>
+    <span style="font-size:11px;color:#aaa;letter-spacing:0.5px;">指數化投資的終點</span>
+  </div>
+  <!-- Title -->
+  <div style="margin-bottom:14px;line-height:1.05;">
+    <div style="font-size:3.5rem;font-weight:900;color:#fff;margin-bottom:4px;">退休前</div>
+    <div style="font-size:4.4rem;font-weight:900;color:#D4AF37;text-shadow:0 0 36px rgba(212,175,55,0.35);">你想存多少退休金？</div>
+  </div>
+  <div style="margin-bottom:28px;">
+    <div style="font-size:1rem;font-weight:300;color:#aaa;letter-spacing:1px;">10 種人生情境 × 3 種報酬率，用數據算出你的退休數字</div>
+  </div>
+  <!-- 3 stats -->
+  <div id="cover-cards" style="display:flex;align-items:stretch;gap:12px;max-width:680px;transform:scale(0.9);transform-origin:left top;">
+    <div style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">一般上班族目標</div>
+      <div style="font-size:1rem;font-weight:700;color:#D4AF37;">1,500 萬</div>
+    </div>
+    <div style="background:rgba(46,95,163,0.08);border:1px solid rgba(46,95,163,0.25);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">專業人員目標</div>
+      <div style="font-size:1rem;font-weight:700;color:#2E5FA3;">3,000 萬</div>
+    </div>
+    <div style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">你的出發點</div>
+      <div style="font-size:1rem;font-weight:700;color:#dc2626;">你現在幾歲？</div>
+    </div>
+  </div>
+  <p style="position:absolute;bottom:14px;left:56px;color:#2e4a6b;font-size:0.68rem;">按 → 翻頁 &nbsp;|&nbsp; F 全螢幕 &nbsp;|&nbsp; ESC 總覽</p>
+</section>
+
+<!-- ══ 2. 退休目標：4% 提領法則 ══ -->
+<section>
+  <h2>退休需要多少錢？——4% 提領法則</h2>
+  <div class="two-col">
+    <div>
+      <p>退休金要存多少才夠用？用 <strong>4% 提領法則</strong> 可以反推目標：</p>
+      <div style="background:var(--light);border-radius:12px;padding:18px;margin:12px 0;border:2px solid rgba(212,175,55,0.3);text-align:center;">
+        <div style="font-size:1.1rem;font-weight:700;color:var(--blue);">退休金 × 4% ＝ 每年可花費</div>
+        <div style="font-size:0.72rem;color:var(--gray);margin-top:4px;">Trinity Study：歷史驗證，這個提領率可撐 30 年以上</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="card">
+          <div style="font-size:0.7rem;color:var(--gray);margin-bottom:4px;">一般上班族目標：1,500 萬</div>
+          <div style="font-size:1rem;font-weight:700;color:#92400e;">1,500萬 × 4% = 60萬/年 = <span style="color:#D4AF37;font-size:1.2rem;">月領 5 萬</span></div>
+        </div>
+        <div class="card blue">
+          <div style="font-size:0.7rem;color:var(--gray);margin-bottom:4px;">專業人員目標：3,000 萬</div>
+          <div style="font-size:1rem;font-weight:700;color:var(--blue);">3,000萬 × 4% = 120萬/年 = <span style="font-size:1.2rem;">月領 10 萬</span></div>
+        </div>
+      </div>
+      <div class="note">4% 提領法則的完整說明留到 EP08，本集先算「你能存多少」。</div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;">今天的核心問題</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #D4AF37;">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--blue);margin-bottom:3px;">一般上班族（工作到 60 歲）</div>
+            <div style="font-size:0.7rem;color:var(--gray);">22 / 25 / 30 / 35 / 40 歲開始，各能存多少？</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid var(--blue);">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--blue);margin-bottom:3px;">專業人員（工作到 55 歲，含裁員風險）</div>
+            <div style="font-size:0.7rem;color:var(--gray);">30 / 35 / 40 / 45 / 50 歲開始，各能存多少？</div>
+          </div>
+        </div>
+        <div style="margin-top:14px;padding:12px;background:rgba(212,175,55,0.06);border-radius:8px;">
+          <div style="font-size:0.7rem;color:var(--gray);margin-bottom:6px;">預期年化報酬率假設（複利計算）</div>
+          <div style="display:flex;gap:8px;">
+            <span style="font-size:0.75rem;font-weight:700;color:var(--gray);background:#f3f4f6;border-radius:6px;padding:4px 10px;">保守 6%</span>
+            <span style="font-size:0.75rem;font-weight:700;color:var(--green);background:rgba(46,95,163,0.08);border-radius:6px;padding:4px 10px;">中性 8%</span>
+            <span style="font-size:0.75rem;font-weight:700;color:#92400e;background:rgba(212,175,55,0.12);border-radius:6px;padding:4px 10px;">樂觀 10%</span>
+          </div>
+          <div style="font-size:0.65rem;color:#9ca3af;margin-top:6px;">參考 EP04：0050 長期約 8~13%，S&amp;P500 約 10%，VT 約 6~8%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 3. 一般上班族試算 ══ -->
+<section>
+  <h2>一般上班族試算（工作到 60 歲）</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <table class="calc-table">
+        <thead>
+          <tr>
+            <th>情境</th><th>本金</th><th>月投</th><th>年數</th><th>總投入</th>
+            <th style="color:#ccc;">6%</th><th style="color:#93c5fd;">8%</th><th style="color:#D4AF37;">10%</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>22 歲</td><td>0 萬</td><td>0.8 萬</td><td>38 年</td><td class="sub">365 萬</td>
+            <td class="r6">1,395</td><td class="r8">2,364</td><td class="r10">4,129</td>
+          </tr>
+          <tr>
+            <td>25 歲</td><td>30 萬</td><td>1 萬</td><td>35 年</td><td class="sub">450 萬</td>
+            <td class="r6">1,668</td><td class="r8">2,782</td><td class="r10">4,776</td>
+          </tr>
+          <tr class="hl">
+            <td>30 歲 ★</td><td>100 萬</td><td>1.5 萬</td><td>30 年</td><td class="sub">640 萬</td>
+            <td class="r6">2,109</td><td class="r8">3,330</td><td class="r10">5,375</td>
+          </tr>
+          <tr>
+            <td>35 歲</td><td>100 萬</td><td>2 萬</td><td>25 年</td><td class="sub">700 萬</td>
+            <td class="r6">1,833</td><td class="r8">2,636</td><td class="r10">3,860</td>
+          </tr>
+          <tr>
+            <td>40 歲</td><td>300 萬</td><td>2 萬</td><td>20 年</td><td class="sub">780 萬</td>
+            <td class="r6">1,917</td><td class="r8">2,656</td><td class="r10">3,717</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note" style="margin-top:10px;">
+        單位：萬元。目標：<strong>1,500 萬（月領 5 萬）</strong>。<br>
+        ★ 30 歲在 8% 達 3,330 萬，超目標 2.2 倍。5 種情境在 6% 時均可達標。
+      </div>
+    </div>
+    <div>
+      <div class="chart-wrap"><canvas id="regularChart"></canvas></div>
+      <p style="font-size:0.65rem;color:var(--gray);margin-top:4px;text-align:center;">退休資產（萬元）｜ 6% / 8% / 10%</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 4. 一般上班族：早 5 年的代價 ══ -->
+<section>
+  <h2>早 5 年開始——多賺 694～1,515 萬</h2>
+  <div class="two-col">
+    <div>
+      <p>30 歲 vs 35 歲，本金同樣是 100 萬，只差 5 年，差距有多大？</p>
+      <div style="background:#fff;border:2px solid #D4AF37;border-radius:12px;padding:16px 18px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div><span style="font-size:0.92rem;font-weight:800;color:var(--blue);">30 歲起步</span><span style="font-size:0.7rem;color:var(--gray);margin-left:8px;">月投 1.5萬，30 年，總投入 640 萬</span></div>
+          <span style="background:rgba(212,175,55,0.15);color:#92400e;font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:20px;">較早</span>
+        </div>
+        <div style="display:flex;gap:10px;text-align:center;">
+          <div style="flex:1;"><div style="font-size:0.62rem;color:var(--gray);">6%</div><div style="font-size:1rem;font-weight:700;color:var(--gray);">2,109萬</div></div>
+          <div style="flex:1;"><div style="font-size:0.62rem;color:var(--green);">8%</div><div style="font-size:1rem;font-weight:700;color:var(--green);">3,330萬</div></div>
+          <div style="flex:1;background:rgba(212,175,55,0.08);border-radius:8px;padding:4px 0;"><div style="font-size:0.62rem;color:#92400e;">10%</div><div style="font-size:1.3rem;font-weight:900;color:#D4AF37;">5,375萬</div></div>
+        </div>
+      </div>
+      <div style="background:#fff;border:2px solid #e5e7eb;border-radius:12px;padding:16px 18px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div><span style="font-size:0.92rem;font-weight:800;color:var(--gray);">35 歲起步</span><span style="font-size:0.7rem;color:var(--gray);margin-left:8px;">月投 2萬，25 年，總投入 700 萬</span></div>
+          <span style="background:#f3f4f6;color:var(--gray);font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:20px;">較晚</span>
+        </div>
+        <div style="display:flex;gap:10px;text-align:center;">
+          <div style="flex:1;"><div style="font-size:0.62rem;color:var(--gray);">6%</div><div style="font-size:1rem;font-weight:700;color:var(--gray);">1,833萬</div></div>
+          <div style="flex:1;"><div style="font-size:0.62rem;color:var(--green);">8%</div><div style="font-size:1rem;font-weight:700;color:var(--green);">2,636萬</div></div>
+          <div style="flex:1;background:#fafafa;border-radius:8px;padding:4px 0;"><div style="font-size:0.62rem;color:var(--gray);">10%</div><div style="font-size:1.3rem;font-weight:900;color:var(--gray);">3,860萬</div></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:0.85rem;font-weight:700;color:var(--blue);">5 年時間，值多少錢？</div>
+        <div style="background:#fff;border-radius:8px;padding:12px;border:1px solid #e5e7eb;text-align:center;">
+          <div style="font-size:0.68rem;color:var(--gray);">35歲比30歲多投</div>
+          <div style="font-size:1rem;font-weight:700;color:var(--gray);">60 萬</div>
+        </div>
+        <div style="background:rgba(220,38,38,0.04);border-radius:8px;padding:12px;border:2px solid rgba(220,38,38,0.2);text-align:center;">
+          <div style="font-size:0.68rem;color:var(--gray);">但結果少了（8% 情境）</div>
+          <div style="font-size:1.6rem;font-weight:900;color:#dc2626;">−694 萬</div>
+        </div>
+        <div style="background:rgba(220,38,38,0.06);border-radius:8px;padding:12px;border:2px solid rgba(220,38,38,0.3);text-align:center;">
+          <div style="font-size:0.68rem;color:var(--gray);">結果少了（10% 情境）</div>
+          <div style="font-size:1.6rem;font-weight:900;color:#dc2626;">−1,515 萬</div>
+        </div>
+        <div class="note" style="margin-top:0;">多存 60 萬，卻少了 694~1,515 萬。<strong>5 年時間，遠比 60 萬本金更值錢。</strong></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 5. 專業人員試算 ══ -->
+<section>
+  <h2>專業人員試算（工作到 55 歲）</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <table class="calc-table">
+        <thead>
+          <tr>
+            <th>情境</th><th>本金</th><th>月投</th><th>年數</th><th>總投入</th>
+            <th style="color:#ccc;">6%</th><th style="color:#93c5fd;">8%</th><th style="color:#D4AF37;">10%</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="hl">
+            <td>30 歲 ★</td><td>200 萬</td><td>3 萬</td><td>25 年</td><td class="sub">1,100 萬</td>
+            <td class="r6">2,972</td><td class="r8">4,322</td><td class="r10">6,392</td>
+          </tr>
+          <tr class="hl">
+            <td>35 歲 ★</td><td>300 萬</td><td>4 萬</td><td>20 年</td><td class="sub">1,260 萬</td>
+            <td class="r6">2,841</td><td class="r8">3,834</td><td class="r10">5,236</td>
+          </tr>
+          <tr>
+            <td>40 歲</td><td>300 萬</td><td>5 萬</td><td>15 年</td><td class="sub">1,200 萬</td>
+            <td class="r6">2,190</td><td class="r8">2,722</td><td class="r10">3,408</td>
+          </tr>
+          <tr>
+            <td>45 歲</td><td>500 萬</td><td>6 萬</td><td>10 年</td><td class="sub">1,220 萬</td>
+            <td class="r6">1,893</td><td class="r8">2,208</td><td class="r10">2,583</td>
+          </tr>
+          <tr>
+            <td>50 歲</td><td>1,000 萬</td><td>8 萬</td><td>5 年</td><td class="sub">1,480 萬</td>
+            <td class="r6">1,907</td><td class="r8">2,078</td><td class="r10">2,265</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note" style="margin-top:10px;">
+        單位：萬元。目標：<strong>3,000 萬（月領 10 萬）</strong>。<br>
+        ★ 30歲 8% 達 4,322萬 ✓，35歲 8% 達 3,834萬 ✓。50歲本金 1,000萬，10% 仍只有 2,265萬——時間無法彌補。
+      </div>
+    </div>
+    <div>
+      <div class="chart-wrap"><canvas id="proChart"></canvas></div>
+      <p style="font-size:0.65rem;color:var(--gray);margin-top:4px;text-align:center;">退休資產（萬元）｜ 6% / 8% / 10%</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 6. 專業人員：越晚損失越大 ══ -->
+<section>
+  <h2>越晚開始，損失越大——專業人員的時間代價</h2>
+  <div class="two-col">
+    <div>
+      <p>本金與月投都在增加，但結果為什麼越來越差？答案只有一個：<strong>時間</strong>。</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">
+        <div style="display:flex;align-items:center;gap:12px;background:#fff;border-radius:10px;padding:11px 14px;border-left:4px solid #D4AF37;">
+          <div style="min-width:50px;font-size:0.88rem;font-weight:800;color:var(--blue);">30 歲</div>
+          <div style="flex:1;background:#D4AF37;height:22px;border-radius:4px;display:flex;align-items:center;padding-left:10px;">
+            <span style="font-size:0.75rem;font-weight:800;color:#fff;">8% → 4,322 萬 &nbsp;✓ 超標</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:#fff;border-radius:10px;padding:11px 14px;border-left:4px solid var(--green);">
+          <div style="min-width:50px;font-size:0.88rem;font-weight:800;color:var(--blue);">35 歲</div>
+          <div style="flex:1;background:var(--green);height:22px;border-radius:4px;width:88.8%;display:flex;align-items:center;padding-left:10px;">
+            <span style="font-size:0.75rem;font-weight:800;color:#fff;">8% → 3,834 萬 &nbsp;✓ 達標</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:#fff;border-radius:10px;padding:11px 14px;border-left:4px solid #9ca3af;">
+          <div style="min-width:50px;font-size:0.88rem;font-weight:800;color:var(--blue);">40 歲</div>
+          <div style="flex:1;background:#9ca3af;height:22px;border-radius:4px;width:63%;display:flex;align-items:center;padding-left:10px;">
+            <span style="font-size:0.75rem;font-weight:800;color:#fff;">8% → 2,722 萬 &nbsp;✗ 未達標</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:#fff;border-radius:10px;padding:11px 14px;border-left:4px solid #dc2626;">
+          <div style="min-width:50px;font-size:0.88rem;font-weight:800;color:var(--blue);">45 歲</div>
+          <div style="flex:1;background:#dc2626;height:22px;border-radius:4px;width:51%;display:flex;align-items:center;padding-left:10px;">
+            <span style="font-size:0.75rem;font-weight:800;color:#fff;">8% → 2,208 萬 &nbsp;✗ 未達標</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:#fff;border-radius:10px;padding:11px 14px;border-left:4px solid #7f1d1d;">
+          <div style="min-width:50px;font-size:0.88rem;font-weight:800;color:var(--blue);">50 歲</div>
+          <div style="flex:1;background:#7f1d1d;height:22px;border-radius:4px;width:48%;display:flex;align-items:center;padding-left:10px;">
+            <span style="font-size:0.75rem;font-weight:800;color:#fff;">8% → 2,078 萬 &nbsp;✗ 本金1000萬也不夠</span>
+          </div>
+        </div>
+      </div>
+      <div class="note">3,000 萬的門檻，8% 報酬率下，超過 35 歲才開始就很難達到。50 歲本金 1,000 萬，10% 也只有 2,265 萬。</div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:10px;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">從 30 歲拖到 35 歲，損失多少？</div>
+        <div style="background:#fff;border-radius:8px;padding:12px;border:1px solid #e5e7eb;text-align:center;">
+          <div style="font-size:0.68rem;color:var(--gray);">35歲比30歲多投入</div>
+          <div style="font-size:1rem;font-weight:700;color:var(--gray);">160 萬</div>
+        </div>
+        <div style="background:rgba(220,38,38,0.04);border-radius:8px;padding:12px;border:2px solid rgba(220,38,38,0.2);text-align:center;">
+          <div style="font-size:0.68rem;color:var(--gray);">結果差距（8%）</div>
+          <div style="font-size:1.5rem;font-weight:900;color:#dc2626;">−488 萬</div>
+        </div>
+        <div style="background:rgba(220,38,38,0.04);border-radius:8px;padding:12px;border:2px solid rgba(220,38,38,0.3);text-align:center;">
+          <div style="font-size:0.68rem;color:var(--gray);">結果差距（10%）</div>
+          <div style="font-size:1.5rem;font-weight:900;color:#dc2626;">−1,156 萬</div>
+        </div>
+        <div class="note" style="margin-top:0;">多投 160 萬本金，卻少 488~1,156 萬。時間的複利威力，本金無法彌補。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 7. 最驚人對比：時間 vs 資本 ══ -->
+<section>
+  <h2>最驚人的對比——時間 vs 資本</h2>
+  <p style="margin-bottom:14px;">22 歲小資 vs 50 歲中階主管：誰的退休金更多？</p>
+  <div class="two-col" style="margin-bottom:12px;">
+    <div style="background:#fff;border:2px solid #D4AF37;border-radius:14px;padding:20px;text-align:center;">
+      <div style="font-size:0.8rem;font-weight:800;color:var(--blue);margin-bottom:6px;">22 歲 小資（剛畢業）</div>
+      <div style="font-size:0.68rem;color:var(--gray);margin-bottom:12px;">本金 0 萬，月投 0.8 萬，投 38 年</div>
+      <div style="font-size:0.72rem;color:var(--gray);">總投入</div>
+      <div style="font-size:1.6rem;font-weight:900;color:var(--blue);margin-bottom:14px;">365 萬</div>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <div style="padding:8px 12px;background:rgba(107,114,128,0.08);border-radius:8px;"><div style="font-size:0.6rem;color:var(--gray);">6%</div><div style="font-size:0.88rem;font-weight:700;color:var(--gray);">1,395萬</div></div>
+        <div style="padding:8px 12px;background:rgba(46,95,163,0.08);border-radius:8px;"><div style="font-size:0.6rem;color:var(--green);">8%</div><div style="font-size:0.88rem;font-weight:700;color:var(--green);">2,364萬</div></div>
+        <div style="padding:8px 12px;background:rgba(212,175,55,0.1);border-radius:8px;"><div style="font-size:0.6rem;color:#92400e;">10%</div><div style="font-size:1.1rem;font-weight:900;color:#D4AF37;">4,129萬</div></div>
+      </div>
+    </div>
+    <div style="background:#fff;border:2px solid #e5e7eb;border-radius:14px;padding:20px;text-align:center;">
+      <div style="font-size:0.8rem;font-weight:800;color:var(--gray);margin-bottom:6px;">50 歲 中階主管</div>
+      <div style="font-size:0.68rem;color:var(--gray);margin-bottom:12px;">本金 1,000 萬，月投 8 萬，投 5 年</div>
+      <div style="font-size:0.72rem;color:var(--gray);">總投入（多 4 倍）</div>
+      <div style="font-size:1.6rem;font-weight:900;color:var(--gray);margin-bottom:14px;">1,480 萬</div>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <div style="padding:8px 12px;background:rgba(107,114,128,0.08);border-radius:8px;"><div style="font-size:0.6rem;color:var(--gray);">6%</div><div style="font-size:0.88rem;font-weight:700;color:var(--gray);">1,907萬</div></div>
+        <div style="padding:8px 12px;background:rgba(46,95,163,0.08);border-radius:8px;"><div style="font-size:0.6rem;color:var(--green);">8%</div><div style="font-size:0.88rem;font-weight:700;color:var(--green);">2,078萬</div></div>
+        <div style="padding:8px 12px;background:#fafafa;border-radius:8px;"><div style="font-size:0.6rem;color:var(--gray);">10%</div><div style="font-size:1.1rem;font-weight:900;color:var(--gray);">2,265萬</div></div>
+      </div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+    <div style="background:rgba(107,114,128,0.06);border-radius:10px;padding:12px;text-align:center;">
+      <div style="font-size:0.7rem;color:var(--gray);margin-bottom:4px;">報酬率 6%</div>
+      <div style="font-size:0.88rem;font-weight:700;color:var(--gray);">主管多 512 萬</div>
+      <div style="font-size:0.65rem;color:var(--gray);">低報酬時，資本量仍有優勢</div>
+    </div>
+    <div style="background:rgba(46,95,163,0.06);border-radius:10px;padding:12px;text-align:center;">
+      <div style="font-size:0.7rem;color:var(--green);margin-bottom:4px;">報酬率 8%</div>
+      <div style="font-size:0.88rem;font-weight:700;color:var(--green);">小資多 286 萬</div>
+      <div style="font-size:0.65rem;color:var(--gray);">8% 以上，時間開始發威</div>
+    </div>
+    <div style="background:rgba(212,175,55,0.08);border-radius:10px;padding:12px;text-align:center;">
+      <div style="font-size:0.7rem;color:#92400e;margin-bottom:4px;">報酬率 10%</div>
+      <div style="font-size:0.88rem;font-weight:700;color:#D4AF37;">小資多 1,864 萬</div>
+      <div style="font-size:0.65rem;color:var(--gray);">報酬率越高，時間完勝資本</div>
+    </div>
+  </div>
+  <div class="note" style="margin-top:10px;">投入少 4 倍，8% 以上就開始反超。<strong>時間是唯一買不回來的資源。</strong></div>
+</section>
+
+<!-- ══ 8. 真實回測：1998年每月1萬 ══ -->
+<section>
+  <h2>真實數據：同樣從 1998 年開始，每月投入 1 萬</h2>
+  <p style="margin-bottom:14px;">以台股加權指數（0050）歷史實際波動計算定期定額，<strong>不假設固定報酬率</strong>。</p>
+  <div class="two-col" style="align-items:center;">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <!-- 11年 -->
+      <div style="background:#fff;border-radius:12px;padding:14px 18px;border:2px solid #dc2626;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:0.88rem;font-weight:800;color:var(--blue);">1998–2008｜投資 11 年</span>
+          <span style="background:rgba(220,38,38,0.1);color:#dc2626;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:20px;">仍可能賠錢</span>
+        </div>
+        <div style="display:flex;gap:16px;">
+          <div style="text-align:center;flex:1;">
+            <div style="font-size:0.65rem;color:var(--gray);">累積投入</div>
+            <div style="font-size:1rem;font-weight:700;color:var(--gray);">132 萬</div>
+          </div>
+          <div style="text-align:center;flex:1;">
+            <div style="font-size:0.65rem;color:var(--gray);">最終資產</div>
+            <div style="font-size:1rem;font-weight:700;color:#dc2626;">108 萬</div>
+          </div>
+          <div style="text-align:center;flex:1;background:rgba(220,38,38,0.05);border-radius:8px;padding:4px 0;">
+            <div style="font-size:0.65rem;color:var(--gray);">年化報酬（IRR）</div>
+            <div style="font-size:1.3rem;font-weight:900;color:#dc2626;">−3.40%</div>
+          </div>
+        </div>
+        <div style="font-size:0.68rem;color:var(--gray);margin-top:6px;"><span style="display:inline-block;font-size:0.6rem;font-weight:700;padding:1px 7px;border-radius:10px;background:rgba(220,38,38,0.12);color:#dc2626;margin-right:5px;">序列風險</span>科技泡沫＋金融海嘯接連發生，結算時間點剛好落在均值下緣，掩蓋了長期價值</div>
+      </div>
+      <!-- 16年 -->
+      <div style="background:#fff;border-radius:12px;padding:14px 18px;border:2px solid var(--green);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:0.88rem;font-weight:800;color:var(--blue);">1998–2013｜投資 16 年</span>
+          <span style="background:rgba(46,95,163,0.1);color:var(--green);font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:20px;">熬過來了</span>
+        </div>
+        <div style="display:flex;gap:16px;">
+          <div style="text-align:center;flex:1;">
+            <div style="font-size:0.65rem;color:var(--gray);">累積投入</div>
+            <div style="font-size:1rem;font-weight:700;color:var(--gray);">192 萬</div>
+          </div>
+          <div style="text-align:center;flex:1;">
+            <div style="font-size:0.65rem;color:var(--gray);">最終資產</div>
+            <div style="font-size:1rem;font-weight:700;color:var(--green);">295 萬</div>
+          </div>
+          <div style="text-align:center;flex:1;background:rgba(46,95,163,0.06);border-radius:8px;padding:4px 0;">
+            <div style="font-size:0.65rem;color:var(--gray);">年化報酬（IRR）</div>
+            <div style="font-size:1.3rem;font-weight:900;color:var(--green);">+4.87%</div>
+          </div>
+        </div>
+        <div style="font-size:0.68rem;color:var(--gray);margin-top:6px;"><span style="display:inline-block;font-size:0.6rem;font-weight:700;padding:1px 7px;border-radius:10px;background:rgba(46,95,163,0.1);color:var(--green);margin-right:5px;">均值回歸</span>市場機制發揮作用，多撐 5 年，從虧損 −24 萬翻為獲利 +103 萬</div>
+      </div>
+      <!-- 29年 -->
+      <div style="background:#fff;border-radius:12px;padding:14px 18px;border:2px solid #D4AF37;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:0.88rem;font-weight:800;color:var(--blue);">1998–2026｜投資 29 年</span>
+          <span style="background:rgba(212,175,55,0.15);color:#92400e;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:20px;">複利爆發</span>
+        </div>
+        <div style="display:flex;gap:16px;">
+          <div style="text-align:center;flex:1;">
+            <div style="font-size:0.65rem;color:var(--gray);">累積投入</div>
+            <div style="font-size:1rem;font-weight:700;color:var(--gray);">348 萬</div>
+          </div>
+          <div style="text-align:center;flex:1;">
+            <div style="font-size:0.65rem;color:var(--gray);">最終資產</div>
+            <div style="font-size:1rem;font-weight:700;color:#D4AF37;">2,427 萬</div>
+          </div>
+          <div style="text-align:center;flex:1;background:rgba(212,175,55,0.08);border-radius:8px;padding:4px 0;">
+            <div style="font-size:0.65rem;color:var(--gray);">年化報酬（IRR）</div>
+            <div style="font-size:1.3rem;font-weight:900;color:#D4AF37;">+11.11%</div>
+          </div>
+        </div>
+        <div style="font-size:0.68rem;color:var(--gray);margin-top:6px;"><span style="display:inline-block;font-size:0.6rem;font-weight:700;padding:1px 7px;border-radius:10px;background:rgba(212,175,55,0.15);color:#92400e;margin-right:5px;">長期風險溢酬</span>完整捕獲均值回歸後的超額收益，投入 348 萬，最終變成 7 倍</div>
+      </div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:300px;"><canvas id="dcaRealChart"></canvas></div>
+      <p style="font-size:0.65rem;color:var(--gray);margin-top:4px;text-align:center;">台股 0050｜1998 年起每月投 1 萬｜含股息再投入</p>
+      <div class="note" style="margin-top:8px;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:10px;">
+          <div style="text-align:center;">
+            <div style="font-size:0.62rem;color:var(--gray);">投入金額增加</div>
+            <div style="font-size:1.15rem;font-weight:900;color:var(--blue);">× 2.6</div>
+            <div style="font-size:0.6rem;color:var(--gray);">132 → 348 萬</div>
+          </div>
+          <div style="font-size:1.2rem;color:#ccc;font-weight:300;">→</div>
+          <div style="text-align:center;">
+            <div style="font-size:0.62rem;color:var(--gray);">最終資產增加</div>
+            <div style="font-size:1.15rem;font-weight:900;color:#D4AF37;">× 22.5</div>
+            <div style="font-size:0.6rem;color:var(--gray);">108 → 2,427 萬</div>
+          </div>
+        </div>
+        波動是通往長期報酬的入場券。<br>均值回歸確保方向的正確性，<strong>持有時間決定獲利的深度</strong>。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 9. 為什麼至少投資 15 年 ══ -->
+<section>
+  <h2>這些試算的前提：為什麼至少要投資 15 年？</h2>
+  <div class="two-col">
+    <div>
+      <p>前面的試算假設固定年化報酬率，但現實市場是波動的——可能遇到整整 10 年的低迷。</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0;">
+        <div class="card red">
+          <div style="font-size:0.78rem;font-weight:700;color:#dc2626;margin-bottom:4px;">歷史案例：1998–2008 年</div>
+          <div style="font-size:0.73rem;color:var(--gray);">台灣加權指數在這 10 年幾乎沒有漲幅，經歷科技泡沫（2000）與金融海嘯（2008）兩次大崩盤。若只投資 10 年剛好遇到這段，報酬接近零甚至負。</div>
+        </div>
+        <div class="card">
+          <div style="font-size:0.78rem;font-weight:700;color:#92400e;margin-bottom:4px;">滾動報酬率的規律（EP04 複習）</div>
+          <div style="font-size:0.73rem;color:var(--gray);line-height:1.8;">
+            單一年度：波動極大（-30% ~ +50%）<br>
+            5 年滾動：縮小，仍有負值<br>
+            10 年滾動：少數情況下仍為負<br>
+            <strong style="color:#059669;">15 年滾動：歷史上幾乎全部為正值</strong>
+          </div>
+        </div>
+      </div>
+      <div class="note">時間不只帶來複利，也帶來風險的平滑。<strong>投資的年限，決定你的勝率。</strong></div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:18px;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;">持有時間 vs 風險</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="min-width:65px;font-size:0.75rem;font-weight:600;">1 年</span>
+            <div style="flex:1;height:16px;border-radius:4px;background:linear-gradient(90deg,#dc2626 65%,#fca5a5 100%);"></div>
+            <span style="font-size:0.7rem;color:#dc2626;min-width:55px;">高風險</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="min-width:65px;font-size:0.75rem;font-weight:600;">5 年</span>
+            <div style="flex:1;height:16px;border-radius:4px;background:linear-gradient(90deg,#f97316 45%,#fed7aa 100%);"></div>
+            <span style="font-size:0.7rem;color:#f97316;min-width:55px;">中風險</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="min-width:65px;font-size:0.75rem;font-weight:600;">10 年</span>
+            <div style="flex:1;height:16px;border-radius:4px;background:linear-gradient(90deg,var(--green) 55%,#bfdbfe 100%);"></div>
+            <span style="font-size:0.7rem;color:var(--green);min-width:55px;">低風險</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="min-width:65px;font-size:0.75rem;font-weight:700;color:#059669;">15 年+</span>
+            <div style="flex:1;height:16px;border-radius:4px;background:linear-gradient(90deg,#059669 70%,#6ee7b7 100%);"></div>
+            <span style="font-size:0.7rem;color:#059669;font-weight:700;min-width:55px;">幾乎全正</span>
+          </div>
+        </div>
+        <div style="margin-top:14px;font-size:0.68rem;color:var(--gray);">（以台股 0050 / S&amp;P500 歷史滾動報酬為基礎）</div>
+        <div style="margin-top:10px;background:rgba(212,175,55,0.06);border-radius:8px;padding:14px;border:1px solid rgba(212,175,55,0.3);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--blue);margin-bottom:6px;">已超過 40 歲才開始？不用擔心</div>
+          <div style="font-size:0.7rem;color:var(--gray);line-height:1.8;">
+            時間較短，波動風險確實較高。<br>
+            解法：加入<strong>債券配置（股債比）</strong>，降低波動，<br>
+            報酬率稍低，但讓你更有信心撐過市場震盪。<br>
+            <span style="color:var(--blue);font-weight:600;">還是可以在退休前存到夠用的退休金。</span>
+          </div>
+          <div style="margin-top:8px;font-size:0.68rem;color:#9ca3af;">詳細說明見 EP09：股債配置回測</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 9. 結語 ══ -->
+<section>
+  <h2>你現在就是最好的起點</h2>
+  <div style="display:inline-block;margin-bottom:4px;padding:8px 18px;background:rgba(27,58,107,0.05);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;">
+    <span style="font-size:0.8rem;font-style:italic;color:var(--gray);">To start, you don't have to be good.</span>
+    <span style="font-size:0.8rem;font-style:italic;color:var(--blue);font-weight:600;margin-left:6px;">To be good, you have to start.</span>
+  </div>
+  <div class="two-col" style="align-items:start;">
+    <div>
+      <p>今天的數字告訴我們：</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0;">
+        <div style="display:flex;align-items:flex-start;gap:12px;background:rgba(212,175,55,0.06);border-radius:10px;padding:14px;border:1px solid rgba(212,175,55,0.25);">
+          <span style="font-size:1.2rem;font-weight:900;color:#D4AF37;min-width:24px;">1</span>
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">一般上班族也可以存到 1,500 萬+</div>
+            <div style="font-size:0.72rem;color:var(--gray);">22~30 歲開始，8% 報酬就能達標，退休月領 5 萬。</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;background:rgba(46,95,163,0.05);border-radius:10px;padding:14px;border:1px solid rgba(46,95,163,0.2);">
+          <span style="font-size:1.2rem;font-weight:900;color:var(--blue);min-width:24px;">2</span>
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">專業人員 30 歲起步，3,000 萬不是夢</div>
+            <div style="font-size:0.72rem;color:var(--gray);">8% 達 4,322 萬，退休月領 14 萬以上。超過 40 歲才開始，需要更高報酬率才能達標。</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;background:rgba(220,38,38,0.04);border-radius:10px;padding:14px;border:1px solid rgba(220,38,38,0.15);">
+          <span style="font-size:1.2rem;font-weight:900;color:#dc2626;min-width:24px;">3</span>
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">每晚 5 年，損失超出想像</div>
+            <div style="font-size:0.72rem;color:var(--gray);">30→35 歲差 694 萬，35→40 歲差 1,112 萬。50 歲本金 1,000 萬、10% 報酬，仍只有 2,265 萬，達不到 3,000 萬目標。</div>
+          </div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>下集 EP08：4% 提領法則</strong><br>
+        存到 1,500 萬 / 3,000 萬後，怎麼領才能不怕活太久？Trinity Study 的科學根據。
+      </div>
+    </div>
+    <div style="background:var(--light);border-radius:14px;padding:22px;">
+      <div style="font-size:0.85rem;font-weight:700;color:var(--blue);margin-bottom:18px;text-align:center;">你今天的行動</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="background:#fff;border-radius:10px;padding:14px;border:2px solid #D4AF37;">
+          <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">Step 1</div>
+          <div style="font-size:0.82rem;font-weight:700;color:#92400e;">確認你屬於哪種情境</div>
+          <div style="font-size:0.7rem;color:var(--gray);margin-top:2px;">年齡、本金、每月可投入金額</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px;border:2px solid var(--green);">
+          <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">Step 2</div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">設定你的退休目標金額</div>
+          <div style="font-size:0.7rem;color:var(--gray);margin-top:2px;">1,500 萬月領 5 萬？3,000 萬月領 10 萬？</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px;border:2px solid rgba(212,175,55,0.6);">
+          <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">Step 3</div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">今天就開始，不等明天</div>
+          <div style="font-size:0.7rem;color:var(--gray);margin-top:2px;">0050、VT、VOO，選一個，定期定額，持續投入</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({
+  width: 1100, height: 650,
+  margin: 0.04,
+  hash: true,
+  transition: 'slide',
+  transitionSpeed: 'fast',
+  slideNumber: true,
+});
+const _header = document.querySelector('.slide-header');
+_header.style.opacity = '0';
+Reveal.on('slidechanged', e => {
+  _header.style.opacity = e.indexh === 0 ? '0' : '1';
+});
+
+
+/* ── 一般上班族 ── */
+(function () {
+  const ctx = document.getElementById('regularChart');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['22 歲', '25 歲', '30 歲', '35 歲', '40 歲'],
+      datasets: [
+        { label: '6%',  data: [1395, 1668, 2109, 1833, 1917], backgroundColor: 'rgba(107,114,128,0.55)', borderRadius: 4 },
+        { label: '8%',  data: [2364, 2782, 3330, 2636, 2656], backgroundColor: 'rgba(46,95,163,0.7)',    borderRadius: 4 },
+        { label: '10%', data: [4129, 4776, 5375, 3860, 3717], backgroundColor: 'rgba(212,175,55,0.85)',  borderRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 14 } },
+        tooltip: { callbacks: { label: c => `${c.dataset.label}：${c.parsed.y.toLocaleString()} 萬` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: {
+          title: { display: true, text: '退休資產（萬元）', font: { size: 10 } },
+          ticks: { callback: v => v + '萬', font: { size: 10 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+})();
+
+/* ── 真實回測：1998定期定額 ── */
+(function () {
+  const ctx = document.getElementById('dcaRealChart');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['11 年\n(1998–2008)', '16 年\n(1998–2013)', '29 年\n(1998–2026)'],
+      datasets: [
+        {
+          label: '累積投入',
+          data: [132, 192, 348],
+          backgroundColor: 'rgba(107,114,128,0.4)',
+          borderRadius: 5,
+        },
+        {
+          label: '最終資產',
+          data: [108, 295, 2427],
+          backgroundColor: ['rgba(220,38,38,0.7)', 'rgba(46,95,163,0.7)', 'rgba(212,175,55,0.85)'],
+          borderRadius: 5,
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 14 } },
+        tooltip: {
+          callbacks: {
+            label: c => `${c.dataset.label}：${c.parsed.y.toLocaleString()} 萬`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: {
+          title: { display: true, text: '金額（萬元）', font: { size: 10 } },
+          ticks: { callback: v => v + '萬', font: { size: 10 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+})();
+
+/* ── 專業人員 ── */
+(function () {
+  const ctx = document.getElementById('proChart');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['30 歲', '35 歲', '40 歲', '45 歲', '50 歲'],
+      datasets: [
+        { label: '6%',  data: [2972, 2841, 2190, 1893, 1907], backgroundColor: 'rgba(107,114,128,0.55)', borderRadius: 4 },
+        { label: '8%',  data: [4322, 3834, 2722, 2208, 2078], backgroundColor: 'rgba(46,95,163,0.7)',    borderRadius: 4 },
+        { label: '10%', data: [6392, 5236, 3408, 2583, 2265], backgroundColor: 'rgba(212,175,55,0.85)',  borderRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 14 } },
+        tooltip: { callbacks: { label: c => `${c.dataset.label}：${c.parsed.y.toLocaleString()} 萬` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: {
+          title: { display: true, text: '退休資產（萬元）', font: { size: 10 } },
+          ticks: { callback: v => v + '萬', font: { size: 10 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

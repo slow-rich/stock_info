@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Slow Rich — Logo</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #f2f0eb;
+    min-height: 100vh;
+    padding: 48px 32px;
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const G  = '#2D6A4F';   // 中森林綠（較亮）
+const GM = '#52B788';   // 薄荷綠（龜殼分隔線）
+const AU = '#D4AF37';   // 香檳金
+
+/* ── 工具函式 ──────────────────────────────── */
+function hexPts(cx, cy, r) {
+  return Array.from({ length: 6 }, (_, i) => {
+    const a = (-90 + 60 * i) * Math.PI / 180;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  });
+}
+function d(pts, close = true) {
+  return pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(2)},${p[1].toFixed(2)}`).join(' ')
+    + (close ? ' Z' : '');
+}
+
+/* ── 圖標 SVG ──────────────────────────────── */
+const Icon = ({ size = 120, uid = 'a' }) => {
+  const outer = hexPts(50, 50, 44);
+  const inner = hexPts(50, 50, 18);
+
+  // 股市折線：8 個轉折，劇烈不規律振幅（12–33）
+  const ZZ = [
+    [14,82],   // 起點
+    [21,63],   // ↑19 初漲
+    [26,80],   // ↓17 大幅回撤（幾乎打回原點，最戲劇化處）
+    [35,52],   // ↑28 強力反彈
+    [42,67],   // ↓15 拉回
+    [51,40],   // ↑27 強勢上攻
+    [57,57],   // ↓17 顯著修正
+    [67,24],   // ↑33 急速飆升
+    [73,36],   // ↓12 獲利了結
+    [85,15],   // ↑21 最終衝頂
+  ];
+  const zd = ZZ.map((p,i) => `${i?'L':'M'}${p[0]},${p[1]}`).join(' ');
+
+  // 龜殼：3 條對角分隔線（連接對面頂點）
+  const spokes = [[0,3],[1,4],[2,5]].map(([a,b]) => (
+    <line key={`${uid}s${a}`}
+      x1={outer[a][0]} y1={outer[a][1]}
+      x2={outer[b][0]} y2={outer[b][1]}
+      stroke={GM} strokeWidth="1.8" />
+  ));
+
+  return (
+    <svg viewBox="0 0 100 100" width={size} height={size}
+         style={{ display: 'block', overflow: 'visible' }}>
+      <defs>
+        <clipPath id={`cp-${uid}`}>
+          <path d={d(outer)} />
+        </clipPath>
+        <filter id={`glow-${uid}`} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="2.5" result="blur" />
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      {/* 背景填色 */}
+      <path d={d(outer)} fill={G} />
+
+      {/* 龜殼分隔線 */}
+      {spokes}
+
+      {/* 中央六邊形格 */}
+      <path d={d(inner)} fill={GM} stroke="#74C69D" strokeWidth="0.8" />
+
+      {/* 股市波動折線（裁切在六邊形內）*/}
+      <g clipPath={`url(#cp-${uid})`}>
+        {/* 填色底面 */}
+        <path d={zd + ' L 85,95 L 15,95 Z'} fill={AU} opacity="0.07" />
+        {/* 光暈 */}
+        <path d={zd} stroke={AU} strokeWidth="7" fill="none"
+          strokeLinecap="round" strokeLinejoin="round" opacity="0.18" />
+        {/* 主線 */}
+        <path d={zd} stroke={AU} strokeWidth="2.8" fill="none"
+          strokeLinecap="round" strokeLinejoin="round" />
+        {/* 轉折點小點 */}
+        {ZZ.slice(1,-1).map(([x,y],i) => (
+          <circle key={i} cx={x} cy={y} r="1.8" fill={AU} opacity="0.75" />
+        ))}
+        {/* 頂端大點 */}
+        <circle cx="85" cy="16" r="4.5" fill={AU} />
+        {/* 起點小點 */}
+        <circle cx="14" cy="82" r="2.5" fill={AU} opacity="0.65" />
+      </g>
+
+      {/* 外框金邊 */}
+      <path d={d(outer)} fill="none" stroke={AU} strokeWidth="2.6" />
+    </svg>
+  );
+};
+
+/* ── 字體樣式常數 ───────────────────────────── */
+const FF = '-apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang TC", Arial, sans-serif';
+
+/* ── 水平版（左圖右字）──────────────────────── */
+const LogoH = ({ bg = 'transparent' }) => (
+  <div style={{
+    display: 'inline-flex', alignItems: 'center', gap: 18,
+    padding: '20px 28px', background: bg, borderRadius: 14,
+  }}>
+    <Icon size={72} uid="h" />
+    <div>
+      <div style={{ fontFamily: FF, fontWeight: 800, fontSize: 30,
+                    color: bg === '#1a1a2e' ? '#fff' : G,
+                    letterSpacing: '-0.4px', lineHeight: 1 }}>
+        Slow Rich
+      </div>
+      <div style={{ fontFamily: FF, fontWeight: 300, fontSize: 9.5,
+                    color: AU, letterSpacing: '3.8px', marginTop: 8,
+                    textTransform: 'uppercase' }}>
+        Investment &amp; Education
+      </div>
+    </div>
+  </div>
+);
+
+/* ── 垂直版（上圖下字）──────────────────────── */
+const LogoV = ({ bg = 'transparent' }) => (
+  <div style={{
+    display: 'inline-flex', flexDirection: 'column', alignItems: 'center',
+    gap: 14, padding: '28px 40px', background: bg, borderRadius: 14,
+  }}>
+    <Icon size={96} uid="v" />
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ fontFamily: FF, fontWeight: 800, fontSize: 32,
+                    color: bg === '#1a1a2e' ? '#fff' : G,
+                    letterSpacing: '-0.4px', lineHeight: 1 }}>
+        Slow Rich
+      </div>
+      <div style={{ fontFamily: FF, fontWeight: 300, fontSize: 9,
+                    color: AU, letterSpacing: '4.2px', marginTop: 9,
+                    textTransform: 'uppercase' }}>
+        Investment &amp; Education
+      </div>
+    </div>
+  </div>
+);
+
+/* ── 標籤組件 ───────────────────────────────── */
+const Label = ({ children }) => (
+  <p style={{ color: '#888', fontSize: 12, fontWeight: 500,
+              letterSpacing: '0.5px', textTransform: 'uppercase',
+              marginBottom: 10 }}>
+    {children}
+  </p>
+);
+
+/* ── 主頁面 ─────────────────────────────────── */
+function App() {
+  return (
+    <div style={{ maxWidth: 960, margin: '0 auto' }}>
+      {/* 標題 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 40,
+                    borderBottom: `3px solid ${AU}`, paddingBottom: 16 }}>
+        <Icon size={36} uid="title" />
+        <div>
+          <h1 style={{ color: G, fontSize: 20, fontWeight: 700 }}>Slow Rich — Logo Preview</h1>
+          <p style={{ color: '#888', fontSize: 12, marginTop: 2 }}>背景透明版可直接放入投影片角落</p>
+        </div>
+      </div>
+
+      {/* 網格 */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 36 }}>
+
+        {/* 水平白底 */}
+        <div>
+          <Label>水平版 — 白底</Label>
+          <div style={{ background: 'white', borderRadius: 12,
+                        boxShadow: '0 2px 20px rgba(0,0,0,0.08)', display: 'inline-block' }}>
+            <LogoH bg="white" />
+          </div>
+        </div>
+
+        {/* 垂直白底 */}
+        <div>
+          <Label>垂直版 — 白底</Label>
+          <div style={{ background: 'white', borderRadius: 12,
+                        boxShadow: '0 2px 20px rgba(0,0,0,0.08)', display: 'inline-block' }}>
+            <LogoV bg="white" />
+          </div>
+        </div>
+
+        {/* 水平深色 */}
+        <div>
+          <Label>水平版 — 深色背景</Label>
+          <div style={{ borderRadius: 12, overflow: 'hidden', display: 'inline-block' }}>
+            <LogoH bg="#1a1a2e" />
+          </div>
+        </div>
+
+        {/* 垂直深色 */}
+        <div>
+          <Label>垂直版 — 深色背景</Label>
+          <div style={{ borderRadius: 12, overflow: 'hidden', display: 'inline-block' }}>
+            <LogoV bg="#1a1a2e" />
+          </div>
+        </div>
+
+        {/* 透明背景（棋盤格預覽） */}
+        <div>
+          <Label>水平版 — 透明背景（投影片用）</Label>
+          <div style={{
+            background: 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 16px 16px',
+            borderRadius: 12, display: 'inline-block',
+          }}>
+            <LogoH bg="transparent" />
+          </div>
+        </div>
+
+        {/* 垂直透明 */}
+        <div>
+          <Label>垂直版 — 透明背景（投影片用）</Label>
+          <div style={{
+            background: 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 16px 16px',
+            borderRadius: 12, display: 'inline-block',
+          }}>
+            <LogoV bg="transparent" />
+          </div>
+        </div>
+
+        {/* 各尺寸 Icon */}
+        <div style={{ gridColumn: '1 / -1' }}>
+          <Label>Icon 單獨 — 各尺寸（16 / 24 / 32 / 48 / 64 / 96 / 128 px）</Label>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16,
+                        background: 'white', padding: '16px 20px', borderRadius: 12 }}>
+            {[16,24,32,48,64,96,128].map(s => (
+              <div key={s} style={{ textAlign: 'center' }}>
+                <Icon size={s} uid={`sz${s}`} />
+                <div style={{ color: '#aaa', fontSize: 9, marginTop: 4 }}>{s}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+
+      {/* 使用說明 */}
+      <div style={{ marginTop: 40, background: 'white', borderRadius: 12,
+                    padding: '20px 24px', borderLeft: `4px solid ${AU}` }}>
+        <p style={{ color: G, fontWeight: 600, fontSize: 13, marginBottom: 8 }}>放入投影片的方式</p>
+        <ol style={{ color: '#555', fontSize: 12, lineHeight: 2, paddingLeft: 18 }}>
+          <li>在瀏覽器按 <kbd style={{background:'#f0f0f0',padding:'1px 5px',borderRadius:3}}>⌘ + P</kbd>，選「另存為 PDF」可匯出（需搭配截圖工具取得透明 PNG）</li>
+          <li>或直接截圖棋盤格預覽區，再在 Keynote 用「去背」工具移除背景</li>
+          <li>SVG 版本可直接複製 &lt;svg&gt; 原始碼貼入 Keynote 或 Figma</li>
+        </ol>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

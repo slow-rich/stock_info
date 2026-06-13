@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>歷史年度報酬率比較 — 台股 / SPY / VT</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,'PingFang TC',sans-serif; background:#f0f2f5; color:#1a1a2e; }
+
+.nav { background:#1a1a2e; padding:14px 24px; display:flex; align-items:center; gap:12px; }
+.nav-logo { color:#D4AF37; font-size:18px; font-weight:300; letter-spacing:2px; }
+.nav-sub  { color:#6b7280; font-size:12px; }
+
+.container { max-width:1100px; margin:0 auto; padding:24px 16px; }
+
+h1 { font-size:20px; font-weight:600; color:#1a1a2e; margin-bottom:4px; }
+.subtitle { color:#6b7280; font-size:13px; margin-bottom:20px; }
+
+/* 資產 Tabs */
+.tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+.tab {
+  padding:8px 20px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:500;
+  border:1px solid #d1d5db; background:#fff; color:#374151; transition:.15s;
+}
+.tab.active { background:#1a1a2e; color:#D4AF37; border-color:#1a1a2e; }
+.tab:hover:not(.active) { background:#f3f4f6; }
+
+/* 控制列 */
+.controls {
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  margin-bottom:16px; font-size:13px; color:#374151;
+}
+.controls select {
+  padding:5px 10px; border-radius:6px; border:1px solid #d1d5db;
+  background:#fff; font-size:13px; cursor:pointer;
+}
+.controls button {
+  padding:6px 16px; border-radius:6px; border:none;
+  background:#1a1a2e; color:#D4AF37; font-size:13px; cursor:pointer;
+}
+
+/* Legend */
+.legend { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:12px; font-size:12px; color:#555; }
+.legend span { display:flex; align-items:center; gap:5px; }
+.box { width:12px; height:12px; border-radius:2px; display:inline-block; }
+.dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+
+/* Chart */
+.chart-wrap { background:#fff; border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.chart-container { position:relative; height:320px; }
+
+/* Stats Grid */
+.stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
+@media(max-width:700px) { .stats-row { grid-template-columns:1fr; } }
+.stat-group { background:#fff; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.stat-group-title { font-size:12px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; }
+.stat-item { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f3f4f6; font-size:13px; }
+.stat-item:last-child { border:none; }
+.stat-val { font-weight:600; color:#1a1a2e; }
+.stat-val.red { color:#ef4444; }
+.stat-val.green { color:#10b981; }
+
+/* Histogram */
+.hist-wrap { background:#fff; border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.hist-wrap h3 { font-size:14px; margin-bottom:10px; }
+.hist-legend { display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:#555; margin-bottom:10px; }
+.hist-legend span { display:flex; align-items:center; gap:4px; }
+.hist-container { position:relative; height:200px; }
+
+/* 比較表 */
+.compare-wrap { background:#fff; border-radius:12px; padding:20px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.compare-wrap h3 { font-size:14px; font-weight:600; margin-bottom:14px; }
+.compare-table { width:100%; border-collapse:collapse; font-size:13px; }
+.compare-table th { text-align:left; padding:8px 12px; background:#f8fafc; border-bottom:2px solid #e5e7eb; font-weight:600; color:#374151; }
+.compare-table td { padding:8px 12px; border-bottom:1px solid #f3f4f6; }
+.compare-table tr:last-child td { border:none; }
+.best  { color:#ef4444; font-weight:600; }
+.worst { color:#10b981; font-weight:600; }
+
+.proxy-note { font-size:11px; color:#9ca3af; margin-top:8px; }
+.data-note  { font-size:11px; color:#9ca3af; margin-top:4px; }
+
+/* VT 代理說明卡片 */
+.proxy-box {
+  background:#fffbeb; border:1px solid #fde68a; border-radius:10px;
+  padding:14px 18px; margin-bottom:16px; display:none;
+}
+.proxy-box h4 { font-size:13px; font-weight:600; color:#92400e; margin-bottom:8px; }
+.proxy-box p  { font-size:12px; color:#78350f; line-height:1.8; margin-bottom:6px; }
+.proxy-box p:last-child { margin-bottom:0; }
+.proxy-box table { width:100%; border-collapse:collapse; font-size:12px; margin-top:8px; }
+.proxy-box th { background:#fef3c7; padding:5px 10px; text-align:left; color:#92400e; font-weight:600; }
+.proxy-box td { padding:5px 10px; border-bottom:1px solid #fde68a; color:#78350f; }
+.proxy-box td:last-child, .proxy-box th:last-child { text-align:right; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <span class="nav-logo">慢富</span>
+  <span class="nav-sub">歷史表現 — 年度報酬率與極端風險分析</span>
+</div>
+
+<div class="container">
+  <h1>年度報酬率比較（1998–2026）</h1>
+  <p class="subtitle">台股加權指數 TAIEX ／ SPY S&amp;P 500 ／ VT 全球市值型 ETF</p>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="controls">
+    <label>起始年</label>
+    <select id="startYear"></select>
+    <label>結束年</label>
+    <select id="endYear"></select>
+    <button onclick="render()">套用</button>
+  </div>
+
+  <div class="legend">
+    <span><span class="box" style="background:#f87171"></span>年漲（紅）</span>
+    <span><span class="box" style="background:#10b981"></span>年跌（綠）</span>
+    <span><span class="dot" style="background:#f87171"></span>年內最高漲幅</span>
+    <span><span class="dot" style="background:#10b981"></span>年內最大跌幅</span>
+  </div>
+
+  <div class="proxy-box" id="proxyBox">
+    <h4>VT 2008 年以前的資料是怎麼來的？</h4>
+    <p>
+      VT（Vanguard Total World Stock ETF）於 <strong>2008 年 6 月</strong> 才正式上市，
+      因此 1998–2007 年沒有真實的 VT 交易資料。
+    </p>
+    <p>
+      本頁用兩支 <strong>Vanguard 共同基金</strong>（更早成立、有完整歷史）按 VT 的實際成分比例，合成一個代理序列：
+    </p>
+    <table>
+      <tr><th>基金</th><th>代表範圍</th><th>比重</th></tr>
+      <tr><td>VTSMX（Vanguard 美國全市場指數基金）</td><td>美國全市場股票</td><td>58%</td></tr>
+      <tr><td>VGTSX（Vanguard 國際股票指數基金）</td><td>美國以外全球股票（含新興市場）</td><td>42%</td></tr>
+    </table>
+    <p style="margin-top:10px">
+      代理序列在 <strong>2008 年開盤價</strong>（49.92 USD）做了等比例縮放，讓新舊資料能平滑接軌。<br>
+      驗證：代理序列與 2008 後的真實 VT 月報酬率相關係數為 <strong>0.990</strong>，誤差極小（平均月誤差 0.03%）。
+    </p>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-container"><canvas id="mainChart"></canvas></div>
+  </div>
+
+  <div class="stats-row" id="statsRow"></div>
+
+  <div class="hist-wrap">
+    <h3>年度報酬率分布</h3>
+    <div class="hist-legend">
+      <span><span class="box" style="background:#10b981"></span>大跌（&lt; −8%）</span>
+      <span><span class="box" style="background:#d1d5db"></span>中間地帶（−8% ～ +16%）</span>
+      <span><span class="box" style="background:#fbbf24"></span>人們期待的平均（8% ～ 12%）</span>
+      <span><span class="box" style="background:#f87171"></span>大漲（≥ +16%）</span>
+    </div>
+    <div class="hist-container"><canvas id="histChart"></canvas></div>
+  </div>
+
+  <div class="compare-wrap">
+    <h3>三資產統計比較（<span id="compareRangeLabel">—</span>）</h3>
+    <table class="compare-table" id="compareTable"></table>
+    <p class="proxy-note">✱ CAGR（含息估算）假設每年固定殖利率再投入：台股 3.5%、SPY 1.7%、VT 2.0%（歷史平均估計值，非精確數字）</p>
+    <p class="proxy-note">VT 1998–2007 為 VTSMX 58% + VGTSX 42% 代理，與 2008 後實際 VT 相關係數 0.990</p>
+  </div>
+
+  <p class="data-note">資料來源：台股加權指數（TAIEX）、Yahoo Finance SPY／VT；年度報酬率以年度開盤與收盤計算，不含息</p>
+</div>
+
+<script>
+// ── 資料 ──────────────────────────────────────────────────────────
+const DATA_TWII = {
+  label: '台股加權指數', unit: '點', isCurrency: false, divYield: 3.5,
+  data: [
+    { y:1987,o:1063.13,c:2339.86,h:4796.72,l:1063.13 },
+    { y:1988,o:2339.86,c:5119.10,h:8813.75,l:2306.64 },
+    { y:1989,o:5119.10,c:9624.18,h:10843.96,l:4645.97 },
+    { y:1990,o:9624.18,c:4530.16,h:12682.41,l:2485.25 },
+    { y:1991,o:4465.26,c:4600.67,h:6365.61,l:3142.59 },
+    { y:1992,o:4640.51,c:3377.06,h:5459.08,l:3305.82 },
+    { y:1993,o:3408.10,c:6070.56,h:6120.19,l:3098.33 },
+    { y:1994,o:6120.10,c:7124.66,h:7228.33,l:5125.64 },
+    { y:1995,o:7129.94,c:5173.72,h:7144.70,l:4474.32 },
+    { y:1996,o:5200.72,c:6933.94,h:7084.25,l:4672.67 },
+    { y:1997,o:6806.30,c:8187.27,h:10256.10,l:6789.34 },
+    { y:1998,o:8200.78,c:6418.43,h:9378.52,l:6219.89 },
+    { y:1999,o:6310.41,c:8448.84,h:8710.71,l:5422.66 },
+    { y:2000,o:8644.91,c:4739.09,h:10393.50,l:4555.91 },
+    { y:2001,o:4717.49,c:5551.24,h:6198.22,l:3411.68 },
+    { y:2002,o:5575.34,c:4452.45,h:6484.93,l:3845.76 },
+    { y:2003,o:4460.57,c:5890.69,h:6182.20,l:4044.73 },
+    { y:2004,o:5907.15,c:6139.69,h:7135.00,l:5255.06 },
+    { y:2005,o:6166.39,c:6548.34,h:6600.17,l:5565.41 },
+    { y:2006,o:6457.61,c:7823.72,h:7823.72,l:6232.49 },
+    { y:2007,o:7871.41,c:8506.28,h:9859.65,l:7306.07 },
+    { y:2008,o:8491.57,c:4591.22,h:9309.95,l:3955.43 },
+    { y:2009,o:4725.26,c:8188.11,h:8188.80,l:4164.19 },
+    { y:2010,o:8222.42,c:8972.50,h:8990.38,l:7032.40 },
+    { y:2011,o:9039.63,c:7072.08,h:9220.69,l:6609.11 },
+    { y:2012,o:7071.35,c:7699.50,h:8170.72,l:6857.35 },
+    { y:2013,o:7738.05,c:8611.51,h:8647.24,l:7603.27 },
+    { y:2014,o:8618.60,c:9307.26,h:9593.68,l:8230.46 },
+    { y:2015,o:9292.31,c:8338.06,h:10014.28,l:7203.07 },
+    { y:2016,o:8315.79,c:9253.50,h:9430.34,l:7627.89 },
+    { y:2017,o:9252.56,c:10642.86,h:10882.65,l:9235.95 },
+    { y:2018,o:10664.82,c:9727.41,h:11270.18,l:9400.69 },
+    { y:2019,o:9725.27,c:11997.14,h:12125.90,l:9319.28 },
+    { y:2020,o:12026.50,c:14732.53,h:14760.06,l:8523.63 },
+    { y:2021,o:14720.25,c:18218.84,h:18291.25,l:14720.25 },
+    { y:2022,o:18260.23,c:14137.69,h:18619.61,l:12629.48 },
+    { y:2023,o:14108.16,c:17930.81,h:17945.70,l:14001.97 },
+    { y:2024,o:17939.79,c:23035.10,h:24416.67,l:17151.58 },
+    { y:2025,o:22975.71,c:28963.60,h:28963.60,l:17306.97 },
+    { y:2026,o:29016.68,c:41523.04,h:42408.66,l:10590.95 },
+  ]
+};
+
+const DATA_SPY = {
+  label: 'SPY — S&P 500', unit: 'USD', isCurrency: true, divYield: 1.7,
+  data: [
+    { y:1993,o:43.94,c:46.59,h:47.06,l:43.41 },
+    { y:1994,o:46.63,c:45.56,h:48.30,l:43.69 },
+    { y:1995,o:45.75,c:61.41,h:62.63,l:45.56 },
+    { y:1996,o:61.34,c:74.22,h:75.84,l:59.56 },
+    { y:1997,o:74.16,c:97.06,h:99.44,l:73.13 },
+    { y:1998,o:97.50,c:123.31,h:124.53,l:92.41 },
+    { y:1999,o:123.38,c:146.88,h:148.25,l:120.31 },
+    { y:2000,o:146.88,c:131.19,h:153.00,l:125.50 },
+    { y:2001,o:132.00,c:114.30,h:138.30,l:94.45 },
+    { y:2002,o:115.11,c:88.08,h:117.80,l:77.58 },
+    { y:2003,o:89.10,c:111.20,h:111.45,l:79.95 },
+    { y:2004,o:111.75,c:120.87,h:121.75,l:106.10 },
+    { y:2005,o:121.56,c:124.51,h:127.48,l:113.50 },
+    { y:2006,o:125.19,c:141.62,h:143.25,l:122.34 },
+    { y:2007,o:142.15,c:146.21,h:157.52,l:136.67 },
+    { y:2008,o:146.53,c:90.24,h:147.40,l:74.34 },
+    { y:2009,o:90.44,c:111.44,h:113.38,l:67.10 },
+    { y:2010,o:112.37,c:125.75,h:126.48,l:101.13 },
+    { y:2011,o:126.71,c:125.50,h:137.18,l:107.43 },
+    { y:2012,o:127.76,c:142.41,h:147.50,l:126.70 },
+    { y:2013,o:146.12,c:184.69,h:184.85,l:145.22 },
+    { y:2014,o:183.65,c:205.54,h:209.28,l:173.71 },
+    { y:2015,o:205.15,c:203.87,h:213.78,l:182.40 },
+    { y:2016,o:200.49,c:223.53,h:228.34,l:181.02 },
+    { y:2017,o:225.04,c:266.86,h:268.60,l:223.88 },
+    { y:2018,o:267.84,c:249.92,h:293.94,l:233.76 },
+    { y:2019,o:246.18,c:321.86,h:323.41,l:244.15 },
+    { y:2020,o:323.12,c:373.88,h:374.66,l:218.26 },
+    { y:2021,o:375.31,c:474.96,h:478.49,l:368.27 },
+    { y:2022,o:476.30,c:382.43,h:479.98,l:348.11 },
+    { y:2023,o:382.58,c:475.31,h:477.55,l:378.83 },
+    { y:2024,o:472.16,c:604.21,h:606.50,l:468.20 },
+    { y:2025,o:474.34,c:681.92,h:684.28,l:471.70 },
+    { y:2026,o:683.84,c:738.85,h:749.53,l:629.28 },
+  ]
+};
+
+const DATA_VT = {
+  label: 'VT — 全球市值型 ETF', unit: 'USD', isCurrency: true, divYield: 2.0,
+  note: '1998–2007：VTSMX 58% + VGTSX 42% 代理',
+  data: [
+    // 1998-2007 proxy (VTSMX 58% + VGTSX 42%，scale 對齊 2008 open)
+    { y:1998,o:28.96,c:34.28,h:34.56,l:26.95 },
+    { y:1999,o:34.28,c:42.32,h:42.32,l:33.51 },
+    { y:2000,o:42.32,c:36.46,h:44.16,l:35.12 },
+    { y:2001,o:36.46,c:30.90,h:37.66,l:26.07 },
+    { y:2002,o:30.90,c:24.60,h:31.73,l:21.91 },
+    { y:2003,o:24.60,c:32.53,h:32.53,l:22.21 },
+    { y:2004,o:32.53,c:36.86,h:37.08,l:31.44 },
+    { y:2005,o:36.86,c:39.63,h:40.46,l:35.00 },
+    { y:2006,o:39.63,c:46.55,h:47.18,l:39.24 },
+    { y:2007,o:46.55,c:49.92,h:53.73,l:45.29 },
+    // 2008+ 實際 VT
+    { y:2008,o:49.92,c:32.98,h:51.72,l:26.60 },
+    { y:2009,o:32.98,c:43.09,h:47.43,l:24.36 },
+    { y:2010,o:43.73,c:47.80,h:48.36,l:37.93 },
+    { y:2011,o:48.20,c:43.18,h:52.35,l:38.67 },
+    { y:2012,o:44.01,c:49.42,h:50.34,l:42.19 },
+    { y:2013,o:50.22,c:59.40,h:59.44,l:49.75 },
+    { y:2014,o:59.00,c:60.12,h:63.35,l:55.53 },
+    { y:2015,o:60.16,c:57.62,h:64.59,l:53.10 },
+    { y:2016,o:56.59,c:61.00,h:62.61,l:50.34 },
+    { y:2017,o:61.45,c:74.26,h:74.70,l:61.24 },
+    { y:2018,o:74.55,c:65.46,h:79.74,l:62.14 },
+    { y:2019,o:64.52,c:80.99,h:81.41,l:64.20 },
+    { y:2020,o:81.43,c:92.58,h:92.90,l:53.70 },
+    { y:2021,o:93.44,c:107.43,h:109.39,l:91.28 },
+    { y:2022,o:107.91,c:86.19,h:108.58,l:76.80 },
+    { y:2023,o:86.88,c:102.88,h:103.40,l:85.71 },
+    { y:2024,o:102.09,c:117.48,h:123.64,l:100.14 },
+    { y:2025,o:117.98,c:141.22,h:142.66,l:100.89 },
+    { y:2026,o:145.45,c:154.21,h:156.42,l:133.65 },
+  ]
+};
+
+const ASSETS = [
+  { key:'twii', ds: DATA_TWII, color:'#3b82f6' },
+  { key:'spy',  ds: DATA_SPY,  color:'#8b5cf6' },
+  { key:'vt',   ds: DATA_VT,   color:'#D4AF37' },
+];
+
+let currentAsset = 'twii';
+let mainChart = null, histChartInst = null;
+
+// ── Tabs ──────────────────────────────────────────────────────────
+const tabsEl = document.getElementById('tabs');
+ASSETS.forEach(a => {
+  const btn = document.createElement('button');
+  btn.className = 'tab' + (a.key === currentAsset ? ' active' : '');
+  btn.textContent = a.ds.label;
+  btn.onclick = () => {
+    currentAsset = a.key;
+    tabsEl.querySelectorAll('.tab').forEach((b,i) => b.classList.toggle('active', ASSETS[i].key === a.key));
+    document.getElementById('proxyBox').style.display = a.key === 'vt' ? 'block' : 'none';
+    rebuildYearSelects();
+    render();
+  };
+  tabsEl.appendChild(btn);
+});
+
+// ── Year selects ──────────────────────────────────────────────────
+function rebuildYearSelects() {
+  const ds = ASSETS.find(a => a.key === currentAsset).ds;
+  const years = ds.data.map(d => d.y);
+  const sy = document.getElementById('startYear');
+  const ey = document.getElementById('endYear');
+  sy.innerHTML = ey.innerHTML = '';
+  years.forEach(y => {
+    sy.innerHTML += `<option value="${y}"${y === 1998 ? ' selected' : ''}>${y}</option>`;
+    ey.innerHTML += `<option value="${y}"${y === years[years.length-1] ? ' selected' : ''}>${y}</option>`;
+  });
+}
+
+// ── 主繪製函式 ────────────────────────────────────────────────────
+function render() {
+  const s  = parseInt(document.getElementById('startYear').value);
+  const e  = parseInt(document.getElementById('endYear').value);
+  const a  = ASSETS.find(x => x.key === currentAsset);
+  const ds = a.ds;
+
+  const rows = ds.data
+    .filter(d => d.y >= s && d.y <= e)
+    .map(d => ({
+      year:    d.y,
+      ret:     +((d.c / d.o - 1) * 100).toFixed(2),
+      maxUp:   +((d.h / d.o - 1) * 100).toFixed(2),
+      maxDown: +((d.l / d.o - 1) * 100).toFixed(2),
+      open: d.o, close: d.c, high: d.h, low: d.l,
+    }));
+
+  drawMainChart(rows, a.color, ds);
+  drawStats(rows, s, e);
+  drawHistogram(rows);
+  drawCompare(s, e);
+}
+
+function drawMainChart(rows, color, ds) {
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  if (mainChart) mainChart.destroy();
+
+  const fmt = (v, isCur) => isCur ? v.toFixed(2) : Math.round(v).toLocaleString();
+
+  mainChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: rows.map(r => r.year),
+      datasets: [
+        {
+          type: 'bar', label: '年度報酬率',
+          data: rows.map(r => r.ret),
+          backgroundColor: rows.map(r => r.ret >= 0 ? '#f87171' : '#10b981'),
+          order: 2,
+        },
+        {
+          type: 'scatter', label: '年內最高漲幅',
+          data: rows.map((r,i) => ({ x: i, y: r.maxUp })),
+          backgroundColor: '#f87171', pointRadius: 5, order: 1,
+        },
+        {
+          type: 'scatter', label: '年內最大跌幅',
+          data: rows.map((r,i) => ({ x: i, y: r.maxDown })),
+          backgroundColor: '#10b981', pointRadius: 5, order: 1,
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(255,255,255,0.97)',
+          borderColor: '#ccc', borderWidth: 1,
+          titleColor: '#111', bodyColor: '#333', padding: 14,
+          callbacks: {
+            title: items => `${rows[items[0].dataIndex].year} 年`,
+            beforeBody: items => {
+              const r = rows[items[0].dataIndex];
+              return [
+                `開盤：${fmt(r.open, ds.isCurrency)} ${ds.unit}`,
+                `收盤：${fmt(r.close, ds.isCurrency)} ${ds.unit}`,
+                `最高：${fmt(r.high, ds.isCurrency)} ${ds.unit}`,
+                `最低：${fmt(r.low, ds.isCurrency)} ${ds.unit}`,
+                '─────────────────────',
+              ];
+            },
+            label: item => {
+              const v = item.parsed.y;
+              return `${item.dataset.label}：${v > 0 ? '+' : ''}${v.toFixed(2)}%`;
+            },
+            labelColor: item => ({
+              borderColor: 'transparent',
+              backgroundColor:
+                item.datasetIndex === 1 ? '#f87171' :
+                item.datasetIndex === 2 ? '#10b981' :
+                item.parsed.y >= 0 ? '#f87171' : '#10b981'
+            })
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { autoSkip: true, maxRotation: 45, font:{ size:11 } }, grid:{ display:false } },
+        y: { ticks: { callback: v => v + '%', font:{ size:11 } }, grid:{ color:'rgba(0,0,0,0.07)' } }
+      }
+    }
+  });
+}
+
+function drawStats(rows, s, e) {
+  const n   = rows.length;
+  const dur = e - s;
+  const pct = k => dur > 0 ? (k / dur * 100).toFixed(0) : 0;
+
+  const avgRet   = (rows.reduce((a,r) => a+r.ret, 0) / n).toFixed(1);
+  const posYears = rows.filter(r => r.ret > 0).length;
+  const best     = rows.reduce((a,b) => b.ret > a.ret ? b : a);
+  const worst    = rows.reduce((a,b) => b.ret < a.ret ? b : a);
+
+  const r5  = rows.filter(r => r.ret    <= -5 ).length;
+  const r10 = rows.filter(r => r.ret    <= -10).length;
+  const r20 = rows.filter(r => r.ret    <= -20).length;
+  const c10 = rows.filter(r => r.maxDown <= -10).length;
+  const c20 = rows.filter(r => r.maxDown <= -20).length;
+  const c30 = rows.filter(r => r.maxDown <= -30).length;
+
+  // CAGR
+  const cagr = rows.length > 1
+    ? (((rows[rows.length-1].close / rows[0].open) ** (1 / n) - 1) * 100).toFixed(1)
+    : rows[0].ret.toFixed(1);
+
+  const groups = [
+    {
+      title: '報酬概況',
+      items: [
+        { l: '總年數',       v: n + ' 年' },
+        { l: '算術平均年報酬', v: (avgRet > 0 ? '+' : '') + avgRet + '%', cls: avgRet >= 0 ? 'red' : 'green' },
+        { l: 'CAGR（不含息）', v: (cagr >= 0 ? '+' : '') + cagr + '%', cls: cagr >= 0 ? 'red' : 'green' },
+        { l: '上漲年數',      v: `${posYears} / ${n}（${(posYears/n*100).toFixed(0)}%）` },
+        { l: '最佳年份',      v: `${best.year}（+${best.ret.toFixed(1)}%）`, cls: 'red' },
+        { l: '最差年份',      v: `${worst.year}（${worst.ret.toFixed(1)}%）`, cls: 'green' },
+      ]
+    },
+    {
+      title: '年度跌幅（全年收盤 vs 開盤）',
+      items: [
+        { l: '> 5%',  v: `${r5} 年（${pct(r5)}%）` },
+        { l: '> 10%', v: `${r10} 年（${pct(r10)}%）` },
+        { l: '> 20%', v: `${r20} 年（${pct(r20)}%）` },
+      ]
+    },
+    {
+      title: '年中最大跌幅（低點 vs 開盤）',
+      items: [
+        { l: '> 10%', v: `${c10} 年（${pct(c10)}%）` },
+        { l: '> 20%', v: `${c20} 年（${pct(c20)}%）` },
+        { l: '> 30%', v: `${c30} 年（${pct(c30)}%）` },
+      ]
+    },
+  ];
+
+  document.getElementById('statsRow').innerHTML = groups.map(g => `
+    <div class="stat-group">
+      <div class="stat-group-title">${g.title}</div>
+      ${g.items.map(item => `
+        <div class="stat-item">
+          <span>${item.l}</span>
+          <span class="stat-val ${item.cls||''}">${item.v}</span>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function drawHistogram(rows) {
+  const bins = [-Infinity,-32,-28,-24,-20,-16,-12,-8,-4,0,4,8,12,16,20,24,28,32,Infinity];
+  const counts = new Array(bins.length-1).fill(0);
+  rows.forEach(r => {
+    for (let i = 0; i < bins.length-1; i++) {
+      if (r.ret >= bins[i] && r.ret < bins[i+1]) { counts[i]++; break; }
+    }
+  });
+  const total = rows.length;
+  const pcts  = counts.map(c => total > 0 ? (c/total*100).toFixed(1) : '0.0');
+  const labels = counts.map((_,i) => {
+    if (i === 0) return '< −32%';
+    if (i === counts.length-1) return '≥ 32%';
+    return `${bins[i]}~${bins[i+1]}%`;
+  });
+  const colors = counts.map((_,i) => {
+    if (bins[i] < -8)  return '#10b981';
+    if (i === 11)      return '#fbbf24';
+    if (bins[i] >= 16) return '#f87171';
+    return '#d1d5db';
+  });
+
+  const pctPlugin = {
+    id: 'pctLabel',
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      const meta = chart.getDatasetMeta(0);
+      ctx.textAlign = 'center'; ctx.font = 'bold 11px sans-serif'; ctx.fillStyle = '#333';
+      meta.data.forEach((dp, i) => {
+        if (counts[i] === 0) return;
+        const { x, y } = dp.getProps(['x','y'], true);
+        ctx.fillText(pcts[i] + '%', x, y - 5);
+      });
+    }
+  };
+
+  const ctx = document.getElementById('histChart').getContext('2d');
+  if (histChartInst) histChartInst.destroy();
+  histChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data: counts, backgroundColor: colors, borderColor: colors, borderWidth:1 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: item => `${item.parsed.y} 次（${pcts[item.dataIndex]}%）` } }
+      },
+      scales: {
+        x: { ticks: { font:{size:9}, maxRotation:45, minRotation:45 }, grid:{ display:false } },
+        y: { max: Math.max(...counts)+1, ticks:{ stepSize:1, font:{size:11} }, grid:{ color:'rgba(0,0,0,0.07)' } }
+      }
+    },
+    plugins: [pctPlugin]
+  });
+}
+
+function drawCompare(s, e) {
+  document.getElementById('compareRangeLabel').textContent = `${s} – ${e} 年`;
+
+  function calcStats(ds) {
+    const rows = ds.data
+      .filter(d => d.y >= s && d.y <= e)
+      .map(d => ({ ret: +((d.c/d.o-1)*100).toFixed(2), maxDown: +((d.l/d.o-1)*100).toFixed(2) }));
+    if (!rows.length) return null;
+    const avg  = (rows.reduce((a,r) => a+r.ret, 0) / rows.length).toFixed(1);
+    const cagr = (((ds.data.find(d=>d.y===e)?.c || 1) / (ds.data.find(d=>d.y===s)?.o || 1)) ** (1/rows.length) - 1) * 100;
+    // CAGR 含息：每年報酬率加上殖利率後取幾何平均
+    const dy = ds.divYield || 0;
+    const cagrDiv = (rows.reduce((prod, r) => prod * (1 + (r.ret + dy) / 100), 1) ** (1 / rows.length) - 1) * 100;
+    const std  = Math.sqrt(rows.reduce((a,r) => a+(r.ret-parseFloat(avg))**2, 0) / (rows.length-1)).toFixed(1);
+    const best  = rows.reduce((a,b) => b.ret > a.ret ? b : a);
+    const worst = rows.reduce((a,b) => b.ret < a.ret ? b : a);
+    const pos   = rows.filter(r => r.ret > 0).length;
+    const c20   = rows.filter(r => r.maxDown <= -20).length;
+    return { avg, cagr: cagr.toFixed(1), cagrDiv: cagrDiv.toFixed(1), std, best: best.ret.toFixed(1), worst: worst.ret.toFixed(1), pos, total: rows.length, c20 };
+  }
+
+  const stats = ASSETS.map(a => ({ label: a.ds.label, color: a.color, s: calcStats(a.ds) }));
+
+  const rows_def = [
+    { label: '算術平均年報酬', fn: s => (s.avg >= 0 ? '+' : '') + s.avg + '%', best: true },
+    { label: 'CAGR（不含息）', fn: s => (s.cagr >= 0 ? '+' : '') + s.cagr + '%', best: true },
+    { label: 'CAGR（含息估算）✱', fn: s => (s.cagrDiv >= 0 ? '+' : '') + s.cagrDiv + '%', best: true },
+    { label: '年化標準差（波動）', fn: s => s.std + '%', best: false },
+    { label: '最佳年份報酬', fn: s => '+' + s.best + '%', best: true },
+    { label: '最差年份報酬', fn: s => s.worst + '%', best: false },
+    { label: '上漲年數', fn: s => s.pos + ' / ' + s.total + '（' + (s.pos/s.total*100).toFixed(0) + '%）', best: true },
+    { label: '年中跌幅 > 20% 次數', fn: s => s.c20 + ' 年', best: false },
+  ];
+
+  document.getElementById('compareTable').innerHTML = `
+    <thead>
+      <tr>
+        <th>指標</th>
+        ${stats.map(a => `<th style="color:${a.color}">${a.label}</th>`).join('')}
+      </tr>
+    </thead>
+    <tbody>
+      ${rows_def.map(row => {
+        const vals = stats.map(a => a.s ? parseFloat(row.fn(a.s)) : null);
+        const bestVal = row.best ? Math.max(...vals.filter(v=>v!==null)) : Math.min(...vals.filter(v=>v!==null));
+        return `<tr>
+          <td>${row.label}</td>
+          ${stats.map((a,i) => {
+            if (!a.s) return '<td>—</td>';
+            const v = vals[i];
+            const isBest = v === bestVal;
+            return `<td class="${isBest ? (row.best ? 'best' : 'worst') : ''}">${row.fn(a.s)}</td>`;
+          }).join('')}
+        </tr>`;
+      }).join('')}
+    </tbody>
+  `;
+}
+
+// ── 初始化 ────────────────────────────────────────────────────────
+rebuildYearSelects();
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台股正2（00631L）vs 0050，定期定額買槓桿 ETF 真的賺比較多嗎？</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100;200;300;400&family=Noto+Serif+TC:wght@200;300;400&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="../../../stock_0050_VT_SPY/data_631L_taiex.js"></script>
+<script src="../../../stock_0050_VT_SPY/data_631L_sim.js"></script>
+<style>
+  :root {
+    --blue:   #1B3A6B;
+    --green:  #2E5FA3;
+    --red:    #dc2626;
+    --gray:   #6b7280;
+    --light:  #f0f4fa;
+    --accent: #D4AF37;
+  }
+  .reveal { font-family: -apple-system, "PingFang TC", sans-serif; }
+  .reveal h1 { font-size: 2rem; color: var(--blue); font-weight: 800; }
+  .reveal h2 { font-size: 1.5rem; color: var(--blue); font-weight: 700; border-bottom: 3px solid var(--accent); padding-bottom: 8px; margin-bottom: 20px; }
+  .reveal h3 { font-size: 1.1rem; color: var(--gray); font-weight: 600; }
+  .reveal p, .reveal li { font-size: 0.85rem; line-height: 1.7; }
+  .reveal .slides section { text-align: left; }
+
+  /* 封面 */
+  .cover { text-align: center !important; }
+  .cover h1 { font-size: 2.4rem; margin-bottom: 12px; }
+
+  /* 數字強調 */
+  .big-num { font-size: 2.8rem; font-weight: 800; color: var(--accent); }
+  .big-num.green { color: var(--green); }
+  .big-num.red   { color: var(--red); }
+
+  /* 兩欄佈局 */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* 卡片 */
+  .card { background: var(--light); border-radius: 10px; padding: 16px 20px; border-left: 4px solid var(--accent); }
+  .card.green { border-left-color: var(--green); }
+  .card.red   { border-left-color: var(--red); }
+  .card .label { font-size: 0.7rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
+  .card .value { font-size: 1.4rem; font-weight: 700; color: var(--blue); margin: 4px 0; }
+
+  /* 圖表容器 */
+  .chart-wrap { position: relative; height: 280px; }
+  .chart-wrap.tall { height: 320px; }
+
+  /* 提示框 */
+  .note { background: #fefce8; border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.78rem; color: #713f12; margin-top: 12px; }
+  .note.blue { background: #eff6ff; border-left-color: var(--green); color: #1e3a5f; }
+  .note.red  { background: #fef2f2; border-left-color: var(--red); color: #7f1d1d; }
+
+  /* 重點框 */
+  .highlight-box { text-align: center; background: linear-gradient(135deg, #1B3A6B, #2E5FA3); color: #fff; border-radius: 12px; padding: 20px; }
+  .highlight-box p { color: #bfdbfe; font-size: 0.85rem; }
+
+  /* 頂部品牌橫條 */
+  .slide-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 46px; z-index: 200; pointer-events: none;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px;
+    background: rgba(255,255,255,0.96);
+    border-bottom: 2px solid #D4AF37;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: opacity 0.3s;
+  }
+
+  /* 非封面投影片預留 header 空間 */
+  .reveal .slides section:not(.cover-slide) {
+    padding-top: 52px !important;
+  }
+
+  /* 底部舊 Logo 隱藏 */
+  .slide-logo { display: none; }
+
+  /* 數學框 */
+  .math-box {
+    background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 10px;
+    padding: 16px 20px; margin: 14px 0; font-size: 0.88rem; line-height: 2.2;
+  }
+
+  /* 時間軸 */
+  .timeline { position: relative; padding-left: 28px; margin: 12px 0; }
+  .timeline::before { content:''; position:absolute; left:8px; top:6px; bottom:6px; width:2px; background:#e5e7eb; }
+  .tl-item { position:relative; margin-bottom:16px; }
+  .tl-dot { position:absolute; left:-24px; top:5px; width:11px; height:11px; border-radius:50%;
+    background:var(--red); box-shadow: 0 0 0 2px var(--red), 0 0 0 4px rgba(220,38,38,0.15); }
+  .tl-dot.gold { background:var(--accent); box-shadow: 0 0 0 2px var(--accent), 0 0 0 4px rgba(212,175,55,0.2); }
+  .tl-year { font-size:0.7rem; font-weight:700; color:var(--red); letter-spacing:0.05em; margin-bottom:2px; }
+  .tl-year.gold { color:var(--accent); }
+  .tl-desc { font-size:0.8rem; color:#374151; line-height:1.55; }
+
+  /* 表格 */
+  .tbl { width:100%; border-collapse:collapse; font-size:0.78rem; margin:8px 0; }
+  .tbl th { background:var(--blue); color:#fff; padding:7px 12px; text-align:left; font-weight:600; font-size:0.72rem; }
+  .tbl td { padding:6px 12px; border-bottom:1px solid #f0f0f0; }
+  .tbl tr:nth-child(even) td { background:#f8fafc; }
+  .tbl .red  { color:var(--red);  font-weight:700; }
+  .tbl .gold { color:var(--accent); font-weight:700; }
+  .tbl .grn  { color:#16a34a; font-weight:700; }
+</style>
+</head>
+<body>
+
+<!-- 頂部品牌橫條（封面時隱藏）-->
+<div class="slide-header">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <svg viewBox="0 0 100 100" width="36" height="36" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-hdr"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-hdr)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="3.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:18px;color:#1B3A6B;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:7.5px;color:#888;letter-spacing:2.2px;text-transform:uppercase;margin-top:3px;">Slow Rich</div>
+    </div>
+  </div>
+  <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:12px;color:#6b7280;">
+    <span style="color:#D4AF37;font-weight:800;margin-right:6px;">EP.14</span>正2（00631L）vs 0050
+  </div>
+</div>
+
+<div class="reveal">
+<div class="slides">
+
+<!-- ── 0. 封面 ──────────────────────────────────────── -->
+<section class="cover-slide" data-background-gradient="linear-gradient(150deg, #080f1f 0%, #0d1b35 55%, #080f1f 100%)" style="padding:40px 56px;text-align:left !important;position:relative;">
+  <svg style="position:absolute;inset:0;width:100%;height:100%;overflow:hidden;" viewBox="0 0 1100 650" preserveAspectRatio="none">
+    <defs>
+      <filter id="peak-glow" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g transform="translate(-73,18)">
+      <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160 L1055,650 L680,650 Z" fill="#D4AF37" opacity="0.05"/>
+      <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160" stroke="#D4AF37" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.05"/>
+      <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160" stroke="#D4AF37" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
+      <circle cx="1055" cy="160" r="24" fill="#D4AF37" opacity="0.12" filter="url(#peak-glow)"/>
+      <circle cx="1055" cy="160" r="10" fill="#D4AF37" opacity="0.55"/>
+      <circle cx="1055" cy="160" r="5" fill="#D4AF37" opacity="0.95"/>
+    </g>
+  </svg>
+  <div style="position:absolute;top:-80px;right:-80px;width:420px;height:420px;background:radial-gradient(circle,rgba(212,175,55,0.10) 0%,transparent 60%);pointer-events:none;"></div>
+  <!-- 右上角品牌 Logo -->
+  <div style="position:absolute;top:9px;right:123px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.35);border-radius:14px;padding:10px 18px 10px 12px;">
+    <svg viewBox="0 0 100 100" width="80" height="80" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-cover-14"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-cover-14)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="21" cy="63" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="26" cy="80" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="35" cy="52" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="42" cy="67" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="51" cy="40" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="57" cy="57" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="67" cy="24" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="73" cy="36" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="14" cy="82" r="2.5" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="4.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:26px;color:#D4AF37;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:400;font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">Slow Rich</div>
+    </div>
+  </div>
+  <!-- EP badge -->
+  <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.45);border-radius:20px;padding:5px 16px;margin-bottom:30px;">
+    <span style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:11px;color:#D4AF37;font-weight:800;letter-spacing:1.5px;">EP.14</span>
+    <span style="width:1px;height:10px;background:rgba(212,175,55,0.4);display:inline-block;"></span>
+    <span style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:11px;color:#aaa;letter-spacing:0.5px;">槓桿 ETF 分析</span>
+  </div>
+  <!-- 主標題 -->
+  <div style="margin-bottom:14px;line-height:1.05;">
+    <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:3.5rem;font-weight:900;color:#fff;margin-bottom:4px;">台股<span style="color:#D4AF37;">正2</span>（00631L）</div>
+    <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:2.8rem;font-weight:900;color:#ff5555;text-shadow:0 0 36px rgba(255,85,85,0.45);">真的賺比較多嗎？</div>
+  </div>
+  <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:1rem;font-weight:300;color:#D4AF37;letter-spacing:3px;margin-bottom:20px;opacity:0.85;">定期定額買槓桿 ETF——你不知道的真相</div>
+  <!-- Cover 數字卡 -->
+  <div style="display:flex;align-items:stretch;gap:12px;max-width:720px;transform:scale(0.9);transform-origin:left top;">
+    <div style="background:rgba(212,175,55,0.13);border:1px solid rgba(212,175,55,0.45);border-radius:12px;padding:12px 18px;flex:1;">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:0.72rem;color:#aaa;margin-bottom:5px;">2019 單邊多頭</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:2.4rem;font-weight:900;color:#D4AF37;line-height:1;">+69%</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:0.72rem;color:#666;margin-top:4px;">大盤 +23% · 正2 超越 3.0×</div>
+    </div>
+    <div style="background:rgba(255,85,85,0.08);border:1px solid rgba(255,85,85,0.35);border-radius:12px;padding:12px 18px;flex:1;">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:0.72rem;color:#aaa;margin-bottom:5px;">失落年代 · 含息也輸</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:2.4rem;font-weight:900;color:#ff5555;line-height:1;">23 年</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:0.72rem;color:#666;margin-top:4px;">1997–2019 正2 持續落後大盤</div>
+    </div>
+    <div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.35);border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:110px;">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:0.7rem;color:#aaa;margin-bottom:4px;">撐到大多頭後</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:2.2rem;font-weight:900;color:#D4AF37;line-height:1;">4.88×</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:0.65rem;color:#666;margin-top:4px;">大盤 3.39×</div>
+    </div>
+  </div>
+  <p style="position:absolute;bottom:14px;left:56px;color:#2e4a6b;font-size:0.68rem;font-family:-apple-system,sans-serif;">按 → 翻頁 &nbsp;|&nbsp; F 全螢幕 &nbsp;|&nbsp; ESC 總覽</p>
+</section>
+
+<!-- ── 1. 正2 是什麼 ─────────────────────────────────── -->
+<section>
+  <h2>正2（00631L）是什麼？</h2>
+  <div class="three-col" style="margin-bottom:16px;">
+    <div class="card green">
+      <div class="label">追蹤目標</div>
+      <div class="value" style="font-size:1rem;">台灣50指數<br>單日 2 倍報酬</div>
+    </div>
+    <div class="card">
+      <div class="label">成立時間</div>
+      <div class="value" style="font-size:1rem;">2014 年 10 月</div>
+      <p style="margin:4px 0 0;font-size:0.75rem;">台灣最主要的槓桿型 ETF</p>
+    </div>
+    <div class="card red">
+      <div class="label">年管理費</div>
+      <div class="value" style="font-size:1rem;color:var(--red);">約 1%</div>
+      <p style="margin:4px 0 0;font-size:0.75rem;">0050 的 10 倍</p>
+    </div>
+  </div>
+  <div class="two-col" style="margin-top:16px;">
+    <div>
+      <h3>關鍵差別</h3>
+      <p>很多人看到「2 倍」，就以為長期報酬也是大盤的 2 倍。但正2 追蹤的是「<strong>單日</strong> 2 倍」——不是年度、不是長期，是每一天的 2 倍重新計算。</p>
+      <p>這個細節，決定了正2 在不同市場環境下，表現截然不同。</p>
+    </div>
+    <div>
+      <h3>含息優勢</h3>
+      <p>加權指數（^TWII）是純價格指數，每次除息指數就自動下調。正2 追蹤的是「含股息的台灣50<strong>總報酬</strong>指數」——透過期貨轉倉機制，除息點數被吃回來。</p>
+      <div class="note blue" style="margin-top:8px;">台灣年均殖利率 3.5%，在 2 倍曝險下 → 每年多約 <strong>7% 系統性優勢</strong></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 2. 年度真實對比 ──────────────────────────────── -->
+<section>
+  <h2>2015–2025 年度真實表現</h2>
+  <div class="two-col" style="grid-template-columns:44% 56%;">
+    <div style="min-width:0;">
+      <p style="margin-bottom:8px;">重點年份對比：</p>
+      <table class="tbl">
+        <thead>
+          <tr><th>年份</th><th>大盤</th><th>正2（00631L）</th><th>倍數</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>2019</td><td>+23%</td><td class="red">+69%</td><td>3.0×</td></tr>
+          <tr><td>2020</td><td>+22%</td><td class="red">+67%</td><td>3.0×</td></tr>
+          <tr><td>2022</td><td>-23%</td><td class="gold">-37%</td><td>1.6×（跌）</td></tr>
+          <tr><td>2024</td><td>+28%</td><td class="red">+58%</td><td>2.0×</td></tr>
+        </tbody>
+      </table>
+      <div class="note" style="margin-top:8px;">漲年往往超過 2 倍，跌年卻小於 2 倍——背後有兩個原因。</div>
+    </div>
+    <div style="min-width:0;">
+      <div style="font-size:0.62rem;display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;color:#555;align-items:center;">
+        <span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:10px;height:10px;background:#e24b4a;display:inline-block;border-radius:2px;"></span>正2漲</span>
+        <span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:10px;height:10px;background:#10b981;display:inline-block;border-radius:2px;"></span>正2跌</span>
+        <span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:8px;height:8px;background:#e24b4a;display:inline-block;border-radius:50%;"></span>正2年內高/低</span>
+        <span style="margin-left:6px;display:inline-flex;align-items:center;gap:3px;"><span style="width:10px;height:10px;background:#f97316;display:inline-block;border-radius:2px;"></span>大盤漲</span>
+        <span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:10px;height:10px;background:#06b6d4;display:inline-block;border-radius:2px;"></span>大盤跌</span>
+        <span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:8px;height:8px;background:#f97316;display:inline-block;transform:rotate(45deg);"></span>大盤年內高/低</span>
+      </div>
+      <div class="chart-wrap" style="height:250px;">
+        <canvas id="annualChart"></canvas>
+      </div>
+      <p class="note" style="margin-top:4px;font-size:0.7rem;">長條：年度報酬率，散點：年內最高/最大跌幅（均從年初起算，TWSE / yfinance）</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 3. 兩大原因 ──────────────────────────────────── -->
+<section>
+  <h2>為什麼漲超 2 倍、跌幅卻小於 2 倍？</h2>
+  <div class="two-col" style="margin-top:16px;">
+    <div>
+      <h3>原因一：每日複利效應</h3>
+      <div class="card green" style="margin-bottom:12px;">
+        <div class="label">單邊多頭市場</div>
+        <div class="value" style="font-size:1rem;">複利滾動 → 超過 2 倍</div>
+        <p style="margin:6px 0 0;font-size:0.78rem;">每天漲 2%，正2 漲 4%，在前一天已漲 4% 的基礎上再加 4%——複利加速，最終遠超 2 倍。</p>
+      </div>
+      <div class="card red">
+        <div class="label">下跌時</div>
+        <div class="value" style="font-size:1rem;">本金縮小 → 跌幅減速</div>
+        <p style="margin:6px 0 0;font-size:0.78rem;">跌後本金已縮小，接下來的 2 倍是在更小的基礎上計算，所以總跌幅<em>小於</em> 2 倍。</p>
+      </div>
+    </div>
+    <div>
+      <h3>原因二：含息總報酬優勢</h3>
+      <div class="card" style="margin-bottom:12px;">
+        <div class="label">大盤（加權指數）</div>
+        <div class="value" style="font-size:1rem;color:var(--gray);">純價格指數</div>
+        <p style="margin:6px 0 0;font-size:0.78rem;">每次除息日指數自動下調，反映股息已發出。</p>
+      </div>
+      <div class="card green">
+        <div class="label">正2（00631L）</div>
+        <div class="value" style="font-size:1rem;">含股息總報酬指數</div>
+        <p style="margin:6px 0 0;font-size:0.78rem;">透過期貨轉倉，除息點數被「吃回來」，在 2 倍曝險下每年多約 <strong>7% 系統性優勢</strong>。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4. 延伸：自買台指期 ───────────────────────────── -->
+<section>
+  <h2>延伸：自己買台指期 2x，效果一樣嗎？</h2>
+  <p>含息優勢確實相同——但核心差別在於「每日再平衡」：</p>
+  <table class="tbl" style="margin:12px 0 16px;">
+    <thead>
+      <tr><th>比較項目</th><th>00631L ETF</th><th>自己買台指期 2×</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>含息優勢</td><td>有</td><td>有（機制相同）</td></tr>
+      <tr><td>每日再平衡</td><td>自動維持 2×</td><td>需每天手動調整</td></tr>
+      <tr><td>槓桿穩定性</td><td>恆定 2×</td><td>漲後偏低、跌後偏高</td></tr>
+      <tr><td>強制平倉風險</td><td class="grn">無</td><td class="red">有（追繳保證金）</td></tr>
+      <tr><td>年費用</td><td>約 1%</td><td>轉倉成本＋手續費＋保證金利息</td></tr>
+      <tr><td>操作門檻</td><td class="grn">低</td><td class="red">高</td></tr>
+    </tbody>
+  </table>
+  <div class="note red">市場大跌時，未再平衡的期貨槓桿比例升高，虧損可能遠超 2 倍，還可能被強制平倉。<br>00631L 的每日自動再平衡，在實務上是很難被手動複製的。</div>
+</section>
+
+<!-- ── 5. 波動損耗 ──────────────────────────────────── -->
+<section>
+  <h2>波動損耗：橫盤震盪是正2 的剋星</h2>
+  <p>用一個簡單的數字說明：</p>
+  <div class="math-box">
+    假設市場連續兩天：第一天 <strong>+10%</strong>，第二天 <strong>-10%</strong><br><br>
+    大盤：100 → 110 → <span style="color:var(--accent);font-weight:700;">99</span>（虧 1%）<br>
+    正2：100 → 120 → <span style="color:var(--red);font-weight:700;">96</span>（虧 4%）
+  </div>
+  <div class="two-col" style="margin-top:16px;">
+    <div>
+      <p>大盤只虧 1%，正2 卻虧了 <strong>4%</strong>。這個現象叫做「波動損耗」（Volatility Decay）。</p>
+      <p>市場越是橫盤震盪、一漲一跌，正2 的損耗就越嚴重——<em>即使大盤最終沒有下跌。</em></p>
+    </div>
+    <div>
+      <div class="card green" style="margin-bottom:10px;">
+        <div class="label">正2 的理想環境</div>
+        <div class="value" style="font-size:1rem;">單邊多頭趨勢</div>
+        <p style="font-size:0.78rem;margin-top:6px;">趨勢明確向上 → 複利加速，放大優勢</p>
+      </div>
+      <div class="card red">
+        <div class="label">正2 的地獄環境</div>
+        <div class="value" style="font-size:1rem;color:var(--red);">橫盤反覆震盪</div>
+        <p style="font-size:0.78rem;margin-top:6px;">漲漲跌跌 → 波動損耗持續侵蝕本金</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 6. 真實的十年考驗 ─────────────────────────────── -->
+<section>
+  <h2>假設 1997 年就有正2：真實的十年考驗</h2>
+  <div class="two-col">
+    <div>
+      <p><strong>00631L 含息是內建的</strong>——它追蹤含息總報酬指數，含息版才是真實行為。</p>
+      <div class="timeline" style="margin-top:14px;">
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-year">2001 年</div>
+          <div class="tl-desc">dot-com 崩跌谷底<br>大盤含息剩 64.8，正2 含息僅剩 <strong>28.6</strong></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot gold"></div>
+          <div class="tl-year gold">2007 年</div>
+          <div class="tl-desc">含息正2 已回到起點（116.6）<br>只花了 <strong>10 年</strong>，大盤含息同步回本</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-year">2008 年 12 月</div>
+          <div class="tl-desc">金融海嘯<br>含息正2 再次被打回 27.9</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card green" style="margin-bottom:12px;">
+        <div class="label">含息正2 回本時間（真實）</div>
+        <div class="value" style="color:var(--green);">2007 年</div>
+        <p style="font-size:0.78rem;margin-top:4px;">從 1997 年起算，約 10 年<br>00631L 本來就含息，這才是真實行為</p>
+      </div>
+      <div class="card red">
+        <div class="label">最大風險：高點進場</div>
+        <div class="value" style="color:var(--red);">帳面虧損 70%+</div>
+        <p style="font-size:0.78rem;margin-top:4px;">2000 年高點進場，含息幫你，但還是要撐過 dot-com + 海嘯才能解套</p>
+      </div>
+      <div class="note" style="margin-top:12px;">含息縮短了等待年數，但無法消除大跌後的心理煎熬。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 7. 定期定額（含息版）──────────────────────────────── -->
+<section>
+  <h2>定期定額：含息版的長期真實比較</h2>
+  <p>以含息版（真實 00631L 的行為）比較長期 定期定額 結果：</p>
+  <div class="two-col" style="margin:16px 0;">
+    <div class="card green" style="text-align:center;">
+      <div class="label">正2（00631L，含費含息）</div>
+      <div class="big-num" style="font-size:2.8rem;color:var(--green);">2.71×</div>
+      <p style="font-size:0.8rem;margin-top:8px;">長期 定期定額 報酬倍數</p>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="label">大盤（含息 3.5%）</div>
+      <div class="big-num" style="font-size:2.8rem;">2.45×</div>
+      <p style="font-size:0.8rem;margin-top:8px;">長期 定期定額 報酬倍數</p>
+    </div>
+  </div>
+  <div class="note blue" style="margin-bottom:10px;">正2 勝出主因是「股息 × 2」的系統性加成（每年約 7%），不是槓桿本身。</div>
+  <div class="note red">重要前提：這個結果包含 2014–2026 的大多頭。若只看失落年代（1997–2013），即使含息版，正2 定期定額 仍落後大盤——波動損耗太大，連含息都補不回來。</div>
+</section>
+
+<!-- ── 8. 累積走勢：23年落後，2020才翻身 ─────────────────── -->
+<section>
+  <h2>累積走勢：23 年落後，2020 年 12 月才翻身</h2>
+  <p style="font-size:0.82rem;margin:0 0 8px;">起點 1997 年底 = 100。灰色：大盤含息再投入（等同 0050 + 股息）。紅色：正2（含費含息模擬）</p>
+  <div class="chart-wrap" style="height:370px;">
+    <canvas id="simCumChart"></canvas>
+  </div>
+  <div class="note" style="margin-top:8px;">含息是正2 的結構性優勢——但在失落年代橫盤震盪時，波動損耗更強大。正2 花了整整 23 年，才在 2020 年 12 月首次超越大盤含息。<strong>大多頭來臨才是關鍵</strong>，含息優勢此時才真正爆發。</div>
+</section>
+
+<!-- ── 9. 兩股力量的拉鋸 ───────────────────────────────── -->
+<section>
+  <h2>波動損耗 vs 含息優勢：兩股力量的拉鋸</h2>
+  <div class="two-col" style="margin-top:12px;margin-bottom:16px;">
+    <div class="card red">
+      <div class="label">拉低報酬的力量</div>
+      <div class="value" style="font-size:1.1rem;color:var(--red);">波動損耗</div>
+      <p style="font-size:0.78rem;margin-top:6px;">橫盤震盪時，每天漲跌 2 倍消耗本金<br>市場越震盪，侵蝕越快</p>
+    </div>
+    <div class="card green">
+      <div class="label">推升報酬的力量</div>
+      <div class="value" style="font-size:1.1rem;color:var(--green);">含息優勢</div>
+      <p style="font-size:0.78rem;margin-top:6px;">台灣 3.5% 殖利率 × 2 倍曝險 = 每年約 7%<br>長期持有，股息複利持續累積</p>
+    </div>
+  </div>
+  <table class="tbl">
+    <thead>
+      <tr><th>市場環境</th><th>誰佔上風</th><th>正2（00631L）結果</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>單邊多頭</td><td class="grn">含息 + 複利</td><td class="grn">大幅超越大盤</td></tr>
+      <tr><td>橫盤震盪</td><td class="red">波動損耗</td><td class="red">跑輸大盤，甚至虧損</td></tr>
+      <tr><td>大跌後長牛</td><td class="gold">先損耗，後含息追回</td><td class="gold">長期下含息逐漸扳回</td></tr>
+    </tbody>
+  </table>
+  <div class="note" style="margin-top:12px;">台灣 3.5% 高殖利率是 00631L 最重要的結構性優勢——但它無法消除橫盤期的波動損耗，只能在時間夠長的情況下逐漸抵銷。</div>
+</section>
+
+<!-- ── 10. 結論 ────────────────────────────────────── -->
+<section>
+  <h2>00631L 長期下來到底如何？</h2>
+  <div class="two-col" style="margin-top:12px;align-items:start;">
+    <div>
+      <h3>關鍵不是策略，是你遇到的市場</h3>
+      <p style="font-size:0.8rem;margin-bottom:8px;">同樣策略（單筆投入 + 定期定額），結果截然不同：</p>
+      <table class="tbl">
+        <thead>
+          <tr><th>時期</th><th>正2（含費含息）</th><th>大盤（含息）</th><th>結果</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>失落年代<br><span style="font-size:0.7rem;color:#888;">1997–2013</span></td>
+            <td class="red">1.50×</td>
+            <td class="grn">1.78×</td>
+            <td class="red">正2 落後</td>
+          </tr>
+          <tr>
+            <td>持有到大多頭<br><span style="font-size:0.7rem;color:#888;">1997–2020</span></td>
+            <td class="grn">4.88×</td>
+            <td>3.39×</td>
+            <td class="grn">正2 大幅領先</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note" style="margin-top:10px;font-size:0.76rem;">含息是真實優勢，但波動損耗在失落年代更強。正2 必須撐到大多頭，含息複利才能真正爆發。</div>
+    </div>
+    <div>
+      <h3>正2 是大多頭的放大器</h3>
+      <div class="card green" style="margin-bottom:10px;">
+        <div class="label">大多頭環境</div>
+        <div class="value" style="color:var(--green);">差距急速拉開</div>
+        <p style="font-size:0.78rem;margin-top:4px;">含息 7%/年 × 每日複利 × 大漲放大 → 大幅超越大盤</p>
+      </div>
+      <div class="card red" style="margin-bottom:10px;">
+        <div class="label">失落年代 / 橫盤</div>
+        <div class="value" style="color:var(--red);">波動損耗 &gt; 含息優勢</div>
+        <p style="font-size:0.78rem;margin-top:4px;">不管哪種策略，正2 都持續落後大盤</p>
+      </div>
+      <div class="card red">
+        <div class="label">最大風險</div>
+        <div class="value" style="color:var(--red);">心理撐不住就出場</div>
+        <p style="font-size:0.78rem;margin-top:4px;">帳面虧 70%+ 卻只能等——撐不住出場，大多頭就讓給別人了</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 11. 結語 ────────────────────────────────────── -->
+<section class="cover">
+  <h1 style="font-size:1.8rem;">00631L 不是禁忌，也不是必勝</h1>
+  <br>
+  <div class="three-col" style="text-align:left;">
+    <div class="card" style="border-left-color:var(--accent);">
+      <div class="label">含息是結構性優勢</div>
+      <p>台灣 3.5% 殖利率 × 2 倍曝險<br>每年約 7% 的系統性加成<br>大多頭時讓差距急速拉開</p>
+    </div>
+    <div class="card green">
+      <div class="label">大多頭才是關鍵</div>
+      <p>失落年代：正2 1.50× 輸大盤 1.78×<br>持有到大多頭：4.88× 大幅超越 3.39×<br>撐到那天，結果完全不同</p>
+    </div>
+    <div class="card red">
+      <div class="label">最大考驗是心臟</div>
+      <p>失落年代帳面一直落後<br>高點進場虧損可達 70%+<br>撐不住出場，把大多頭讓給別人</p>
+    </div>
+  </div>
+  <br>
+  <div class="highlight-box">
+    <div style="display:flex;justify-content:center;gap:40px;margin-bottom:8px;">
+      <div style="text-align:center;">
+        <div style="font-size:0.75rem;color:#9ca3af;margin-bottom:6px;">失落年代 1997–2013</div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div>
+            <div style="font-size:0.65rem;color:#9ca3af;margin-bottom:2px;">正2</div>
+            <div class="big-num" style="color:#f87171;font-size:2.2rem;">1.50×</div>
+          </div>
+          <div style="font-size:1.1rem;color:#9ca3af;font-weight:600;">輸</div>
+          <div>
+            <div style="font-size:0.65rem;color:#9ca3af;margin-bottom:2px;">大盤</div>
+            <div class="big-num" style="color:#bfdbfe;font-size:2.2rem;">1.78×</div>
+          </div>
+        </div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,0.15);"></div>
+      <div style="text-align:center;">
+        <div style="font-size:0.75rem;color:#9ca3af;margin-bottom:6px;">持有到大多頭 1997–2020</div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div>
+            <div style="font-size:0.65rem;color:#9ca3af;margin-bottom:2px;">正2</div>
+            <div class="big-num" style="color:#D4AF37;font-size:2.2rem;">4.88×</div>
+          </div>
+          <div style="font-size:1.1rem;color:#9ca3af;font-weight:600;">贏</div>
+          <div>
+            <div style="font-size:0.65rem;color:#9ca3af;margin-bottom:2px;">大盤</div>
+            <div class="big-num" style="color:#bfdbfe;font-size:2.2rem;">3.39×</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p><strong style="color:#fff;font-size:1rem;">同樣的策略，勝負取決於你有沒有撐到大多頭。</strong></p>
+    <p style="color:#bfdbfe;font-size:0.85rem;">正2 是大多頭的放大器——問題是：你能撐到那一天嗎？</p>
+  </div>
+  <br>
+  <p style="color:#9ca3af;font-size:0.8rem;">互動圖表（累積走勢 / 滾動報酬 / 定期定額模擬）：<a href="631L_vs_taiex.html" target="_blank" style="color:#D4AF37;">開啟完整圖表 →</a></p>
+  <p style="color:#9ca3af;font-size:0.8rem;">以上為分析觀念，不構成買賣建議。投資前請了解自己的財務狀況，做出最適合自己的決策。</p>
+</section>
+
+</div>
+</div>
+
+<div class="slide-logo"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  transition: 'slide',
+  transitionSpeed: 'fast',
+  controls: true,
+  progress: true,
+  slideNumber: true,
+  width: 1100,
+  height: 650,
+});
+
+const _header = document.querySelector('.slide-header');
+_header.style.opacity = '0';
+Reveal.on('slidechanged', e => {
+  _header.style.opacity = e.indexh === 0 ? '0' : '1';
+});
+
+const _bc = new BroadcastChannel('ep14_sync');
+Reveal.on('slidechanged', e => { _bc.postMessage({ slide: e.indexh }); });
+_bc.onmessage = e => { if (e.data.slide !== Reveal.getIndices().h) Reveal.slide(e.data.slide); };
+
+const GREEN = '#2E5FA3';
+const GOLD  = '#D4AF37';
+const RED   = '#dc2626';
+
+// 投影片 8：累積走勢線圖（SIM_DATA 年底值，1997–2025）
+Reveal.on('slidechanged', function(e) {
+  if (e.indexh === 8 && !window._simCumChart) {
+    const data = SIM_DATA.filter(d => d.t.endsWith('-12') && d.t <= '2025-12');
+    const labels = data.map(d => d.t.slice(0, 4));
+    const fdData = data.map(d => d.fd);
+    const idData = data.map(d => d.id);
+    window._simCumChart = new Chart(document.getElementById('simCumChart'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: '大盤含息再投入',
+            data: idData,
+            borderColor: '#6b7280',
+            backgroundColor: 'transparent',
+            borderWidth: 2.5,
+            pointRadius: 0, pointHoverRadius: 4,
+          },
+          {
+            label: '正2（含費含息）',
+            data: fdData,
+            borderColor: '#e24b4a',
+            backgroundColor: 'transparent',
+            borderWidth: 2.5,
+            borderDash: [6, 3],
+            pointRadius: 0, pointHoverRadius: 4,
+          },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              font: { size: 11 },
+              generateLabels: chart => chart.data.datasets.map((ds, i) => ({
+                text: ds.label,
+                fillStyle: 'transparent',
+                strokeStyle: ds.borderColor,
+                lineDash: ds.borderDash || [],
+                lineWidth: 2.5,
+                hidden: false,
+                datasetIndex: i,
+              }))
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(255,255,255,0.97)',
+            borderColor: '#ccc', borderWidth: 1,
+            titleColor: '#111', bodyColor: '#333', padding: 10,
+            callbacks: {
+              title: items => `${items[0].label} 年底（起點 1997 = 100）`,
+              label: item => {
+                const v = item.raw.toFixed(1);
+                const x = (item.raw / 100).toFixed(2);
+                return `${item.dataset.label}：${v}（漲了 ${x} 倍）`;
+              },
+              afterBody: items => {
+                const fd = fdData[items[0].dataIndex];
+                const id = idData[items[0].dataIndex];
+                const ratio = (fd / id).toFixed(2);
+                return [`正2 vs 大盤：${ratio}x ${fd >= id ? '（正2 領先）' : '（正2 落後）'}`];
+              }
+            }
+          }
+        },
+        scales: {
+          x: { ticks: { font: { size: 9 }, maxRotation: 45 } },
+          y: {
+            title: { display: true, text: '累積指數（1997年底 = 100）', font: { size: 9 }, color: '#888' },
+            ticks: { font: { size: 9 } }
+          }
+        }
+      }
+    });
+  }
+});
+
+// 投影片 2：年度報酬率圖表（從 data_631L_taiex.js，與 631L_vs_taiex.html 同源）
+Reveal.on('slidechanged', function(e) {
+  if (e.indexh === 2 && !window._annualChart) {
+    const S = 2015, E = 2025;
+    function computeRows(ds) {
+      return ds.data.filter(d => d.y >= S && d.y <= E).map(d => ({
+        year:    d.y,
+        ret:     +((d.c / d.o - 1) * 100).toFixed(2),
+        maxUp:   +((d.h / d.o - 1) * 100).toFixed(2),
+        maxDown: +((d.l / d.o - 1) * 100).toFixed(2),
+      }));
+    }
+    const rows631L  = computeRows(DATA_631L);
+    const rowsTaiex = computeRows(DATA_TAIEX);
+    const labels = rowsTaiex.map(r => String(r.year));
+
+    window._annualChart = new Chart(document.getElementById('annualChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            type: 'bar',
+            label: '00631L 年度報酬率',
+            data: rows631L.map(r => r.ret),
+            backgroundColor: rows631L.map(r => r.ret >= 0 ? '#e24b4a' : '#10b981'),
+            borderRadius: 2, order: 2,
+          },
+          {
+            type: 'bar',
+            label: '加權指數 年度報酬率',
+            data: rowsTaiex.map(r => r.ret),
+            backgroundColor: rowsTaiex.map(r => r.ret >= 0 ? '#f97316' : '#06b6d4'),
+            borderRadius: 2, order: 2,
+          },
+          {
+            type: 'scatter',
+            label: '00631L 年內最高',
+            data: rows631L.map(r => ({ x: String(r.year), y: r.maxUp })),
+            backgroundColor: '#e24b4a', pointStyle: 'circle', pointRadius: 4, order: 1,
+          },
+          {
+            type: 'scatter',
+            label: '00631L 年內最低',
+            data: rows631L.map(r => ({ x: String(r.year), y: r.maxDown })),
+            backgroundColor: '#10b981', pointStyle: 'circle', pointRadius: 4, order: 1,
+          },
+          {
+            type: 'scatter',
+            label: '大盤 年內最高',
+            data: rowsTaiex.map(r => ({ x: String(r.year), y: r.maxUp })),
+            backgroundColor: '#f97316', pointStyle: 'rectRot', pointRadius: 4, order: 1,
+          },
+          {
+            type: 'scatter',
+            label: '大盤 年內最低',
+            data: rowsTaiex.map(r => ({ x: String(r.year), y: r.maxDown })),
+            backgroundColor: '#06b6d4', pointStyle: 'rectRot', pointRadius: 4, order: 1,
+          },
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(255,255,255,0.97)',
+            borderColor: '#ccc', borderWidth: 1,
+            titleColor: '#111', bodyColor: '#333', padding: 10,
+            callbacks: {
+              title: items => `${items[0].label} 年`,
+              beforeBody: items => {
+                const i = items[0].dataIndex;
+                const r = rows631L[i], t = rowsTaiex[i];
+                const fmt = v => (v > 0 ? '+' : '') + v.toFixed(1) + '%';
+                return [
+                  `正2（00631L）：${fmt(r.ret)}`,
+                  `  年內高：${fmt(r.maxUp)}　低：${fmt(r.maxDown)}`,
+                  `大盤（TAIEX）：${fmt(t.ret)}`,
+                  `  年內高：${fmt(t.maxUp)}　低：${fmt(t.maxDown)}`,
+                ];
+              },
+              label: () => '',
+            }
+          }
+        },
+        scales: {
+          x: { ticks: { font: { size: 9 } }, grid: { display: false } },
+          y: {
+            ticks: { callback: v => v + '%', font: { size: 9 } },
+            grid: { color: 'rgba(0,0,0,0.07)' }
+          }
+        }
+      }
+    });
+  }
+});
+</script>
+
+</body>
+</html>

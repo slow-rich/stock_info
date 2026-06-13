@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>EP06 旁白 Teleprompter</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0d1520; color:#dde6f0; font-family:-apple-system,"PingFang TC",sans-serif; height:100vh; overflow:hidden; display:flex; flex-direction:column; user-select:none; }
+  .header { padding:14px 32px; background:rgba(212,175,55,0.08); border-bottom:2px solid rgba(212,175,55,0.25); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .ep-label { font-size:0.8rem; color:#D4AF37; font-weight:800; letter-spacing:2px; }
+  .slide-title { font-size:0.95rem; color:#94a3b8; font-weight:500; text-align:center; flex:1; padding:0 24px; }
+  .counter { font-size:0.82rem; color:#475569; font-weight:600; min-width:48px; text-align:right; }
+  .content { flex:1; overflow-y:auto; padding:52px 80px 40px; scroll-behavior:smooth; }
+  .narration { max-width:860px; margin:0 auto; font-size:1.55rem; line-height:2.0; color:#e2eaf5; }
+  .narration p { margin-bottom:1.1em; }
+  .narration p:last-child { margin-bottom:0; }
+  @keyframes slideIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .slide-anim { animation:slideIn 0.28s ease; }
+  .content::-webkit-scrollbar { width:5px; }
+  .content::-webkit-scrollbar-track { background:transparent; }
+  .content::-webkit-scrollbar-thumb { background:rgba(212,175,55,0.2); border-radius:3px; }
+  .footer { padding:12px 32px; background:rgba(0,0,0,0.35); border-top:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:20px; flex-shrink:0; }
+  .nav-hint { font-size:0.72rem; color:#334155; white-space:nowrap; }
+  .progress-bar { flex:1; height:3px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,#D4AF37,#f0d060); border-radius:2px; transition:width 0.35s ease; }
+  .btn-row { display:flex; gap:8px; }
+  .btn { background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.25); color:#D4AF37; border-radius:6px; padding:4px 14px; font-size:0.75rem; cursor:pointer; font-family:inherit; }
+  .btn:hover { background:rgba(212,175,55,0.22); }
+</style>
+</head>
+<body>
+<div class="header">
+  <span class="ep-label">EP.06</span>
+  <span class="slide-title" id="slideTitle">—</span>
+  <span class="counter" id="counter">1 / 7</span>
+</div>
+<div class="content" id="content">
+  <div class="narration slide-anim" id="narration"></div>
+</div>
+<div class="footer">
+  <div class="btn-row">
+    <button class="btn" onclick="prev()">← 上一頁</button>
+    <button class="btn" onclick="next()">下一頁 →</button>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <span class="nav-hint">← → Space 換頁 &nbsp;|&nbsp; 滾輪捲動</span>
+</div>
+<script>
+const slides = [
+  { title:'第 1 頁 — 封面', text:[
+    '大家好，我是科技宅爸。',
+    '這集我們要聊一個很多人都有的習慣——等到市場跌夠了再買，或是覺得漲太多了先賣出，等回調再進場。',
+    '這個想法聽起來很合理，但數據說的是另一回事。',
+    '這集我來分享，為什麼猜測高低點，往往讓你拿到比什麼都不做更差的報酬。',
+  ]},
+  { title:'第 2 頁 — 錯過最佳 5 天後的全年報酬', text:[
+    '我先給你看一個數字。',
+    '一年大約有 250 個交易日。如果你全程持有，2025 年台股的報酬是 +25.73%。',
+    '但只要你不小心錯過了最強的 5 天——只是 5 天，佔全年 2%——結果變成什麼？',
+    '+0.99%。',
+    '台灣定存利率大概是 1.5%，也就是說，錯過 5 天，連定存都輸了。',
+    '2024 年也一樣。全程持有是 +29.89%，錯過最強 5 天變成 +10.84%。',
+    '2022 年熊市原本已經虧了 22.62%，再錯過 5 天，虧損擴大到 32.95%。',
+  ]},
+  { title:'第 3 頁 — 錯過幾天就輸大了', text:[
+    '那如果錯過更多天呢？',
+    '看「錯過最佳 10 天」的結果。',
+    '2025 年，原本 +25.7%，錯過 10 天，變成 −10.7%——從正報酬直接變負報酬。',
+    '2024 年，原本 +29.9%，錯過 10 天，變成 −2.4%。',
+    '2022 年熊市，原本 −22.6%，錯過 10 天，變成 −40.3%。',
+    '牛市和熊市都一樣。錯過那幾天，結果就完全不同。',
+    '而這幾天，往往是最讓人害怕、最想賣出的時候。',
+  ]},
+  { title:'第 4 頁 — 那一天，你在場嗎？', text:[
+    '這些最強的日子，都不是平靜的日子，而是出現在最恐慌的時刻。',
+    '2025/04/10，台股單日漲 +9.25%，2025 年全年最大漲幅。那天發生了什麼？川普宣布暫停大多數國家 90 天關稅。早盤開在平盤附近，下午消息出來後直接衝漲停。',
+    '前一天 04/09 收盤是 −4.4%，很多人在前一天剛賣掉。',
+    '2024/08/07，日圓升息觸發全球崩跌，08/05 台股跌了 −8.4%，然後 08/07 開始強力反彈 +3.87%。在 08/05 恐慌賣出的人，正好錯過了整段反彈。',
+    '2022/11/11，美國通膨降溫，市場大反彈 +3.73%。2022 全年最差，但最強漲幅就在這一天。',
+    '這些日子沒有任何預告。你不知道哪天是。',
+  ]},
+  { title:'第 5 頁 — 2025/04/07：0050 大跌', text:[
+    '再來一個更具體的例子。',
+    '2025 年 4 月 7 日，0050 大跌 −9.8%，市場一片恐慌。',
+    '很多人的反應是：「還會繼續跌，先賣掉保本，等跌夠了再買回來。」',
+    '接下來發生了什麼？',
+    '04/08 小反彈，04/09 又跌了 −4.4%，感覺恐慌情緒持續。',
+    '然後 04/10，+9.25%。',
+    '04/07 大跌賣出的人，3 天後面對 2025 年全年最大漲幅，只能空手看著。',
+    '這就是為什麼市值型 ETF 大跌的那一天，不能賣掉。',
+  ]},
+  { title:'第 6 頁 — 擇時交易的惡性循環', text:[
+    '猜高低點的人，通常會陷入同一個循環。',
+    '市場創新高，心想「該回檔了吧」，不敢買，眼看指數繼續漲。',
+    '市場大跌，心想「還會更慘」，認賠賣出，恰好賣在黑暗最深處。',
+    '市場反彈後覺得「沒問題了」，在更高點買回來，正好買在短期高點。',
+    '結果：買高賣低，付出手續費與稅，拿到比指數更差的報酬——即使指數本身是漲的。',
+    'DALBAR 研究顯示，S&P 500 過去 30 年年化約 10%，但散戶平均只拿到約 4%。',
+    '這個差距，來自擇時操作加上情緒進出場。',
+  ]},
+  { title:'第 7 頁 — Time in Market', text:[
+    '最後，留一句話給你。',
+    '英文有一句格言：「Time in the market beats timing the market。」',
+    '待在市場裡的時間，比猜測高低點更重要。',
+    '擇時交易需要猜對進場時機，也要猜對出場時機，空手等待期間資金閒置，每次交易還要付費用和稅，更容易錯過少數關鍵漲幅日。',
+    '長期持有指數化投資，一次買進就自動抓到所有關鍵漲幅日，交易成本趨近於零，也不需要做任何判斷。',
+    '最強漲幅的幾天，你根本不知道是哪天。唯一確保不錯過的方法，就是一直在場。',
+    '感謝大家看到這裡。市場大跌時感覺很難熬，但正是那些難熬的日子，造就了長期報酬。下集見。',
+  ]},
+];
+let current = 0;
+function render(animate=true) {
+  const slide = slides[current], total = slides.length;
+  document.getElementById('slideTitle').textContent = slide.title;
+  document.getElementById('counter').textContent = `${current+1} / ${total}`;
+  document.getElementById('progressFill').style.width = `${((current+1)/total)*100}%`;
+  const el = document.getElementById('narration');
+  el.innerHTML = slide.text.map(t=>`<p>${t}</p>`).join('');
+  document.getElementById('content').scrollTop = 0;
+  if (animate) { el.classList.remove('slide-anim'); void el.offsetWidth; el.classList.add('slide-anim'); }
+}
+function next() { if (current < slides.length-1) { current++; render(); _bc.postMessage({ slide: current }); } }
+function prev() { if (current > 0) { current--; render(); _bc.postMessage({ slide: current }); } }
+document.addEventListener('keydown', e => {
+  if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); next(); }
+  else if (['ArrowLeft','ArrowUp'].includes(e.key)) { e.preventDefault(); prev(); }
+});
+const _bc = new BroadcastChannel('ep06_sync');
+_bc.onmessage = e => { const i=e.data.slide; if(i>=0&&i<slides.length&&i!==current){current=i;render();} };
+render(false);
+</script>
+</body>
+</html>

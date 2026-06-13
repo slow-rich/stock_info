@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EP12 蒙地卡羅模擬</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue:   #1B3A6B;
+    --royal:  #2E5FA3;
+    --red:    #dc2626;
+    --gray:   #6b7280;
+    --light:  #f0f4fa;
+    --accent: #D4AF37;
+    --green:  #16a34a;
+  }
+  .reveal { font-family: -apple-system, "PingFang TC", sans-serif; }
+  .reveal h2 { font-size:1.5rem; color:var(--blue); font-weight:700; border-bottom:3px solid var(--accent); padding-bottom:8px; margin-bottom:18px; }
+  .reveal p, .reveal li { font-size:0.85rem; line-height:1.7; }
+  .reveal .slides section { text-align:left; }
+  .reveal .slides section:not(.cover-slide) { padding-top:52px !important; }
+  .two-col   { display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:start; }
+  .three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .card      { background:var(--light); border-radius:10px; padding:14px 18px; border-left:4px solid var(--accent); }
+  .card-red  { background:#fff5f5; border-left-color:var(--red); }
+  .card-green{ background:#f0fdf4; border-left-color:#16a34a; }
+  .note { background:#fefce8; border-left:4px solid var(--accent); padding:10px 14px; border-radius:6px; font-size:0.78rem; color:#713f12; margin-top:12px; }
+  .chart-wrap { position:relative; height:270px; }
+  .slide-header {
+    position:fixed; top:0; left:0; right:0;
+    height:46px; z-index:200; pointer-events:none;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 22px; overflow:visible;
+    background:rgba(255,255,255,0.96);
+    border-bottom:2px solid #D4AF37;
+    backdrop-filter:blur(6px);
+    box-shadow:0 2px 10px rgba(0,0,0,0.08);
+  }
+  :root { --r-controls-color:rgba(212,175,55,0.85); }
+  .cmp-table { width:100%; border-collapse:collapse; font-size:0.72rem; }
+  .cmp-table th { background:var(--blue); color:#fff; padding:7px 10px; text-align:center; font-weight:700; }
+  .cmp-table th:first-child { text-align:left; padding-left:14px; }
+  .cmp-table td { padding:7px 10px; text-align:center; border-bottom:1px solid #e5e7eb; }
+  .cmp-table td:first-child { text-align:left; padding-left:14px; font-weight:700; color:var(--blue); }
+  .cmp-table tbody tr:nth-child(even) { background:rgba(240,244,250,0.4); }
+  .cmp-table .best  { font-weight:800; color:#15803d; background:rgba(22,163,74,0.08); }
+  .cmp-table .worst { color:var(--red); background:rgba(220,38,38,0.06); }
+  .sdot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:middle; }
+  .sim-btn {
+    background:var(--blue); color:#fff; border:none; border-radius:8px;
+    padding:8px 20px; font-size:0.78rem; font-weight:700; cursor:pointer;
+    font-family:inherit; pointer-events:all;
+  }
+  .sim-btn:hover { background:var(--royal); }
+  .param-row { display:flex; justify-content:space-between; align-items:center;
+               background:#fff; border-radius:8px; padding:7px 12px; font-size:0.78rem; }
+  .param-val { font-weight:800; color:var(--blue); }
+  .param-input {
+    width:80px; padding:4px 8px; border:1.5px solid #d1d5db; border-radius:6px;
+    font-size:0.8rem; text-align:right; font-family:inherit; color:var(--blue);
+    font-weight:700; pointer-events:all; outline:none;
+  }
+  .param-input:focus { border-color:var(--accent); }
+  .apply-btn {
+    background:var(--accent); color:#92400e; border:none; border-radius:8px;
+    padding:7px 18px; font-size:0.76rem; font-weight:700; cursor:pointer;
+    font-family:inherit; pointer-events:all; margin-top:4px;
+  }
+  .apply-btn:hover { background:#b8941f; color:#fff; }
+</style>
+</head>
+<body>
+
+<!-- ── 頂部品牌橫條 ── -->
+<div class="slide-header">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <svg viewBox="0 0 100 100" width="36" height="36" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-hdr"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-hdr)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="3.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:18px;color:#1B3A6B;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:7.5px;color:#888;letter-spacing:2.2px;text-transform:uppercase;margin-top:3px;">Slow Rich</div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:#6b7280;">
+    <span style="color:#D4AF37;font-weight:800;margin-right:6px;">EP.12</span>蒙地卡羅模擬
+  </div>
+</div>
+
+<div class="reveal">
+<div class="slides">
+
+<!-- ══ 1. 封面 ══ -->
+<section class="cover-slide" data-background-gradient="linear-gradient(150deg,#080f1f 0%,#0d1b35 55%,#080f1f 100%)" style="padding:40px 56px;text-align:left !important;position:relative;">
+  <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;" viewBox="0 0 1100 650" preserveAspectRatio="none">
+    <defs>
+      <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g transform="translate(-73,18)">
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160 L1055,650 L680,650 Z" fill="#D4AF37" opacity="0.05"/>
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160" stroke="#D4AF37" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.05"/>
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160" stroke="#D4AF37" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
+    <circle cx="1055" cy="160" r="24" fill="#D4AF37" opacity="0.12" filter="url(#glow)"/>
+    <circle cx="1055" cy="160" r="10" fill="#D4AF37" opacity="0.55"/>
+    <circle cx="1055" cy="160" r="5"  fill="#D4AF37" opacity="0.95"/>
+      </g>
+  </svg>
+  <!-- Logo -->
+  <div style="position:absolute;top:9px;right:123px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.35);border-radius:14px;padding:10px 18px 10px 12px;">
+    <svg viewBox="0 0 100 100" width="80" height="80" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-cv"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-cv)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <circle cx="85" cy="15" r="4.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:26px;color:#D4AF37;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:400;font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">Slow Rich</div>
+    </div>
+  </div>
+  <!-- Badge -->
+  <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.45);border-radius:20px;padding:5px 16px;margin-bottom:30px;">
+    <span style="font-size:11px;color:#D4AF37;font-weight:800;letter-spacing:1.5px;">EP.12</span>
+    <span style="width:1px;height:10px;background:rgba(212,175,55,0.4);display:inline-block;"></span>
+    <span style="font-size:11px;color:#aaa;letter-spacing:0.5px;">投資組合模擬</span>
+  </div>
+  <!-- Title -->
+  <div style="margin-bottom:14px;line-height:1.05;">
+    <div style="font-size:3.5rem;font-weight:900;color:#fff;margin-bottom:4px;">哪種股債策略，</div>
+    <div style="font-size:4.4rem;font-weight:900;color:#D4AF37;text-shadow:0 0 36px rgba(212,175,55,0.35);">長期最划算？</div>
+  </div>
+  <div style="margin-bottom:28px;">
+    <div style="font-size:1rem;font-weight:300;color:#aaa;letter-spacing:1px;">用蒙地卡羅模擬，比較 5 種股債配置策略的長期結果</div>
+  </div>
+  <!-- Stats -->
+  <div id="cover-cards" style="display:flex;align-items:stretch;gap:12px;max-width:680px;transform:scale(0.9);transform-origin:left top;">
+    <div style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">模擬年數</div>
+      <div style="font-size:1rem;font-weight:700;color:#D4AF37;">20 年</div>
+    </div>
+    <div style="background:rgba(46,95,163,0.08);border:1px solid rgba(46,95,163,0.25);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">比較策略數</div>
+      <div style="font-size:1rem;font-weight:700;color:#2E5FA3;">5 種</div>
+    </div>
+    <div style="background:rgba(22,163,74,0.06);border:1px solid rgba(22,163,74,0.2);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">每次模擬次數</div>
+      <div style="font-size:1rem;font-weight:700;color:#16a34a;">1,000 次</div>
+    </div>
+    <div style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">初始本金（預設）</div>
+      <div style="font-size:1rem;font-weight:700;color:#dc2626;">500 萬</div>
+    </div>
+  </div>
+  <p style="position:absolute;bottom:14px;left:56px;color:#2e4a6b;font-size:0.68rem;">按 → 翻頁 &nbsp;|&nbsp; F 全螢幕 &nbsp;|&nbsp; ESC 總覽</p>
+</section>
+
+<!-- ══ 2. 什麼是蒙地卡羅 ══ -->
+<section>
+  <h2>什麼是蒙地卡羅模擬？</h2>
+  <div class="two-col">
+    <div>
+      <div class="card" style="margin-bottom:12px;">
+        <p style="margin:0 0 6px;font-weight:700;color:var(--blue);">核心概念</p>
+        <ul style="margin:0;padding-left:16px;font-size:0.8rem;line-height:2.0;">
+          <li>將未來的<strong>不確定性</strong>，轉換為<strong>大量隨機情境</strong></li>
+          <li>每次模擬 = 一條可能的市場走勢路徑（20 年）</li>
+          <li>跑 1,000 次 → 得到 1,000 條不同的路徑</li>
+          <li>統計結果 → 了解「分布」而非只看一個點</li>
+        </ul>
+      </div>
+      <div style="background:var(--light);border-radius:10px;padding:14px 16px;">
+        <div style="font-size:0.78rem;font-weight:700;color:var(--blue);margin-bottom:10px;">三個關鍵數字</div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:0.78rem;">
+          <div style="display:flex;align-items:center;gap:10px;background:#fff;border-radius:7px;padding:7px 12px;">
+            <span style="font-weight:800;color:#dc2626;min-width:30px;">P10</span>
+            <span style="color:var(--gray);">悲觀情境：1,000 條路徑中排名第 100 的結果</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;background:#fff;border-radius:7px;padding:7px 12px;">
+            <span style="font-weight:800;color:var(--blue);min-width:30px;">P50</span>
+            <span style="color:var(--gray);">中位數：有一半路徑優於此，一半劣於此</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;background:#fff;border-radius:7px;padding:7px 12px;">
+            <span style="font-weight:800;color:#16a34a;min-width:30px;">P90</span>
+            <span style="color:var(--gray);">樂觀情境：1,000 條路徑中排名第 900 的結果</span>
+          </div>
+        </div>
+      </div>
+      <div class="note">
+        歷史只有一條路徑，但未來有無數種可能。蒙地卡羅讓我們看到「整體分布」，而不只是單一猜測。
+      </div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:10px;padding:14px 14px 10px;">
+        <div style="font-size:0.72rem;font-weight:700;color:var(--blue);margin-bottom:8px;">多條可能路徑的示意（20 年，每年追加投入）</div>
+        <div class="chart-wrap" style="height:310px;">
+          <canvas id="chartPaths"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 3. 5種策略 ══ -->
+<section>
+  <h2>今天比較的 5 種策略</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+    <div style="background:var(--light);border-radius:10px;padding:12px 16px;border-left:4px solid #1B3A6B;">
+      <div style="font-size:0.8rem;font-weight:900;color:#1B3A6B;margin-bottom:5px;">
+        <span class="sdot" style="background:#1B3A6B;"></span>C1：80:20 定期再平衡
+      </div>
+      <div style="font-size:0.78rem;color:var(--gray);line-height:1.8;">每年底恢復 80:20，新進資金按 80:20 投入。<br><strong style="color:#1B3A6B;">最穩定的基準策略</strong></div>
+    </div>
+    <div style="background:var(--light);border-radius:10px;padding:12px 16px;border-left:4px solid #16a34a;">
+      <div style="font-size:0.8rem;font-weight:900;color:#16a34a;margin-bottom:5px;">
+        <span class="sdot" style="background:#16a34a;"></span>C2：80:20 熊市全數加碼
+      </div>
+      <div style="font-size:0.78rem;color:var(--gray);line-height:1.8;">跌幅觸發時賣短債全數加碼；新進資金補短債；創新高後恢復 80:20。<br><strong style="color:#16a34a;">主動把握低點</strong></div>
+    </div>
+    <div style="background:var(--light);border-radius:10px;padding:12px 16px;border-left:4px solid #4A7FD4;">
+      <div style="font-size:0.8rem;font-weight:900;color:#2E5FA3;margin-bottom:5px;">
+        <span class="sdot" style="background:#4A7FD4;"></span>C3：80:20 熊市半數加碼
+      </div>
+      <div style="font-size:0.78rem;color:var(--gray);line-height:1.8;">同 C2，但每個門檻只移動一半幅度，保留更多債券緩衝。<br><strong style="color:#2E5FA3;">保守加碼版本</strong></div>
+    </div>
+    <div style="background:var(--light);border-radius:10px;padding:12px 16px;border-left:4px solid #D4AF37;">
+      <div style="font-size:0.8rem;font-weight:900;color:#92400e;margin-bottom:5px;">
+        <span class="sdot" style="background:#D4AF37;"></span>C4：90:10 定期再平衡
+      </div>
+      <div style="font-size:0.78rem;color:var(--gray);line-height:1.8;">每年底恢復 90:10，新進資金按 90:10 投入。<br><strong style="color:#92400e;">股票比例略高的定期版</strong></div>
+    </div>
+  </div>
+  <div style="background:#fff5f5;border-radius:10px;padding:12px 16px;border-left:4px solid var(--red);">
+    <div style="font-size:0.8rem;font-weight:900;color:var(--red);margin-bottom:5px;">
+      <span class="sdot" style="background:var(--red);"></span>C5：100% 股票（無短債）
+    </div>
+    <div style="font-size:0.78rem;color:var(--gray);">全部投入股票，無短債，不做再平衡。<strong style="color:var(--red);">報酬最高，但波動最大</strong>——作為上限參考值</div>
+  </div>
+</section>
+
+<!-- ══ 4. C2/C3 觸發規則 ══ -->
+<section>
+  <h2>C2 / C3：跌幅觸發加碼規則</h2>
+  <div class="two-col" style="gap:28px;">
+    <div>
+      <div style="font-size:0.8rem;font-weight:700;color:#16a34a;margin-bottom:8px;">
+        <span class="sdot" style="background:#16a34a;"></span>C2：全數加碼（將短債全部換成股票）
+      </div>
+      <table class="cmp-table">
+        <thead>
+          <tr><th>從歷史高點跌幅</th><th>股票</th><th>短債</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>0%（創新高）</td><td>80%</td><td>20%</td></tr>
+          <tr><td>-5%</td><td>85%</td><td>15%</td></tr>
+          <tr><td>-10%</td><td>90%</td><td>10%</td></tr>
+          <tr><td>-15%</td><td>95%</td><td>5%</td></tr>
+          <tr class="best"><td>-20% 以上</td><td>100%</td><td>0%</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:0.68rem;color:var(--gray);margin-top:6px;">新進資金補回短債；創新高後恢復 80:20</div>
+    </div>
+    <div>
+      <div style="font-size:0.8rem;font-weight:700;color:#2E5FA3;margin-bottom:8px;">
+        <span class="sdot" style="background:#4A7FD4;"></span>C3：半數加碼（保留更多緩衝空間）
+      </div>
+      <table class="cmp-table">
+        <thead>
+          <tr><th>從歷史高點跌幅</th><th>股票</th><th>短債</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>0%（創新高）</td><td>80%</td><td>20%</td></tr>
+          <tr><td>-5%</td><td>82.5%</td><td>17.5%</td></tr>
+          <tr><td>-10%</td><td>85%</td><td>15%</td></tr>
+          <tr><td>-15%</td><td>87.5%</td><td>12.5%</td></tr>
+          <tr class="best"><td>-20% 以上</td><td>90%</td><td>10%</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:0.68rem;color:var(--gray);margin-top:6px;">同 C2 機制，但每個門檻只移動一半幅度</div>
+    </div>
+  </div>
+  <div class="note" style="margin-top:14px;">
+    <strong>觸發判斷基準：</strong>股票指數從「歷史最高點」計算跌幅（非買入成本）。每年底結算一次，不做盤中動態調整。
+  </div>
+</section>
+
+<!-- ══ 5. 模擬設定 ══ -->
+<section>
+  <h2>模擬條件設定</h2>
+  <div class="two-col" style="gap:18px;">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="background:var(--light);border-radius:12px;padding:14px 18px;">
+        <div style="font-size:0.78rem;font-weight:700;color:var(--blue);margin-bottom:10px;">資金設定</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div class="param-row">
+            <span>初始本金</span>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <input id="inputInit" class="param-input" type="number" value="500" min="10" max="99999" step="50">
+              <span style="font-size:0.74rem;color:var(--gray);">萬</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span>每年追加投入</span>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <input id="inputAdd" class="param-input" type="number" value="50" min="0" max="9999" step="10">
+              <span style="font-size:0.74rem;color:var(--gray);">萬</span>
+            </div>
+          </div>
+          <div class="param-row"><span>模擬年數</span><span class="param-val">20 年</span></div>
+          <div class="param-row"><span>總投入（期末）</span><span class="param-val" id="paramTotal">1,500 萬</span></div>
+        </div>
+        <button class="apply-btn" onclick="applyParams()">套用設定 → 重新模擬</button>
+      </div>
+      <div style="background:var(--light);border-radius:12px;padding:14px 18px;">
+        <div style="font-size:0.78rem;font-weight:700;color:var(--blue);margin-bottom:10px;">模擬規格</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div class="param-row"><span>模擬次數</span><span class="param-val">1,000 次</span></div>
+          <div class="param-row"><span>年度再平衡頻率</span><span class="param-val">每年底一次</span></div>
+          <div class="param-row"><span>報酬分布</span><span class="param-val">對數常態分布</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="background:var(--light);border-radius:12px;padding:14px 18px;">
+        <div style="font-size:0.78rem;font-weight:700;color:var(--blue);margin-bottom:10px;">報酬假設（年化）</div>
+        <table class="cmp-table" style="font-size:0.74rem;">
+          <thead><tr><th>資產</th><th>年化報酬</th><th>年化波動</th></tr></thead>
+          <tbody>
+            <tr><td>股票（0050 類）</td><td>8.0%</td><td>17.0%</td></tr>
+            <tr><td>短債（00719B 類）</td><td>3.0%</td><td>2.0%</td></tr>
+          </tbody>
+        </table>
+        <div style="font-size:0.68rem;color:var(--gray);margin-top:6px;">以全球指數 ETF 歷史長期平均為基礎；短債反映短期債券穩定特性</div>
+      </div>
+      <div class="card card-green">
+        <p style="margin:0 0 4px;font-weight:700;color:#16a34a;font-size:0.78rem;">模擬的意義</p>
+        <p style="margin:0;font-size:0.78rem;line-height:1.8;">過去 20 年恰好只有「一條歷史路徑」。蒙地卡羅模擬讓我們看到：<strong>在相同假設下，不同的隨機序列，最終結果差異可以有多大？哪種策略最穩定？</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 6. 即時模擬結果 ══ -->
+<section>
+  <h2>即時模擬結果：P10 / P50 / P90</h2>
+  <div class="two-col" style="gap:18px;align-items:start;">
+    <div>
+      <div class="chart-wrap" style="height:300px;">
+        <canvas id="chartMC"></canvas>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <!-- 最佳結果高亮 -->
+      <div id="mcBestP50" style="border-radius:10px;padding:10px 14px;background:var(--light);border-left:4px solid var(--blue);">
+        <div style="font-size:0.65rem;color:var(--gray);margin-bottom:2px;">P50 中位數最高（最佳期望報酬）</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span id="mcBestP50Label" style="font-size:0.8rem;font-weight:800;color:var(--blue);">—</span>
+          <span id="mcBestP50Val" style="font-size:1.4rem;font-weight:900;color:var(--blue);">—</span>
+        </div>
+        <div id="mcBestP50Sub" style="font-size:0.65rem;color:var(--gray);margin-top:1px;"></div>
+      </div>
+      <div id="mcBestStable" style="border-radius:10px;padding:10px 14px;background:var(--light);border-left:4px solid #16a34a;">
+        <div style="font-size:0.65rem;color:var(--gray);margin-bottom:2px;">P90－P10 最小（最穩定策略）</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span id="mcBestStableLabel" style="font-size:0.8rem;font-weight:800;color:#16a34a;">—</span>
+          <span id="mcBestStableVal" style="font-size:1.4rem;font-weight:900;color:#16a34a;">—</span>
+        </div>
+        <div id="mcBestStableSub" style="font-size:0.65rem;color:var(--gray);margin-top:1px;"></div>
+      </div>
+      <div id="mcBestP10" style="border-radius:10px;padding:10px 14px;background:var(--light);border-left:4px solid #D4AF37;">
+        <div style="font-size:0.65rem;color:var(--gray);margin-bottom:2px;">P10 悲觀保底最高（最佳下行保護）</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span id="mcBestP10Label" style="font-size:0.8rem;font-weight:800;color:#92400e;">—</span>
+          <span id="mcBestP10Val" style="font-size:1.4rem;font-weight:900;color:#92400e;">—</span>
+        </div>
+        <div id="mcBestP10Sub" style="font-size:0.65rem;color:var(--gray);margin-top:1px;"></div>
+      </div>
+      <!-- 關鍵發現：短債保護 P10 -->
+      <div id="mcInsight" style="border-radius:10px;padding:10px 14px;background:#fefce8;border-left:4px solid var(--accent);">
+        <div style="font-size:0.65rem;font-weight:700;color:#92400e;margin-bottom:4px;">關鍵發現</div>
+        <div id="mcInsightText" style="font-size:0.72rem;color:#713f12;line-height:1.7;"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:2px;">
+        <button class="sim-btn" onclick="rerunMC()">重新模擬</button>
+        <div id="mcRunNote" style="font-size:0.65rem;color:var(--gray);"></div>
+      </div>
+    </div>
+  </div>
+  <div class="note" style="font-size:0.72rem;margin-top:8px;">
+    每次點「重新模擬」都重跑 1,000 次，結果略有差異，但各策略的<strong>相對排序保持一致</strong>——這正是蒙地卡羅的價值所在。
+  </div>
+</section>
+
+<!-- ══ 7. 完整數據表 ══ -->
+<section>
+  <h2>完整模擬數據比較</h2>
+  <div class="two-col" style="gap:18px;align-items:start;">
+    <div>
+      <div id="mcFullTable" style="margin-bottom:8px;"></div>
+      <div class="note" style="font-size:0.68rem;">
+        <strong>勝過 C1 機率：</strong>最終資產超過 C1 的比例，>50% 代表平均而言優於基準。<br>
+        <strong>P90－P10：</strong>區間越小 = 結果越可預期。綠底 = 該欄最佳值。
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="background:var(--light);border-radius:10px;padding:13px 16px;border-top:3px solid var(--accent);">
+        <div style="font-size:0.72rem;font-weight:700;color:#92400e;margin-bottom:10px;">P10 悲觀情境發生時，哪種策略最安心？</div>
+        <div id="p7BestP10Card" style="background:#fff;border-radius:8px;padding:10px 14px;margin-bottom:8px;">
+          <div style="font-size:0.68rem;color:var(--gray);margin-bottom:2px;">P10 最高（最壞情況資產最多）</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span id="p7BestP10Label" style="font-size:0.82rem;font-weight:800;">—</span>
+            <span id="p7BestP10Val"   style="font-size:1.3rem;font-weight:900;">—</span>
+          </div>
+          <div id="p7BestP10Sub" style="font-size:0.65rem;color:var(--gray);margin-top:2px;"></div>
+        </div>
+        <div id="p7P10Ranking" style="display:flex;flex-direction:column;gap:5px;font-size:0.7rem;"></div>
+      </div>
+      <div class="note" style="font-size:0.7rem;margin-top:0;">
+        在市場長期低迷的情境下，短債緩衝讓你的資產有個「底」——比全股票更不容易跌到讓人心慌的水位。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 8. 結論 ══ -->
+<section>
+  <h2>結論：沒有完美策略，只有適合自己的策略</h2>
+  <div class="two-col" style="gap:18px;margin-bottom:12px;">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="background:var(--light);border-radius:10px;padding:13px 16px;border-left:4px solid #1B3A6B;">
+        <div style="font-size:0.78rem;font-weight:700;color:#1B3A6B;margin-bottom:5px;"><span class="sdot" style="background:#1B3A6B;"></span>重視穩定 → C1 80:20 定期</div>
+        <div style="font-size:0.78rem;color:var(--gray);line-height:1.7;">P90－P10 區間最小，執行最簡單，不需要追蹤市場高低點。適合不想主動管理的投資人。</div>
+      </div>
+      <div style="background:var(--light);border-radius:10px;padding:13px 16px;border-left:4px solid #16a34a;">
+        <div style="font-size:0.78rem;font-weight:700;color:#16a34a;margin-bottom:5px;"><span class="sdot" style="background:#16a34a;"></span>想把握低點 → C2 / C3 熊市加碼</div>
+        <div style="font-size:0.78rem;color:var(--gray);line-height:1.7;">P50 高於 C1 約 5–10%，但波動更大。需要紀律嚴格執行觸發機制，不能在熊市時動搖。</div>
+      </div>
+      <div style="background:var(--light);border-radius:10px;padding:13px 16px;border-left:4px solid #D4AF37;">
+        <div style="font-size:0.78rem;font-weight:900;color:#92400e;margin-bottom:5px;"><span class="sdot" style="background:#D4AF37;"></span>提高股票比例 → C4 90:10</div>
+        <div style="font-size:0.78rem;color:var(--gray);line-height:1.7;">與 C2 報酬相近，但執行更簡單（只需定期再平衡）。比 C1 承受稍高波動，換取更高期望報酬。</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card card-red">
+        <p style="margin:0 0 4px;font-weight:700;color:var(--red);font-size:0.78rem;"><span class="sdot" style="background:var(--red);"></span>C5 100% 股票：數字最好，但…</p>
+        <ul style="margin:0;padding-left:16px;font-size:0.78rem;line-height:1.9;">
+          <li>P50 最高，P90 最高——理論上最賺</li>
+          <li>P90－P10 區間也最大，P10 不保證最高</li>
+          <li>需要承受 -50% 以上的熊市而不動搖</li>
+          <li>現實中很少人能做到全程持有</li>
+        </ul>
+      </div>
+      <div class="card card-green">
+        <p style="margin:0 0 4px;font-weight:700;color:#16a34a;font-size:0.78rem;">核心結論</p>
+        <ul style="margin:0;padding-left:16px;font-size:0.78rem;line-height:1.9;">
+          <li>持有 10–20% 短債，對報酬影響很小</li>
+          <li>但能顯著降低熊市的心理壓力</li>
+          <li>加碼策略（C2/C3）需要嚴格執行才有效</li>
+          <li>最好的策略是<strong>你能長期堅持的那一種</strong></li>
+        </ul>
+      </div>
+      <div class="note" style="margin-top:0;">
+        無論哪種策略，<strong>持續投入 + 長期持有</strong> 才是財富成長的核心。可在「模擬條件設定」頁調整初始本金與每年追加金額，看看數字如何變化。
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({ width:1100, height:650, margin:0.04, hash:true, transition:'slide', transitionSpeed:'fast', controls:true, progress:false, slideNumber:true });
+const _header = document.querySelector('.slide-header');
+_header.style.opacity = '0';
+Reveal.on('slidechanged', e => {
+  _header.style.opacity = e.indexh === 0 ? '0' : '1';
+});
+
+
+// ── 使用者可調整參數 ──
+let MC_INIT = 500;   // 萬
+let MC_ADD  = 50;    // 萬
+
+function applyParams() {
+  const v1 = parseFloat(document.getElementById('inputInit')?.value);
+  const v2 = parseFloat(document.getElementById('inputAdd')?.value);
+  if (!isNaN(v1) && v1 > 0) MC_INIT = v1;
+  if (!isNaN(v2) && v2 >= 0) MC_ADD  = v2;
+  const totalEl = document.getElementById('paramTotal');
+  if (totalEl) totalEl.textContent = (MC_INIT + MC_ADD * 20).toLocaleString('zh-TW') + ' 萬';
+  if (chartMC) { chartMC.destroy(); chartMC = null; }
+  rerunMC();
+}
+
+// ── 蒙地卡羅核心 ──
+const STRAT_IDS     = ['C1','C2','C3','C4','C5'];
+const STRAT_LABELS  = { C1:'C1 80:20 定期', C2:'C2 80:20 全數', C3:'C3 80:20 半數', C4:'C4 90:10 定期', C5:'C5 100% 股票' };
+const STRAT_COLORS  = { C1:'#1B3A6B', C2:'#16a34a', C3:'#4A7FD4', C4:'#D4AF37', C5:'#dc2626' };
+
+function randn() {
+  const u = 1 - Math.random(), v = 1 - Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+const MU_S  = Math.log(1.08) - 0.5 * 0.17 * 0.17;
+const SIG_S = 0.17;
+const MU_B  = Math.log(1.03) - 0.5 * 0.02 * 0.02;
+const SIG_B = 0.02;
+
+function simPath(strat) {
+  const N_YR = 20, INIT = MC_INIT, ADD = MC_ADD;
+  const baseS = strat === 'C4' ? 0.9 : strat === 'C5' ? 1.0 : 0.8;
+  let sv = INIT * baseS, bv = INIT * (1 - baseS);
+  let idx = 1, idxHigh = 1;
+
+  for (let yr = 0; yr < N_YR; yr++) {
+    sv *= Math.exp(MU_S + SIG_S * randn());
+    bv *= Math.exp(MU_B + SIG_B * randn());
+    idx *= Math.exp(MU_S + SIG_S * randn());
+    if (idx > idxHigh) idxHigh = idx;
+
+    const drop = 1 - idx / idxHigh;
+    let ts = baseS;
+    if (strat === 'C2') {
+      if      (drop >= 0.20) ts = 1.00;
+      else if (drop >= 0.15) ts = 0.95;
+      else if (drop >= 0.10) ts = 0.90;
+      else if (drop >= 0.05) ts = 0.85;
+    } else if (strat === 'C3') {
+      if      (drop >= 0.20) ts = 0.90;
+      else if (drop >= 0.15) ts = 0.875;
+      else if (drop >= 0.10) ts = 0.85;
+      else if (drop >= 0.05) ts = 0.825;
+    }
+    const tot = sv + bv;
+    sv = tot * ts; bv = tot * (1 - ts);
+
+    if      (strat === 'C5')                 { sv += ADD; }
+    else if (strat === 'C2' || strat === 'C3'){ bv += ADD; }
+    else                                      { sv += ADD * ts; bv += ADD * (1 - ts); }
+  }
+  return sv + bv;
+}
+
+function runMC(nSim = 1000) {
+  const allVals = {};
+  for (const s of STRAT_IDS) {
+    const vals = Array.from({ length: nSim }, () => simPath(s));
+    vals.sort((a, b) => a - b);
+    allVals[s] = vals;
+  }
+  const c1Vals = allVals['C1'];
+  return STRAT_IDS.map(s => {
+    const v = allVals[s];
+    const p10 = v[Math.floor(nSim * 0.1)];
+    const p50 = v[Math.floor(nSim * 0.5)];
+    const p90 = v[Math.floor(nSim * 0.9)];
+    const beatC1 = s === 'C1' ? null : v.filter((val, i) => val > c1Vals[i]).length / nSim;
+    return { s, p10, p50, p90, spread: p90 - p10, beatC1 };
+  });
+}
+
+// ── 圖表變數 ──
+let chartMC = null, runCount = 0;
+
+function fmt(n) { return Math.round(n).toLocaleString('zh-TW'); }
+
+function renderMCChart(results) {
+  const labels = results.map(r => STRAT_LABELS[r.s]);
+  const colors = results.map(r => STRAT_COLORS[r.s]);
+
+  if (chartMC) {
+    chartMC.data.datasets[0].data = results.map(r => r.p10);
+    chartMC.data.datasets[1].data = results.map(r => r.p50);
+    chartMC.data.datasets[2].data = results.map(r => r.p90);
+    chartMC.update();
+  } else {
+    chartMC = new Chart(document.getElementById('chartMC'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'P10（悲觀）', data: results.map(r => r.p10),
+            backgroundColor: colors.map(c => c + '55'), borderColor: colors, borderWidth: 1.5 },
+          { label: 'P50（中位）', data: results.map(r => r.p50),
+            backgroundColor: colors.map(c => c + 'aa'), borderColor: colors, borderWidth: 1.5 },
+          { label: 'P90（樂觀）', data: results.map(r => r.p90),
+            backgroundColor: colors.map(c => c + 'dd'), borderColor: colors, borderWidth: 1.5 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 10 } },
+          tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmt(ctx.raw) + ' 萬' } }
+        },
+        scales: {
+          x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 10 } } },
+          y: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { size: 10 }, callback: v => (v/10000).toFixed(0) + '千萬' }, beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  // slide 6 best-result highlights
+  const bestP50Idx     = results.reduce((bi, r, i) => r.p50    > results[bi].p50    ? i : bi, 0);
+  const bestStableIdx  = results.reduce((bi, r, i) => r.spread < results[bi].spread ? i : bi, 0);
+  const bestP10Idx     = results.reduce((bi, r, i) => r.p10    > results[bi].p10    ? i : bi, 0);
+
+  function setHighlight(labelId, valId, subId, boxId, r, colorKey, subText) {
+    const c = STRAT_COLORS[r.s];
+    const box = document.getElementById(boxId);
+    if (box) box.style.borderLeftColor = c;
+    const lEl = document.getElementById(labelId);
+    if (lEl) { lEl.textContent = STRAT_LABELS[r.s]; lEl.style.color = c; }
+    const vEl = document.getElementById(valId);
+    if (vEl) { vEl.textContent = fmt(colorKey(r)) + ' 萬'; vEl.style.color = c; }
+    const sEl = document.getElementById(subId);
+    if (sEl) sEl.textContent = subText(r);
+  }
+
+  setHighlight('mcBestP50Label','mcBestP50Val','mcBestP50Sub','mcBestP50',
+    results[bestP50Idx], r => r.p50,
+    r => `P10 ${fmt(r.p10)} 萬　P90 ${fmt(r.p90)} 萬`);
+  setHighlight('mcBestStableLabel','mcBestStableVal','mcBestStableSub','mcBestStable',
+    results[bestStableIdx], r => r.spread,
+    r => `P50 ${fmt(r.p50)} 萬（區間越小越穩定）`);
+  setHighlight('mcBestP10Label','mcBestP10Val','mcBestP10Sub','mcBestP10',
+    results[bestP10Idx], r => r.p10,
+    r => `P50 ${fmt(r.p50)} 萬　P90 ${fmt(r.p90)} 萬`);
+
+  // full table (slide 7)
+  const fullEl = document.getElementById('mcFullTable');
+  if (fullEl) {
+    fullEl.innerHTML = `<table class="cmp-table" style="font-size:0.7rem;">
+      <thead><tr>
+        <th>策略</th>
+        <th>P10（悲觀）萬</th>
+        <th>P50（中位）萬</th>
+        <th>P90（樂觀）萬</th>
+        <th>P90－P10 萬</th>
+        <th>勝過 C1 機率</th>
+      </tr></thead>
+      <tbody>` +
+      results.map((r, i) => {
+        const isC1      = r.s === 'C1';
+        const best50    = i === results.reduce((bi, rr, ii) => rr.p50    > results[bi].p50    ? ii : bi, 0);
+        const minSpread = i === results.reduce((bi, rr, ii) => rr.spread < results[bi].spread ? ii : bi, 0);
+        const bestP10   = i === results.reduce((bi, rr, ii) => rr.p10    > results[bi].p10    ? ii : bi, 0);
+        return `<tr>
+          <td><span class="sdot" style="background:${STRAT_COLORS[r.s]};"></span>${STRAT_LABELS[r.s]}</td>
+          <td class="${bestP10 ? 'best' : ''}">${fmt(r.p10)}</td>
+          <td class="${best50 ? 'best' : ''}">${fmt(r.p50)}</td>
+          <td>${fmt(r.p90)}</td>
+          <td class="${minSpread ? 'best' : ''}">${fmt(r.spread)}</td>
+          <td>${isC1 ? '—' : (r.beatC1 * 100).toFixed(1) + '%'}</td>
+        </tr>`;
+      }).join('') +
+      `</tbody></table>`;
+  }
+
+  // 關鍵發現：含債策略 P10 vs C5 P10
+  const c5 = results.find(r => r.s === 'C5');
+  const bondStrats = results.filter(r => r.s !== 'C5');
+  const bestBondP10 = bondStrats.reduce((best, r) => r.p10 > best.p10 ? r : best, bondStrats[0]);
+  const insightEl = document.getElementById('mcInsightText');
+  if (insightEl && c5 && bestBondP10) {
+    const diff = bestBondP10.p10 - c5.p10;
+    const p50Diff = ((c5.p50 - bestBondP10.p50) / c5.p50 * 100).toFixed(1);
+    const diffSign = diff >= 0 ? '+' : '';
+    insightEl.innerHTML = `加入短債（${STRAT_LABELS[bestBondP10.s]}）：<br>
+      P50 只少 <strong>${p50Diff}%</strong>（${fmt(bestBondP10.p50)} vs ${fmt(c5.p50)} 萬）<br>
+      但 P10 悲觀情境 <strong style="color:#15803d;">${diffSign}${fmt(diff)} 萬</strong>（${fmt(bestBondP10.p10)} vs ${fmt(c5.p10)} 萬）<br>
+      <strong>少賺一點，換來更好的下行保護</strong>`;
+  }
+
+  // p7 右欄：P10 悲觀情境排名
+  const sortedByP10 = [...results].sort((a, b) => b.p10 - a.p10);
+  const p7Best = sortedByP10[0];
+  const c5r = results.find(r => r.s === 'C5');
+  const lEl = document.getElementById('p7BestP10Label');
+  const vEl = document.getElementById('p7BestP10Val');
+  const sEl = document.getElementById('p7BestP10Sub');
+  if (lEl && p7Best) {
+    const c = STRAT_COLORS[p7Best.s];
+    lEl.textContent = STRAT_LABELS[p7Best.s]; lEl.style.color = c;
+    vEl.textContent = fmt(p7Best.p10) + ' 萬'; vEl.style.color = c;
+    const vsC5 = p7Best.s !== 'C5' && c5r ? `比 C5 多 ${fmt(p7Best.p10 - c5r.p10)} 萬` : '';
+    sEl.textContent = `P50 ${fmt(p7Best.p50)} 萬　${vsC5}`;
+  }
+  const rankEl = document.getElementById('p7P10Ranking');
+  if (rankEl) {
+    rankEl.innerHTML = sortedByP10.map((r, i) => {
+      const c = STRAT_COLORS[r.s];
+      const bar = Math.round((r.p10 / sortedByP10[0].p10) * 100);
+      return `<div style="display:flex;align-items:center;gap:6px;">
+        <span style="min-width:110px;font-size:0.68rem;font-weight:700;color:${c};">${i + 1}. ${STRAT_LABELS[r.s]}</span>
+        <div style="flex:1;background:#e5e7eb;border-radius:4px;height:10px;overflow:hidden;">
+          <div style="width:${bar}%;background:${c};height:100%;border-radius:4px;"></div>
+        </div>
+        <span style="font-size:0.68rem;font-weight:700;color:${c};min-width:55px;text-align:right;">${fmt(r.p10)} 萬</span>
+      </div>`;
+    }).join('');
+  }
+
+  runCount++;
+  const noteEl = document.getElementById('mcRunNote');
+  if (noteEl) noteEl.textContent = `第 ${runCount} 次模擬完成（共 1,000 條路徑）`;
+}
+
+function rerunMC() {
+  const v1 = parseFloat(document.getElementById('inputInit')?.value);
+  const v2 = parseFloat(document.getElementById('inputAdd')?.value);
+  if (!isNaN(v1) && v1 > 0) MC_INIT = v1;
+  if (!isNaN(v2) && v2 >= 0) MC_ADD  = v2;
+  const totalEl = document.getElementById('paramTotal');
+  if (totalEl) totalEl.textContent = (MC_INIT + MC_ADD * 20).toLocaleString('zh-TW') + ' 萬';
+  const results = runMC(1000);
+  renderMCChart(results);
+}
+
+// ── 路徑示意圖（slide 2）──
+function renderPathsChart() {
+  if (window._cPaths) return;
+  const nYr = 20, nPaths = 25;
+  const years = Array.from({ length: nYr + 1 }, (_, i) => i);
+  const paths = [];
+  for (let p = 0; p < nPaths; p++) {
+    const path = [1000];
+    for (let yr = 0; yr < nYr; yr++) {
+      const r = Math.exp(MU_S + SIG_S * randn());
+      path.push(Math.round(path[path.length - 1] * r + 100));
+    }
+    paths.push(path);
+  }
+
+  const datasets = paths.map((p, i) => ({
+    data: p, borderColor: `rgba(27,58,107,${0.08 + (i % 5) * 0.02})`,
+    borderWidth: 1, pointRadius: 0, tension: 0.3, fill: false
+  }));
+
+  // add a "median-ish" path in gold
+  const medianPath = [1000];
+  for (let yr = 0; yr < nYr; yr++) medianPath.push(Math.round(medianPath[medianPath.length - 1] * 1.065 + 100));
+  datasets.push({ label: '中位走勢', data: medianPath, borderColor: '#D4AF37', borderWidth: 2.5, pointRadius: 0, tension: 0.3, fill: false });
+
+  const labelPlugin = {
+    id: 'medianLabel',
+    afterDraw(chart) {
+      const ds = chart.data.datasets;
+      const last = ds.length - 1;
+      const meta = chart.getDatasetMeta(last);
+      if (!meta.data.length) return;
+      const pt = meta.data[meta.data.length - 1];
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.font = 'bold 10px -apple-system, PingFang TC, sans-serif';
+      ctx.fillStyle = '#D4AF37';
+      ctx.textAlign = 'right';
+      ctx.fillText('← 中位走勢', pt.x - 4, pt.y - 7);
+      ctx.font = '9px -apple-system, PingFang TC, sans-serif';
+      ctx.fillStyle = '#92400e';
+      ctx.fillText('約一半結果在此線以上', pt.x - 4, pt.y + 5);
+      ctx.restore();
+    }
+  };
+
+  window._cPaths = new Chart(document.getElementById('chartPaths'), {
+    type: 'line',
+    data: { labels: years, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'transparent' }, ticks: { font: { size: 9 }, callback: v => v % 5 === 0 ? '第' + v + '年' : '' } },
+        y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 9 }, callback: v => (v / 1000).toFixed(0) + '千萬' }, beginAtZero: false }
+      }
+    },
+    plugins: [labelPlugin]
+  });
+}
+
+// ── Reveal 事件 ──
+Reveal.on('slidechanged', ({ indexh: idx }) => {
+  if (idx === 1 && !window._cPaths) renderPathsChart();
+  if (idx === 5 && !chartMC) rerunMC();
+  if (idx === 6 && !chartMC) rerunMC();
+});
+</script>
+</body>
+</html>

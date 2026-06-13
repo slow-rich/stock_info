@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EP10 費用率模擬</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue:   #1B3A6B;
+    --green:  #2E5FA3;
+    --red:    #dc2626;
+    --gray:   #6b7280;
+    --light:  #f0f4fa;
+    --accent: #D4AF37;
+  }
+  .reveal { font-family: -apple-system, "PingFang TC", sans-serif; }
+  .reveal h2 { font-size: 1.5rem; color: var(--blue); font-weight: 700; border-bottom: 3px solid var(--accent); padding-bottom: 8px; margin-bottom: 20px; }
+  .reveal p, .reveal li { font-size: 0.85rem; line-height: 1.7; }
+  .reveal .slides section { text-align: left; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .card { background: var(--light); border-radius: 10px; padding: 16px 20px; border-left: 4px solid var(--accent); }
+  .note { background: #fefce8; border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.78rem; color: #713f12; margin-top: 12px; }
+  .chart-wrap { position: relative; height: 280px; }
+  .slide-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 46px; z-index: 200; pointer-events: none;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px; overflow: visible;
+    background: rgba(255,255,255,0.96);
+    border-bottom: 2px solid #D4AF37;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  :root { --r-controls-color: rgba(212,175,55,0.85); }
+  .reveal .slides section:not(.cover-slide) { padding-top: 52px !important; }
+  .er-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  .er-table th { background: var(--blue); color: #fff; padding: 7px 10px; text-align: center; font-weight: 700; }
+  .er-table th:first-child { text-align: left; padding-left: 14px; }
+  .er-table td { padding: 7px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; }
+  .er-table td:first-child { text-align: left; padding-left: 14px; font-weight: 700; color: var(--blue); }
+  .er-table tbody tr:nth-child(even) { background: rgba(240,244,250,0.4); }
+  .er-badge { display: inline-block; font-size: 0.62rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<!-- ── 頂部品牌橫條 ── -->
+<div class="slide-header">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <svg viewBox="0 0 100 100" width="36" height="36" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-hdr"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-hdr)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="3.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:18px;color:#1B3A6B;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:7.5px;color:#888;letter-spacing:2.2px;text-transform:uppercase;margin-top:3px;">Slow Rich</div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:#6b7280;">
+    <span style="color:#D4AF37;font-weight:800;margin-right:6px;">EP.10</span>費用率模擬
+  </div>
+</div>
+
+<div class="reveal">
+<div class="slides">
+
+<!-- ══ 1. 封面 ══ -->
+<section class="cover-slide" data-background-gradient="linear-gradient(150deg,#080f1f 0%,#0d1b35 55%,#080f1f 100%)" style="padding:40px 56px;text-align:left !important;position:relative;">
+  <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;" viewBox="0 0 1100 650" preserveAspectRatio="none">
+    <defs>
+      <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g transform="translate(-73,18)">
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160 L1055,650 L680,650 Z" fill="#D4AF37" opacity="0.05"/>
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160" stroke="#D4AF37" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.05"/>
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160" stroke="#D4AF37" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
+    <circle cx="1055" cy="160" r="24" fill="#D4AF37" opacity="0.12" filter="url(#glow)"/>
+    <circle cx="1055" cy="160" r="10" fill="#D4AF37" opacity="0.55"/>
+    <circle cx="1055" cy="160" r="5" fill="#D4AF37" opacity="0.95"/>
+      </g>
+  </svg>
+  <!-- Logo -->
+  <div style="position:absolute;top:9px;right:123px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.35);border-radius:14px;padding:10px 18px 10px 12px;">
+    <svg viewBox="0 0 100 100" width="80" height="80" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-cv"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-cv)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2.5" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="4.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:26px;color:#D4AF37;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:400;font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">Slow Rich</div>
+    </div>
+  </div>
+  <!-- Badge -->
+  <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.45);border-radius:20px;padding:5px 16px;margin-bottom:30px;">
+    <span style="font-size:11px;color:#D4AF37;font-weight:800;letter-spacing:1.5px;">EP.10</span>
+    <span style="width:1px;height:10px;background:rgba(212,175,55,0.4);display:inline-block;"></span>
+    <span style="font-size:11px;color:#aaa;letter-spacing:0.5px;">指數化投資的成本意識</span>
+  </div>
+  <!-- Title -->
+  <div style="margin-bottom:14px;line-height:1.05;">
+    <div style="font-size:3.5rem;font-weight:900;color:#fff;margin-bottom:4px;">你的報酬，</div>
+    <div style="font-size:4.4rem;font-weight:900;color:#D4AF37;text-shadow:0 0 36px rgba(212,175,55,0.35);">被誰吃掉了？</div>
+  </div>
+  <div style="margin-bottom:28px;">
+    <div style="font-size:1rem;font-weight:300;color:#aaa;letter-spacing:1px;">費用率 × 複利 = 30 年悄悄消失 800 萬</div>
+  </div>
+  <!-- Stats -->
+  <div id="cover-cards" style="display:flex;align-items:stretch;gap:12px;max-width:680px;transform:scale(0.9);transform-origin:left top;">
+    <div style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">30 年差距</div>
+      <div style="font-size:1rem;font-weight:700;color:#D4AF37;">816 萬（費用 1.5% vs 0.03%）</div>
+    </div>
+    <div style="background:rgba(46,95,163,0.08);border:1px solid rgba(46,95,163,0.25);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">主動基金平均費用</div>
+      <div style="font-size:1rem;font-weight:700;color:#2E5FA3;">1–2%（甚至更高）</div>
+    </div>
+    <div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">指數 ETF 費用</div>
+      <div style="font-size:1rem;font-weight:700;color:#16a34a;">0.03–0.2%</div>
+    </div>
+  </div>
+  <p style="position:absolute;bottom:14px;left:56px;color:#2e4a6b;font-size:0.68rem;">按 → 翻頁 &nbsp;|&nbsp; F 全螢幕 &nbsp;|&nbsp; ESC 總覽</p>
+</section>
+
+<!-- ══ 2. 什麼是內扣費用率 ══ -->
+<section>
+  <h2>費用率是什麼——每年自動從你的資產扣除</h2>
+  <div class="two-col">
+    <div>
+      <p><strong>內扣費用率（Expense Ratio）</strong>是 ETF 或共同基金每年從資產淨值中扣除的管理費用，不需要手動繳納，每天自動從淨值（NAV，Net Asset Value，淨資產價值）中扣除。</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">
+        <div style="background:#fff;border-radius:10px;padding:12px 16px;border-left:4px solid var(--accent);">
+          <div style="font-size:0.75rem;font-weight:700;color:#92400e;margin-bottom:3px;">費用率的組成</div>
+          <div style="font-size:0.68rem;color:var(--gray);">管理費（基金公司）+ 保管費（銀行）+ 行政費用<br>= 每年從基金淨值中自動扣除</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:12px 16px;border-left:4px solid var(--blue);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--blue);margin-bottom:3px;">實際扣除方式</div>
+          <div style="font-size:0.68rem;color:var(--gray);">費用率 1% → 每天從淨值扣除 1% ÷ 365<br>看起來微不足道，但 30 年複利後差距驚人</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:12px 16px;border-left:4px solid #dc2626;">
+          <div style="font-size:0.75rem;font-weight:700;color:#dc2626;margin-bottom:3px;">你看不到它被扣走</div>
+          <div style="font-size:0.68rem;color:var(--gray);">對帳單不會列出「今日扣除費用 X 元」，但你買到的 NAV 已經是扣除費用後的淨值</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;">費用率的直覺感受</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;">
+            <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">你持有 100 萬，費用率 1%</div>
+            <div style="font-size:0.85rem;font-weight:700;color:#dc2626;">每年自動扣除 1 萬</div>
+            <div style="font-size:0.68rem;color:var(--gray);margin-top:3px;">即使市場報酬是 0%，你也損失了 1 萬</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;">
+            <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">你持有 1,000 萬，費用率 1%</div>
+            <div style="font-size:0.85rem;font-weight:700;color:#dc2626;">每年自動扣除 10 萬</div>
+            <div style="font-size:0.68rem;color:var(--gray);margin-top:3px;">資產越大，費用的絕對金額越大</div>
+          </div>
+          <div style="background:rgba(212,175,55,0.08);border-radius:8px;padding:12px 14px;border:1px solid rgba(212,175,55,0.3);">
+            <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">換個角度：毛報酬 7%，費用 1.5%</div>
+            <div style="font-size:0.85rem;font-weight:700;color:#92400e;">你把報酬的 21% 付給基金公司</div>
+            <div style="font-size:0.68rem;color:var(--gray);margin-top:3px;">這筆錢不管市場好壞，每年都在流失</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 3. 費用率比較 ══ -->
+<section>
+  <h2>費用率的光譜——從 0.03% 到 3%，差距達 100 倍</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <table class="er-table">
+        <thead>
+          <tr>
+            <th>類型</th>
+            <th>代表商品</th>
+            <th>費用率</th>
+            <th>評估</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>美股指數 ETF</td>
+            <td style="text-align:center;">VOO / SPY / VT</td>
+            <td style="text-align:center;"><span class="er-badge" style="background:rgba(34,197,94,0.1);color:#16a34a;">0.03–0.06%</span></td>
+            <td style="text-align:center;font-size:0.68rem;color:#16a34a;font-weight:700;">最低</td>
+          </tr>
+          <tr>
+            <td>台灣指數 ETF</td>
+            <td style="text-align:center;">006208 / 0050</td>
+            <td style="text-align:center;"><span class="er-badge" style="background:rgba(59,130,246,0.1);color:#2563eb;">0.2%</span></td>
+            <td style="text-align:center;font-size:0.68rem;color:#2563eb;font-weight:700;">低</td>
+          </tr>
+          <tr>
+            <td>短天期債券 ETF</td>
+            <td style="text-align:center;">BSV / 00719B</td>
+            <td style="text-align:center;"><span class="er-badge" style="background:rgba(59,130,246,0.1);color:#2563eb;">0.03–0.17%</span></td>
+            <td style="text-align:center;font-size:0.68rem;color:#2563eb;font-weight:700;">低</td>
+          </tr>
+          <tr>
+            <td>高息/主題 ETF</td>
+            <td style="text-align:center;">部分高息 ETF</td>
+            <td style="text-align:center;"><span class="er-badge" style="background:rgba(245,158,11,0.1);color:#d97706;">0.46%~0.7%</span></td>
+            <td style="text-align:center;font-size:0.68rem;color:#d97706;font-weight:700;">中</td>
+          </tr>
+          <tr>
+            <td>主動共同基金</td>
+            <td style="text-align:center;">台灣一般基金</td>
+            <td style="text-align:center;"><span class="er-badge" style="background:rgba(249,115,22,0.1);color:#ea580c;">1.0–2.0%</span></td>
+            <td style="text-align:center;font-size:0.68rem;color:#ea580c;font-weight:700;">高</td>
+          </tr>
+          <tr>
+            <td>儲蓄險連結基金</td>
+            <td style="text-align:center;">部分壽險商品</td>
+            <td style="text-align:center;"><span class="er-badge" style="background:rgba(220,38,38,0.1);color:#dc2626;">2.0–3.0%+</span></td>
+            <td style="text-align:center;font-size:0.68rem;color:#dc2626;font-weight:700;">最高</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note" style="margin-top:10px;">費用率以外，購買共同基金還常有 1–3% 的「申購手續費」，這是一次性額外損失。</div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;">為什麼指數 ETF 費用這麼低？</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #22c55e;">
+            <div style="font-size:0.72rem;font-weight:700;color:#065f46;margin-bottom:3px;">不需要基金經理人選股</div>
+            <div style="font-size:0.68rem;color:var(--gray);">被動追蹤指數，沒有人工選股成本</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid var(--blue);">
+            <div style="font-size:0.72rem;font-weight:700;color:var(--blue);margin-bottom:3px;">規模效益</div>
+            <div style="font-size:0.68rem;color:var(--gray);">管理規模越大，固定成本分攤越少，費用率越低</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid var(--accent);">
+            <div style="font-size:0.72rem;font-weight:700;color:#92400e;margin-bottom:3px;">低換手率</div>
+            <div style="font-size:0.68rem;color:var(--gray);">指數成分股調整頻率低，交易成本（摩擦成本）極少</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 4. 30 年費用侵蝕計算 ══ -->
+<section>
+  <h2>費用侵蝕的真相——30 年後，你少了多少？</h2>
+  <p style="margin-bottom:10px;">假設每月投入 <strong>3 萬元</strong>，持續 <strong>30 年</strong>，毛報酬 <strong>7%</strong>，費用率不同時的結果：</p>
+  <div class="two-col" style="align-items:center;">
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="background:#fff;border-radius:10px;padding:14px 16px;border:2px solid #22c55e;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span style="font-size:0.82rem;font-weight:700;color:var(--blue);">費用率 0.03%（VOO / VT）</span>
+          <span style="font-size:1.1rem;font-weight:900;color:#16a34a;">3,489 萬</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <span style="font-size:0.68rem;color:var(--gray);">淨報酬 6.97%</span>
+          <span style="font-size:0.68rem;color:#16a34a;font-weight:700;">基準線</span>
+        </div>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:14px 16px;border:2px solid #3b82f6;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span style="font-size:0.82rem;font-weight:700;color:var(--blue);">費用率 0.2%（0050 / 006208）</span>
+          <span style="font-size:1.1rem;font-weight:900;color:#2563eb;">3,382 萬</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <span style="font-size:0.68rem;color:var(--gray);">淨報酬 6.8%</span>
+          <span style="font-size:0.68rem;color:#2563eb;font-weight:700;">少 107 萬</span>
+        </div>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:14px 16px;border:2px solid #f97316;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span style="font-size:0.82rem;font-weight:700;color:var(--blue);">費用率 1.5%（主動基金）</span>
+          <span style="font-size:1.1rem;font-weight:900;color:#ea580c;">2,673 萬</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <span style="font-size:0.68rem;color:var(--gray);">淨報酬 5.5%</span>
+          <span style="font-size:0.68rem;color:#ea580c;font-weight:700;">少 816 萬</span>
+        </div>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:14px 16px;border:2px solid #dc2626;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span style="font-size:0.82rem;font-weight:700;color:var(--blue);">費用率 3.0%（高費用）</span>
+          <span style="font-size:1.1rem;font-weight:900;color:#dc2626;">2,056 萬</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <span style="font-size:0.68rem;color:var(--gray);">淨報酬 4.0%</span>
+          <span style="font-size:0.68rem;color:#dc2626;font-weight:700;">少 1,433 萬</span>
+        </div>
+      </div>
+      <div class="note">累積投入 <strong>1,080 萬</strong>（3 萬 × 12 月 × 30 年）。費用率 0.03% 和 1.5% 相差的 816 萬，超過你 23 年的投入總額。</div>
+    </div>
+    <div>
+      <div style="background:rgba(220,38,38,0.03);border-radius:12px;padding:20px;border:2px solid rgba(220,38,38,0.15);">
+        <div style="font-size:0.82rem;font-weight:700;color:#dc2626;margin-bottom:14px;">費用侵蝕為什麼這麼嚴重？</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;">
+            <div style="font-size:0.72rem;font-weight:700;color:var(--blue);margin-bottom:3px;">複利的反向作用</div>
+            <div style="font-size:0.68rem;color:var(--gray);">費用率扣除後，少了這部分的複利增長機會<br>少 1% → 少 1% 的複利，30 年後影響倍增</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;">
+            <div style="font-size:0.72rem;font-weight:700;color:var(--blue);margin-bottom:3px;">費用是確定損失，報酬是不確定收益</div>
+            <div style="font-size:0.68rem;color:var(--gray);">市場可能上漲也可能下跌，但費用每年必扣<br>在虧損的年份，你還是在付費用</div>
+          </div>
+          <div style="background:rgba(212,175,55,0.08);border-radius:8px;padding:12px 14px;border:1px solid rgba(212,175,55,0.3);">
+            <div style="font-size:0.72rem;font-weight:700;color:#92400e;margin-bottom:3px;">費用率 1.5% 意味著什麼？</div>
+            <div style="font-size:0.68rem;color:var(--gray);">如果毛報酬 7%，費用 1.5%，你付出了<br><strong>報酬的 21% 給基金公司</strong>，每年如此</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 5. Chart.js 視覺化 ══ -->
+<section>
+  <h2>視覺化：費用率越高，最終資產越少</h2>
+  <p style="margin-bottom:10px;">相同條件：每月投入 3 萬、30 年、毛報酬 7%，唯一差異是<strong>費用率</strong>：</p>
+  <div class="chart-wrap" style="height:320px;"><canvas id="erChart"></canvas></div>
+  <p style="font-size:0.65rem;color:var(--gray);margin-top:6px;text-align:center;">
+    試算數據｜每月投入 3 萬，30 年，毛年化報酬 7%｜淨報酬 = 毛報酬 − 費用率｜不含通膨與稅
+  </p>
+  <div class="note" style="margin-top:8px;">
+    <strong>0.03% vs 1.5% 差距 816 萬</strong>——這不是「選到比較好的股票」，只是選了費用率更低的工具。
+    費用越低，留在你口袋裡的錢越多。
+  </div>
+</section>
+
+<!-- ══ 6. 台灣常見 ETF 費用率 ══ -->
+<section>
+  <h2>台灣常見 ETF 費用率一覽</h2>
+  <div class="two-col" style="align-items:start;">
+    <div>
+      <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:10px;">股票型 ETF</div>
+      <table class="er-table">
+        <thead>
+          <tr><th>代號</th><th>名稱</th><th>追蹤指數</th><th>費用率</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>0050</td>
+            <td>元大台灣 50</td>
+            <td style="text-align:center;font-size:0.68rem;">台灣 50 指數</td>
+            <td style="text-align:center;"><span class="er-badge" style="background:rgba(59,130,246,0.1);color:#2563eb;">0.2%</span></td>
+          </tr>
+          <tr>
+            <td>006208</td>
+            <td>富邦台 50</td>
+            <td style="text-align:center;font-size:0.68rem;">台灣 50 指數</td>
+            <td style="text-align:center;"><span class="er-badge" style="background:rgba(59,130,246,0.1);color:#2563eb;">0.2%</span></td>
+          </tr>
+          <tr>
+            <td>VOO</td>
+            <td>Vanguard S&amp;P500</td>
+            <td style="text-align:center;font-size:0.68rem;">S&amp;P 500</td>
+            <td style="text-align:center;"><span class="er-badge" style="background:rgba(34,197,94,0.15);color:#15803d;">0.03%</span></td>
+          </tr>
+          <tr>
+            <td>VT</td>
+            <td>Vanguard 全球股市</td>
+            <td style="text-align:center;font-size:0.68rem;">FTSE 全球全市場</td>
+            <td style="text-align:center;"><span class="er-badge" style="background:rgba(34,197,94,0.12);color:#16a34a;">0.06%</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin:14px 0 8px;">債券型 ETF</div>
+      <table class="er-table">
+        <thead>
+          <tr><th>代號</th><th>名稱</th><th>類型</th><th>費用率</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>00719B</td>
+            <td>元大美債 1-3 年</td>
+            <td style="text-align:center;font-size:0.68rem;">短天期美債</td>
+            <td style="text-align:center;"><span class="er-badge" style="background:rgba(59,130,246,0.1);color:#2563eb;">0.17%</span></td>
+          </tr>
+          <tr>
+            <td>BSV</td>
+            <td>Vanguard Short-Term Bond</td>
+            <td style="text-align:center;font-size:0.68rem;">短天期美國債券</td>
+            <td style="text-align:center;"><span class="er-badge" style="background:rgba(34,197,94,0.15);color:#15803d;">0.03%</span></td>
+          </tr>
+          <tr>
+            <td>BND</td>
+            <td>Vanguard Total Bond</td>
+            <td style="text-align:center;font-size:0.68rem;">美國總體債券</td>
+            <td style="text-align:center;"><span class="er-badge" style="background:rgba(34,197,94,0.1);color:#16a34a;">0.03%</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;">如何查詢費用率？</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid var(--accent);">
+            <div style="font-size:0.72rem;font-weight:700;color:#92400e;margin-bottom:3px;">台灣 ETF</div>
+            <div style="font-size:0.68rem;color:var(--gray);">各投信官網「基金簡介」或「公開說明書」查詢「總費用率」或「管理費」</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid var(--blue);">
+            <div style="font-size:0.72rem;font-weight:700;color:var(--blue);margin-bottom:3px;">美股 ETF</div>
+            <div style="font-size:0.68rem;color:var(--gray);">Vanguard / Fidelity 官網，或 ETF.com 搜尋代號，「Expense Ratio」欄位即費用率</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #22c55e;">
+            <div style="font-size:0.72rem;font-weight:700;color:#065f46;margin-bottom:3px;">比較原則</div>
+            <div style="font-size:0.68rem;color:var(--gray);">追蹤相同指數的 ETF，費用率是選擇關鍵<br>如 0050 / 006208（0.2%）vs VOO（0.03%），費用越低，長期複利效果越顯著</div>
+          </div>
+        </div>
+        <div class="note" style="margin-top:12px;">費用率不是唯一考量，還要看追蹤誤差（Tracking Error）、流動性、配息政策等，但費用率往往是最重要的單一因素。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 7. 費用如何悄悄扣除 ══ -->
+<section>
+  <h2>費用為何「看不見」——NAV 每日自動扣除的機制</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>費用不是從你的帳戶匯款，而是直接<strong>反映在 ETF 的淨值（NAV）裡</strong>，所以你幾乎感受不到它被扣走。</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0;">
+        <div style="background:#fff;border-radius:10px;padding:14px;border-left:4px solid var(--accent);">
+          <div style="font-size:0.78rem;font-weight:700;color:#92400e;margin-bottom:6px;">舉例：每日扣除</div>
+          <div style="font-size:0.7rem;color:var(--gray);">
+            費用率 0.2%，ETF 淨值 100 元<br>
+            每天扣除：0.2% ÷ 365 ≈ 0.000548%<br>
+            每天扣：100 元 × 0.000548% = <strong>0.00055 元</strong><br>
+            看起來微不足道，但對 1,000 萬的資產每天扣 54.8 元，30 年後差距顯著
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px;border-left:4px solid #dc2626;">
+          <div style="font-size:0.78rem;font-weight:700;color:#dc2626;margin-bottom:6px;">你看到的 vs 實際情況</div>
+          <div style="font-size:0.7rem;color:var(--gray);">
+            你的帳戶顯示 ETF 價格 100 元<br>
+            如果沒有費用，應該是 100.02 元<br>
+            那 0.02 元已被基金公司收走，不會出現在報表上
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px;border-left:4px solid #10b981;">
+          <div style="font-size:0.78rem;font-weight:700;color:#065f46;margin-bottom:6px;">市場下跌時費用仍扣</div>
+          <div style="font-size:0.7rem;color:var(--gray);">
+            2022 年全球股市下跌 −20%，<br>
+            你的主動基金跌了 −22%（= 市場 −20% + 費用 −2%），<br>
+            費用不因市場虧損而免除
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="background:var(--blue);border-radius:12px;padding:24px;color:#fff;">
+        <div style="font-size:0.85rem;font-weight:700;margin-bottom:16px;color:#D4AF37;">費用的「雙重傷害」</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div style="background:rgba(255,255,255,0.08);border-radius:8px;padding:14px;">
+            <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">第一層傷害</div>
+            <div style="font-size:0.82rem;font-weight:700;">每年直接損失的資金</div>
+            <div style="font-size:0.68rem;color:rgba(255,255,255,0.6);margin-top:3px;">持有 100 萬、費用 1% → 每年少 1 萬</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.08);border-radius:8px;padding:14px;">
+            <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">第二層傷害（更大）</div>
+            <div style="font-size:0.82rem;font-weight:700;">損失的「複利機會」</div>
+            <div style="font-size:0.68rem;color:rgba(255,255,255,0.6);margin-top:3px;">那 1 萬如果繼續複利 30 年，會變成更多倍</div>
+          </div>
+          <div style="background:rgba(212,175,55,0.15);border-radius:8px;padding:14px;border:1px solid rgba(212,175,55,0.4);">
+            <div style="font-size:0.72rem;color:rgba(212,175,55,0.8);margin-bottom:4px;">結論</div>
+            <div style="font-size:0.82rem;font-weight:700;color:#D4AF37;">費用侵蝕的，不只是當下的錢，<br>還有這筆錢未來的所有複利</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 8. 主動基金費用陷阱 ══ -->
+<section>
+  <h2>主動基金的費用陷阱——高費用難以靠選股彌補</h2>
+  <div class="two-col" style="align-items:start;">
+    <div>
+      <p>主動基金的費用率通常是指數 ETF 的 20–50 倍，基金經理人必須持續跑贏市場才能彌補費用差距。</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:12px 0;">
+        <div style="background:#fff;border-radius:10px;padding:12px 16px;border-left:4px solid #dc2626;">
+          <div style="font-size:0.75rem;font-weight:700;color:#dc2626;margin-bottom:3px;">費用差距需要「額外超額報酬」來彌補</div>
+          <div style="font-size:0.68rem;color:var(--gray);">主動基金費用 1.5% vs ETF 費用 0.2%，<br>基金經理人每年必須多賺 <strong>1.3%</strong> 才能打平</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:12px 16px;border-left:4px solid #f59e0b;">
+          <div style="font-size:0.75rem;font-weight:700;color:#92400e;margin-bottom:3px;">SPIVA 研究（S&P）長期追蹤結果</div>
+          <div style="font-size:0.68rem;color:var(--gray);">過去 15 年，超過 90% 的主動基金<br>長期績效輸給對應指數 ETF</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:12px 16px;border-left:4px solid var(--blue);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--blue);margin-bottom:3px;">Morningstar 費用率研究</div>
+          <div style="font-size:0.68rem;color:var(--gray);">費用率是預測基金未來績效的<br>最可靠單一指標——費用越低，未來表現越好</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:12px 16px;border-left:4px solid #6366f1;">
+          <div style="font-size:0.75rem;font-weight:700;color:#4338ca;margin-bottom:3px;">隱藏成本：交易摩擦</div>
+          <div style="font-size:0.68rem;color:var(--gray);">主動基金頻繁買賣，交易成本（bid-ask spread、沖擊成本）<br>通常不計入費用率，是額外的隱形損耗</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;">30 年總費用計算（以 1,000 萬資產為例）</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="background:#fff;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:0.72rem;font-weight:700;color:#16a34a;">VOO（0.03%）</div>
+              <div style="font-size:0.65rem;color:var(--gray);">每年費用 3,000 元</div>
+            </div>
+            <span style="font-size:0.82rem;font-weight:700;color:#16a34a;">30 年約 16 萬</span>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:0.72rem;font-weight:700;color:#2563eb;">0050 / 006208（0.2%）</div>
+              <div style="font-size:0.65rem;color:var(--gray);">每年費用 2 萬</div>
+            </div>
+            <span style="font-size:0.82rem;font-weight:700;color:#2563eb;">30 年約 90 萬</span>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:0.72rem;font-weight:700;color:#ea580c;">主動基金（1.5%）</div>
+              <div style="font-size:0.65rem;color:var(--gray);">每年費用 15 萬</div>
+            </div>
+            <span style="font-size:0.82rem;font-weight:700;color:#ea580c;">30 年約 816 萬</span>
+          </div>
+        </div>
+        <div class="note" style="margin-top:10px;">以上為簡化估算（資產假設固定 1,000 萬），實際因資產增長，費用的絕對金額會更高。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 9. 費用是唯一確定的負報酬 ══ -->
+<section>
+  <h2>費用是投資中唯一確定的「負報酬」</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>市場報酬是不確定的——今年可能 +20%，明年可能 −30%。<br>但費用率是<strong>每年確定扣除的固定損失</strong>。</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0;">
+        <div style="background:#fff;border-radius:10px;padding:14px;border-left:4px solid #22c55e;">
+          <div style="font-size:0.78rem;font-weight:700;color:#065f46;margin-bottom:4px;">你無法控制的</div>
+          <div style="font-size:0.7rem;color:var(--gray);">市場漲跌、總經環境、地緣政治、企業盈利……這些因素你控制不了，市場已定價反映</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px;border-left:4px solid var(--accent);">
+          <div style="font-size:0.78rem;font-weight:700;color:#92400e;margin-bottom:4px;">你可以控制的</div>
+          <div style="font-size:0.7rem;color:var(--gray);">費用率、資產配置、投資紀律、稅務規劃……選擇低費用 ETF 是最直接的「確定性獲利」</div>
+        </div>
+        <div style="background:rgba(220,38,38,0.04);border-radius:10px;padding:14px;border:1px solid rgba(220,38,38,0.2);">
+          <div style="font-size:0.78rem;font-weight:700;color:#dc2626;margin-bottom:4px;">降低費用 = 直接提升淨報酬</div>
+          <div style="font-size:0.7rem;color:var(--gray);">從費用 1.5% 換成 0.2% 的 ETF，你的淨報酬立刻提升 1.3%，<br>不需要任何市場預測或選股技巧</div>
+        </div>
+      </div>
+      <div class="note">John Bogle（先鋒集團創辦人）："In investing, you get what you don't pay for. Costs matter."</div>
+    </div>
+    <div>
+      <div style="background:var(--blue);border-radius:12px;padding:24px;color:#fff;">
+        <div style="font-size:0.85rem;font-weight:700;margin-bottom:16px;color:#D4AF37;">費用率的三個「確定性」</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div style="background:rgba(255,255,255,0.08);border-radius:8px;padding:14px;">
+            <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">確定性 1</div>
+            <div style="font-size:0.82rem;font-weight:700;">每年一定扣，無論漲跌</div>
+            <div style="font-size:0.68rem;color:rgba(255,255,255,0.6);margin-top:3px;">市場虧損 −30%？費用照扣不誤</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.08);border-radius:8px;padding:14px;">
+            <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">確定性 2</div>
+            <div style="font-size:0.82rem;font-weight:700;">資產越大，扣得越多</div>
+            <div style="font-size:0.68rem;color:rgba(255,255,255,0.6);margin-top:3px;">成功累積資產後，高費用的絕對金額更大</div>
+          </div>
+          <div style="background:rgba(212,175,55,0.15);border-radius:8px;padding:14px;border:1px solid rgba(212,175,55,0.4);">
+            <div style="font-size:0.72rem;color:rgba(212,175,55,0.8);margin-bottom:4px;">確定性 3（好的一面）</div>
+            <div style="font-size:0.82rem;font-weight:700;color:#D4AF37;">降低費用，立即、確定地提升報酬</div>
+            <div style="font-size:0.68rem;color:rgba(212,175,55,0.7);margin-top:3px;">不需預測未來，現在就能做的最有效行動</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 10. 結語 ══ -->
+<section>
+  <h2>費用率：你現在就能做的最有效行動</h2>
+  <div style="display:inline-block;margin-bottom:4px;padding:8px 18px;background:rgba(27,58,107,0.05);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;">
+    <span style="font-size:0.8rem;font-style:italic;color:var(--blue);font-weight:600;">"In investing, you get what you don't pay for. Costs matter." — John Bogle</span>
+  </div>
+  <div class="two-col" style="align-items:start;">
+    <div>
+      <p>今天的數字告訴我們：</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0;">
+        <div style="display:flex;align-items:flex-start;gap:12px;background:rgba(212,175,55,0.06);border-radius:10px;padding:14px;border:1px solid rgba(212,175,55,0.25);">
+          <span style="font-size:1.2rem;font-weight:900;color:#D4AF37;min-width:24px;">1</span>
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">費用是唯一確定的負報酬</div>
+            <div style="font-size:0.72rem;color:var(--gray);">報酬不確定，費用年年必扣。降低費用是你現在就能確定做到的事。</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;background:rgba(46,95,163,0.05);border-radius:10px;padding:14px;border:1px solid rgba(46,95,163,0.2);">
+          <span style="font-size:1.2rem;font-weight:900;color:var(--blue);min-width:24px;">2</span>
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">費用率 1.5% 30 年少 816 萬</div>
+            <div style="font-size:0.72rem;color:var(--gray);">每月投 3 萬，毛報酬 7%，0.03% vs 1.5%，差距超過 23 年投入總額。</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;background:rgba(34,197,94,0.04);border-radius:10px;padding:14px;border:1px solid rgba(34,197,94,0.15);">
+          <span style="font-size:1.2rem;font-weight:900;color:#16a34a;min-width:24px;">3</span>
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">選低費用指數 ETF 是最有效的投資決策</div>
+            <div style="font-size:0.72rem;color:var(--gray);">0050 / 006208 / VOO / VT，費用均在 0.2% 以下，直接投資無需選股。</div>
+          </div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>用 Slow Rich App 試試看</strong><br>
+        內扣費用率模擬 → 輸入你的每月投入與費用率 → 看看不同費用下 30 年後的差距
+      </div>
+    </div>
+    <div style="background:var(--light);border-radius:14px;padding:22px;">
+      <div style="font-size:0.85rem;font-weight:700;color:var(--blue);margin-bottom:18px;text-align:center;">你今天的行動</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="background:#fff;border-radius:10px;padding:14px;border:2px solid #D4AF37;">
+          <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">Step 1</div>
+          <div style="font-size:0.82rem;font-weight:700;color:#92400e;">查清楚你持有基金的費用率</div>
+          <div style="font-size:0.7rem;color:var(--gray);margin-top:2px;">登入券商帳戶，找出每支基金的費用率</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px;border:2px solid var(--green);">
+          <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">Step 2</div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">費用率超過 0.5%，認真考慮替換</div>
+          <div style="font-size:0.7rem;color:var(--gray);margin-top:2px;">找到追蹤同類指數、費用更低的 ETF</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px;border:2px solid rgba(212,175,55,0.6);">
+          <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">Step 3</div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">未來新增資金優先選低費用 ETF</div>
+          <div style="font-size:0.7rem;color:var(--gray);margin-top:2px;">0050 / 006208 / VOO / VT 都是好的起點</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({
+  width: 1100, height: 650,
+  margin: 0.04,
+  hash: true,
+  transition: 'slide',
+  transitionSpeed: 'fast',
+  slideNumber: true,
+});
+const _header = document.querySelector('.slide-header');
+_header.style.opacity = '0';
+Reveal.on('slidechanged', e => {
+  _header.style.opacity = e.indexh === 0 ? '0' : '1';
+});
+
+
+/* ── 費用率 vs 最終資產圖 ── */
+(function () {
+  const ctx = document.getElementById('erChart');
+  if (!ctx) return;
+
+  const labels = [['0.03%', '(VOO)'], ['0.2%', '(0050)'], '1.0%', ['1.5%', '(主動)'], ['3.0%', '(高費用)']];
+  const finalValues = [3489, 3382, 2924, 2673, 2056];
+  const colors = ['#22c55e', '#3b82f6', '#f59e0b', '#f97316', '#dc2626'];
+  const invested = 1080;
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: '30 年後最終資產（萬）',
+          data: finalValues,
+          backgroundColor: colors.map(c => c + 'cc'),
+          borderColor: colors,
+          borderWidth: 2,
+          borderRadius: 6,
+        },
+        {
+          label: '累積投入 1,080 萬',
+          data: [invested, invested, invested, invested, invested],
+          type: 'line',
+          borderColor: '#9ca3af',
+          borderWidth: 2,
+          borderDash: [6, 4],
+          pointRadius: 0,
+          fill: false,
+          tension: 0,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 14 } },
+        tooltip: {
+          callbacks: {
+            label: function(c) {
+              if (c.datasetIndex === 0) {
+                const diff = finalValues[0] - c.parsed.y;
+                const suffix = c.dataIndex === 0 ? '（基準）' : `（比 0.03% 少 ${diff} 萬）`;
+                return `最終資產：${c.parsed.y.toLocaleString()} 萬 ${suffix}`;
+              }
+              return `累積投入：${c.parsed.y.toLocaleString()} 萬`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 10 } }
+        },
+        y: {
+          min: 800,
+          ticks: { callback: v => v >= 1000 ? (v / 1000).toFixed(1) + 'k萬' : v + '萬', font: { size: 10 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

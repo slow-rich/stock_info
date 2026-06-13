@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Slow Rich — Logo v6（簡化版）</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #f2f0eb;
+    min-height: 100vh;
+    padding: 48px 32px;
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const G  = '#1B3A6B';
+const AU = '#D4AF37';
+
+function hexPts(cx, cy, r) {
+  return Array.from({ length: 6 }, (_, i) => {
+    const a = (-90 + 60 * i) * Math.PI / 180;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  });
+}
+function d(pts, close = true) {
+  return pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(2)},${p[1].toFixed(2)}`).join(' ')
+    + (close ? ' Z' : '');
+}
+
+/* ── 簡化版 Icon：只留底色 + 折線 + 金框 ── */
+const Icon = ({ size = 120, uid = 'a' }) => {
+  const outer = hexPts(50, 50, 44);
+  const safeUid = uid.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+  const ZZ = [
+    [14,82], [21,63], [26,80], [35,52], [42,67],
+    [51,40], [57,57], [67,24], [73,36], [85,15],
+  ];
+  const zd = ZZ.map((p,i) => `${i?'L':'M'}${p[0]},${p[1]}`).join(' ');
+
+  return (
+    <svg viewBox="0 0 100 100" width={size} height={size}
+         style={{ display: 'block', overflow: 'visible' }}>
+      <defs>
+        <clipPath id={`cp-${safeUid}`}>
+          <path d={d(outer)} />
+        </clipPath>
+      </defs>
+
+      {/* 底色 */}
+      <path d={d(outer)} fill={G} />
+
+      {/* 折線（裁切在六邊形內）*/}
+      <g clipPath={`url(#cp-${safeUid})`}>
+        <path d={zd + ' L 85,95 L 15,95 Z'} fill={AU} opacity="0.10" />
+        <path d={zd} stroke={AU} strokeWidth="9" fill="none"
+          strokeLinecap="round" strokeLinejoin="round" opacity="0.18" />
+        <path d={zd} stroke={AU} strokeWidth="3.5" fill="none"
+          strokeLinecap="round" strokeLinejoin="round" />
+        {ZZ.slice(1,-1).map(([x,y],i) => (
+          <circle key={i} cx={x} cy={y} r="2" fill={AU} opacity="0.75" />
+        ))}
+        <circle cx="14" cy="82" r="2.5" fill={AU} opacity="0.55" />
+      </g>
+
+      {/* 頂端金色圓點（clipPath 外，確保顯示）*/}
+      <circle cx="85" cy="15" r="5.5" fill={AU} />
+
+      {/* 金色外框 */}
+      <path d={d(outer)} fill="none" stroke={AU} strokeWidth="3" />
+    </svg>
+  );
+};
+
+const FF = "-apple-system, 'PingFang TC', sans-serif";
+
+const LogoH = ({ bg = 'transparent', dark = false }) => (
+  <div style={{
+    display: 'inline-flex', alignItems: 'center', gap: 12,
+    padding: '10px 18px 10px 12px', background: bg, borderRadius: 14,
+    border: dark ? '1px solid rgba(212,175,55,0.35)' : 'none',
+  }}>
+    <Icon size={80} uid="hlogo" />
+    <div style={{ lineHeight: 1 }}>
+      <div style={{ fontFamily: FF, fontWeight: 300, fontSize: 26,
+                    color: AU, letterSpacing: '1px' }}>慢富</div>
+      <div style={{ fontFamily: FF, fontWeight: 400, fontSize: 11,
+                    color: '#888', letterSpacing: '2px',
+                    textTransform: 'uppercase', marginTop: 5 }}>Slow Rich</div>
+    </div>
+  </div>
+);
+
+const LogoV = ({ bg = 'transparent' }) => (
+  <div style={{
+    display: 'inline-flex', flexDirection: 'column', alignItems: 'center',
+    gap: 12, padding: '28px 40px', background: bg, borderRadius: 14,
+  }}>
+    <Icon size={96} uid="vlogo" />
+    <div style={{ textAlign: 'center', lineHeight: 1 }}>
+      <div style={{ fontFamily: FF, fontWeight: 300, fontSize: 30,
+                    color: AU, letterSpacing: '2px' }}>慢富</div>
+      <div style={{ fontFamily: FF, fontWeight: 400, fontSize: 12,
+                    color: '#888', letterSpacing: '2.5px',
+                    textTransform: 'uppercase', marginTop: 6 }}>Slow Rich</div>
+    </div>
+  </div>
+);
+
+const Label = ({ children }) => (
+  <p style={{ color: '#888', fontSize: 12, fontWeight: 500,
+              letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 10 }}>
+    {children}
+  </p>
+);
+
+function App() {
+  return (
+    <div style={{ maxWidth: 960, margin: '0 auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 40,
+                    borderBottom: `3px solid ${AU}`, paddingBottom: 16 }}>
+        <Icon size={36} uid="title" />
+        <div>
+          <h1 style={{ color: G, fontSize: 20, fontWeight: 700 }}>Slow Rich — Logo v6（簡化版）</h1>
+          <p style={{ color: '#888', fontSize: 12, marginTop: 2 }}>
+            拿掉龜殼分格線與內六邊形，只留底色 + 折線 + 金框
+          </p>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 36 }}>
+
+        {/* 投影片封面預覽 */}
+        <div style={{ gridColumn: '1 / -1' }}>
+          <Label>投影片封面用 — 深色背景</Label>
+          <div style={{ background: '#080f1f', borderRadius: 16,
+                        padding: '24px 32px', display: 'inline-block' }}>
+            <LogoH bg="rgba(255,255,255,0.05)" dark={true} />
+          </div>
+        </div>
+
+        <div>
+          <Label>水平版 — 白底</Label>
+          <div style={{ background: 'white', borderRadius: 12,
+                        boxShadow: '0 2px 20px rgba(0,0,0,0.08)', display: 'inline-block' }}>
+            <LogoH bg="white" />
+          </div>
+        </div>
+
+        <div>
+          <Label>垂直版 — 白底</Label>
+          <div style={{ background: 'white', borderRadius: 12,
+                        boxShadow: '0 2px 20px rgba(0,0,0,0.08)', display: 'inline-block' }}>
+            <LogoV bg="white" />
+          </div>
+        </div>
+
+        <div>
+          <Label>水平版 — 深色背景</Label>
+          <div style={{ borderRadius: 12, overflow: 'hidden', display: 'inline-block' }}>
+            <LogoH bg="#1a1a2e" />
+          </div>
+        </div>
+
+        <div>
+          <Label>垂直版 — 深色背景</Label>
+          <div style={{ borderRadius: 12, overflow: 'hidden', display: 'inline-block' }}>
+            <LogoV bg="#1a1a2e" />
+          </div>
+        </div>
+
+        <div>
+          <Label>水平版 — 透明背景</Label>
+          <div style={{
+            background: 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 16px 16px',
+            borderRadius: 12, display: 'inline-block',
+          }}>
+            <LogoH bg="transparent" />
+          </div>
+        </div>
+
+        <div>
+          <Label>垂直版 — 透明背景</Label>
+          <div style={{
+            background: 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 16px 16px',
+            borderRadius: 12, display: 'inline-block',
+          }}>
+            <LogoV bg="transparent" />
+          </div>
+        </div>
+
+        {/* 各尺寸 Icon 比較（v5 vs v6）*/}
+        <div style={{ gridColumn: '1 / -1' }}>
+          <Label>Icon 各尺寸 — 小尺寸辨識度測試</Label>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 20,
+                        background: 'white', padding: '16px 20px', borderRadius: 12 }}>
+            {[16,24,32,48,64,96,128].map(s => (
+              <div key={s} style={{ textAlign: 'center' }}>
+                <Icon size={s} uid={`sz${s}`} />
+                <div style={{ color: '#aaa', fontSize: 9, marginTop: 4 }}>{s}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 深色背景各尺寸 */}
+        <div style={{ gridColumn: '1 / -1' }}>
+          <Label>Icon 各尺寸 — 深色背景</Label>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 20,
+                        background: '#080f1f', padding: '16px 20px', borderRadius: 12 }}>
+            {[16,24,32,48,64,96,128].map(s => (
+              <div key={s} style={{ textAlign: 'center' }}>
+                <Icon size={s} uid={`szd${s}`} />
+                <div style={{ color: '#555', fontSize: 9, marginTop: 4 }}>{s}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+
+      <div style={{ marginTop: 40, background: 'white', borderRadius: 12,
+                    padding: '20px 24px', borderLeft: `4px solid ${AU}` }}>
+        <p style={{ color: G, fontWeight: 600, fontSize: 13, marginBottom: 8 }}>v6 與 v5 的差異</p>
+        <ul style={{ color: '#555', fontSize: 12, lineHeight: 2.2, paddingLeft: 18 }}>
+          <li>移除：龜殼分格線（3 條對角線）</li>
+          <li>移除：中央內六邊形</li>
+          <li>折線加粗：2.8 → 3.5px，光暈加大：7 → 9px</li>
+          <li>頂端圓點加大：r 4.5 → 5.5</li>
+          <li>金色外框加粗：2.6 → 3px</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

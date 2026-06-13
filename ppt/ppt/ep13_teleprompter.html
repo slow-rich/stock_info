@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>EP13 旁白 Teleprompter</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0d1520; color:#dde6f0; font-family:-apple-system,"PingFang TC",sans-serif; height:100vh; overflow:hidden; display:flex; flex-direction:column; user-select:none; }
+  .header { padding:14px 32px; background:rgba(212,175,55,0.08); border-bottom:2px solid rgba(212,175,55,0.25); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .ep-label { font-size:0.8rem; color:#D4AF37; font-weight:800; letter-spacing:2px; }
+  .slide-title { font-size:0.95rem; color:#94a3b8; font-weight:500; text-align:center; flex:1; padding:0 24px; }
+  .counter { font-size:0.82rem; color:#475569; font-weight:600; min-width:48px; text-align:right; }
+  .content { flex:1; overflow-y:auto; padding:52px 80px 40px; scroll-behavior:smooth; }
+  .narration { max-width:860px; margin:0 auto; font-size:1.55rem; line-height:2.0; color:#e2eaf5; }
+  .narration p { margin-bottom:1.1em; }
+  .narration p:last-child { margin-bottom:0; }
+  @keyframes slideIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .slide-anim { animation:slideIn 0.28s ease; }
+  .content::-webkit-scrollbar { width:5px; }
+  .content::-webkit-scrollbar-track { background:transparent; }
+  .content::-webkit-scrollbar-thumb { background:rgba(212,175,55,0.2); border-radius:3px; }
+  .footer { padding:12px 32px; background:rgba(0,0,0,0.35); border-top:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:20px; flex-shrink:0; }
+  .nav-hint { font-size:0.72rem; color:#334155; white-space:nowrap; }
+  .progress-bar { flex:1; height:3px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,#D4AF37,#f0d060); border-radius:2px; transition:width 0.35s ease; }
+  .btn-row { display:flex; gap:8px; }
+  .btn { background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.25); color:#D4AF37; border-radius:6px; padding:4px 14px; font-size:0.75rem; cursor:pointer; font-family:inherit; }
+  .btn:hover { background:rgba(212,175,55,0.22); }
+</style>
+</head>
+<body>
+<div class="header">
+  <span class="ep-label">EP.13</span>
+  <span class="slide-title" id="slideTitle">—</span>
+  <span class="counter" id="counter">1 / 10</span>
+</div>
+<div class="content" id="content">
+  <div class="narration slide-anim" id="narration"></div>
+</div>
+<div class="footer">
+  <div class="btn-row">
+    <button class="btn" onclick="prev()">← 上一頁</button>
+    <button class="btn" onclick="next()">下一頁 →</button>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <span class="nav-hint">← → Space 換頁 &nbsp;|&nbsp; 滾輪捲動</span>
+</div>
+<script>
+const slides = [
+  { title:'第 1 頁 — 封面', text:[
+    '大家好，我是科技宅爸。',
+    '最近很多媒體都在報一個新聞標題：2026 年上半年，台股股民「平均」賺了 365 萬。',
+    '你看到這個數字，是什麼感覺？',
+    '「欸？我怎麼沒有？」',
+    '這個數字是真的，計算也完全沒有錯。但這集我想帶你看清楚，這個「平均」背後藏了什麼。',
+  ]},
+  { title:'第 2 頁 — 數字怎麼算出來', text:[
+    '先來理解這個 365 萬是怎麼算出來的。',
+    '截至今年五月二十九日，台股總市值是 145.9 兆元。跟 2025 年底的 94 兆相比，今年以來整體市值激增了大約 51.9 兆元。',
+    '全台灣現在有 1,420 萬個股票開戶帳戶。',
+    '51.9 兆除以 1,420 萬，就是 365 萬。',
+    '數學完全正確。但問題在——這個計算，把每個人的本金完全忽略了。不管你投了 5 萬還是 500 萬，每個開戶帳戶都算一份。',
+    '這就是「平均」這兩個字的陷阱。',
+  ]},
+  { title:'第 3 頁 — 用 0050 換算', text:[
+    '我來用 0050 換算一下，你就能感受到這個門檻有多高。',
+    '0050 年初的收盤價是 64.9 元，到五月二十九日漲到了 105.4 元，中間一月份還配了 1 元股息。',
+    '每股獲利，就是 105.4 減 64.9 加 1，等於 41.5 元。',
+    '一張是 1,000 股，所以一張賺了 41,500 元。',
+    '這個數字待會會一直用到，先記起來——一張 0050，今年賺了大約四萬一千五。',
+  ]},
+  { title:'第 4 頁 — 達標需要幾張', text:[
+    '好，現在用這個數字反推，要達到「平均 365 萬」，需要幾張？',
+    '3,650,000 除以 41,500，約等於 88 張。',
+    '88 張，以年初 64.9 元的股價計算，本金是多少？',
+    '88 張乘以 1,000 股乘以 64.9 元，大約是 571 萬元。',
+    '也就是說，你在年初就必須已經持有 571 萬的 0050，才有辦法在今年賺到新聞說的那個「平均數」。',
+    '這不是你能「努力達到」的目標，這是你「原本就要擁有」的本金門檻。',
+  ]},
+  { title:'第 5 頁 — 0050 持股分布', text:[
+    '那現實中，有多少人擁有這樣的本金？',
+    '集保所的持股分散表給了我們答案。0050 目前大約有 295 萬個股東。',
+    '我把它分成五個層次。',
+    '持有零股、還不到一張的，有 113 萬人，佔了 38.3%——快四成。',
+    '持有 1 到 5 張的，有 110 萬人，佔 37.2%。',
+    '累計到 10 張以下，已經包含了 88.8%，將近九成的人。',
+    '而 50 張以下涵蓋了 98.7%。',
+    '最頂端的 50 張以上，只有 1.3%，大約 3 萬多人。',
+    '這個金字塔的形狀，比你想像的更陡。',
+  ]},
+  { title:'第 6 頁 — 10 張就超越 90%', text:[
+    '這裡我想說一件事，你可能沒想過。',
+    '只要你手上有 10 張 0050，以目前突破百元的股價計算，市值大概 100 多萬，你就已經超越了全台九成的 0050 投資人。',
+    '今年這 10 張，帳面賺了多少？10 乘以 41,500，大概是 41.5 萬元。',
+    '和 365 萬相比，好像很少——但和超過九成的人相比，你已經在前段班了。',
+    '這不是安慰的話，是真實的統計。大多數人的持股，連 10 張都沒有。',
+  ]},
+  { title:'第 7 頁 — 放寬標準：三個門檻', text:[
+    '我再把目標放寬，看看不同門檻的情況。',
+    '如果目標是「賺到平均值的一半」，182.5 萬，需要持有 45 張 0050，本金約 292 萬。如果再放寬到「四分之一」，91 萬，需要 22 張，本金約 143 萬。',
+    '我換個方式說，讓你更有感覺。',
+    '假設你今年初，在股市裡有 143 萬，那個時候全部買進 0050，大概是 22 張。到現在，帳面成長到 234 萬——也就是賺了 91 萬，是平均值的四分之一。',
+    '如果你當時有 292 萬，買進 45 張，現在帳面是 474.5 萬，賺了 182.5 萬，是平均值的一半。',
+    '你有沒有注意到，這裡面沒有選股，沒有猜高低點，只是買進、持有，讓市場帶著走。就這樣，報酬已經比絕大多數人更好了。這就是指數化投資最簡單、也最有力的地方——不需要你做什麼，只需要你不要亂動。',
+  ]},
+  { title:'第 8 頁 — 2025 年對比', text:[
+    '再來對比一下去年。',
+    '2025 年，台股股民的理論平均獲利是 149 萬元，需要持有大約 84 張分割後的 0050，才能達到那個平均。',
+    '今年是 365 萬，門檻更高了。',
+    '每一年，「平均值」都在上升，因為台股市值持續創新高。但能達到那個平均的人，始終只有頂端那 1 到 2%。',
+    '這個結構不會因為多買幾張就改變，因為它的本質，是財富高度集中在少數大戶的現實。',
+  ]},
+  { title:'第 9 頁 — 結論', text:[
+    '那散戶該怎麼面對這件事？',
+    '你需要做的，是讓自己確實拿到市場本來就有的報酬。把大部分資金放進 0050 或 006208，每個月定期定額，不選股、不擇時，跟著市場走。',
+    '遇到大跌，那正是繼續扣、甚至加碼的時候。慢慢累積張數，時間夠長了，你每年的帳面成長，就會越來越靠近那個數字。',
+  ]},
+  { title:'第 10 頁 — 結語', text:[
+    '最後留一句話給你。',
+    '你不需要跑贏市場，只需要跟著市場走。',
+    '「平均賺 365 萬」這個數字，不是你應該焦慮的，而是幫你理解——市場的報酬確實存在，而取得它的方式，其實很簡單。',
+    '感謝大家看到這裡，我們下集見。',
+  ]},
+];
+let current = 0;
+function render(animate=true) {
+  const slide = slides[current], total = slides.length;
+  document.getElementById('slideTitle').textContent = slide.title;
+  document.getElementById('counter').textContent = `${current+1} / ${total}`;
+  document.getElementById('progressFill').style.width = `${((current+1)/total)*100}%`;
+  const el = document.getElementById('narration');
+  el.innerHTML = slide.text.map(t=>`<p>${t}</p>`).join('');
+  document.getElementById('content').scrollTop = 0;
+  if (animate) { el.classList.remove('slide-anim'); void el.offsetWidth; el.classList.add('slide-anim'); }
+}
+function next() { if (current < slides.length-1) { current++; render(); _bc.postMessage({ slide: current }); } }
+function prev() { if (current > 0) { current--; render(); _bc.postMessage({ slide: current }); } }
+document.addEventListener('keydown', e => {
+  if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); next(); }
+  else if (['ArrowLeft','ArrowUp'].includes(e.key)) { e.preventDefault(); prev(); }
+});
+const _bc = new BroadcastChannel('ep13_sync');
+_bc.onmessage = e => { const i=e.data.slide; if(i>=0&&i<slides.length&&i!==current){current=i;render();} };
+render(false);
+</script>
+</body>
+</html>

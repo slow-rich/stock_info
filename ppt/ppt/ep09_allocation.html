@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EP09 股債配置回測</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue:   #1B3A6B;
+    --green:  #2E5FA3;
+    --red:    #dc2626;
+    --gray:   #6b7280;
+    --light:  #f0f4fa;
+    --accent: #D4AF37;
+  }
+  .reveal { font-family: -apple-system, "PingFang TC", sans-serif; }
+  .reveal h2 { font-size: 1.5rem; color: var(--blue); font-weight: 700; border-bottom: 3px solid var(--accent); padding-bottom: 8px; margin-bottom: 20px; }
+  .reveal p, .reveal li { font-size: 0.85rem; line-height: 1.7; }
+  .reveal .slides section { text-align: left; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .card { background: var(--light); border-radius: 10px; padding: 16px 20px; border-left: 4px solid var(--accent); }
+  .card.blue { border-left-color: var(--blue); }
+  .card.red  { border-left-color: var(--red); }
+  .note { background: #fefce8; border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.78rem; color: #713f12; margin-top: 12px; }
+  .chart-wrap { position: relative; height: 270px; }
+  .slide-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 46px; z-index: 200; pointer-events: none;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px;
+    background: rgba(255,255,255,0.96);
+    border-bottom: 2px solid #D4AF37;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .reveal .slides section:not(.cover-slide) { padding-top: 52px !important; }
+  .alloc-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  .alloc-table th { background: var(--blue); color: #fff; padding: 7px 10px; text-align: center; font-weight: 700; }
+  .alloc-table th:first-child { text-align: left; padding-left: 14px; }
+  .alloc-table td { padding: 7px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; }
+  .alloc-table td:first-child { text-align: left; padding-left: 14px; font-weight: 700; color: var(--blue); }
+  .alloc-table tbody tr:nth-child(even) { background: rgba(240,244,250,0.4); }
+  .ratio-badge { display: inline-block; font-size: 0.62rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<!-- ── 頂部品牌橫條 ── -->
+<div class="slide-header">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <svg viewBox="0 0 100 100" width="36" height="36" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-hdr"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-hdr)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="3.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:18px;color:#1B3A6B;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:7.5px;color:#888;letter-spacing:2.2px;text-transform:uppercase;margin-top:3px;">Slow Rich</div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:#6b7280;">
+    <span style="color:#D4AF37;font-weight:800;margin-right:6px;">EP.09</span>股債配置回測
+  </div>
+</div>
+
+<div class="reveal">
+<div class="slides">
+
+<!-- ══ 1. 封面 ══ -->
+<section class="cover-slide" data-background-gradient="linear-gradient(150deg,#080f1f 0%,#0d1b35 55%,#080f1f 100%)" style="padding:40px 56px;text-align:left !important;position:relative;">
+  <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;" viewBox="0 0 1100 650" preserveAspectRatio="none">
+    <defs>
+      <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g transform="translate(-73,18)">
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160 L1055,650 L680,650 Z" fill="#D4AF37" opacity="0.05"/>
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160" stroke="#D4AF37" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.05"/>
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160" stroke="#D4AF37" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
+    <circle cx="1055" cy="160" r="24" fill="#D4AF37" opacity="0.12" filter="url(#glow)"/>
+    <circle cx="1055" cy="160" r="10" fill="#D4AF37" opacity="0.55"/>
+    <circle cx="1055" cy="160" r="5" fill="#D4AF37" opacity="0.95"/>
+      </g>
+  </svg>
+  <!-- Logo -->
+  <div style="position:absolute;top:9px;right:123px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.35);border-radius:14px;padding:10px 18px 10px 12px;">
+    <svg viewBox="0 0 100 100" width="80" height="80" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-cv"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-cv)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2.5" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="4.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:26px;color:#D4AF37;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:400;font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">Slow Rich</div>
+    </div>
+  </div>
+  <!-- Badge -->
+  <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.45);border-radius:20px;padding:5px 16px;margin-bottom:30px;">
+    <span style="font-size:11px;color:#D4AF37;font-weight:800;letter-spacing:1.5px;">EP.09</span>
+    <span style="width:1px;height:10px;background:rgba(212,175,55,0.4);display:inline-block;"></span>
+    <span style="font-size:11px;color:#aaa;letter-spacing:0.5px;">指數化投資的防護網</span>
+  </div>
+  <!-- Title -->
+  <div style="margin-bottom:14px;line-height:1.05;">
+    <div style="font-size:3.5rem;font-weight:900;color:#fff;margin-bottom:4px;">市場崩盤時，</div>
+    <div style="font-size:4.4rem;font-weight:900;color:#D4AF37;text-shadow:0 0 36px rgba(212,175,55,0.35);">你能抱得住嗎？</div>
+  </div>
+  <div style="margin-bottom:28px;">
+    <div style="font-size:1rem;font-weight:300;color:#aaa;letter-spacing:1px;">股債配置 × 再平衡，用歷史數據找到你能堅持的比例</div>
+  </div>
+  <!-- Stats -->
+  <div id="cover-cards" style="display:flex;align-items:stretch;gap:12px;max-width:680px;transform:scale(0.9);transform-origin:left top;">
+    <div style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">核心目的</div>
+      <div style="font-size:1rem;font-weight:700;color:#D4AF37;">降低波動，讓人抱得住</div>
+    </div>
+    <div style="background:rgba(46,95,163,0.08);border:1px solid rgba(46,95,163,0.25);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">1998–2008 熊市</div>
+      <div style="font-size:1rem;font-weight:700;color:#2E5FA3;">100% 股票 → −3.4%</div>
+    </div>
+    <div style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">關鍵問題</div>
+      <div style="font-size:1rem;font-weight:700;color:#dc2626;">加入債券後結果如何？</div>
+    </div>
+  </div>
+  <p style="position:absolute;bottom:14px;left:56px;color:#2e4a6b;font-size:0.68rem;">按 → 翻頁 &nbsp;|&nbsp; F 全螢幕 &nbsp;|&nbsp; ESC 總覽</p>
+</section>
+
+<!-- ══ 2. 為什麼需要股債配置 ══ -->
+<section>
+  <h2>為什麼 100% 股票不夠——波動是最大的敵人</h2>
+  <div class="two-col">
+    <div>
+      <p>0050 長期年化報酬約 8–13%，但<strong>短期波動極大</strong>：</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:12px 0;">
+        <div style="background:#fff;border-radius:10px;padding:12px 16px;border:2px solid #dc2626;">
+          <div style="font-size:0.75rem;font-weight:700;color:#dc2626;margin-bottom:3px;">2000 科技泡沫</div>
+          <div style="font-size:1rem;font-weight:700;color:#dc2626;">0050 單年 −44%</div>
+          <div style="font-size:0.68rem;color:var(--gray);margin-top:3px;">100 萬變 56 萬，你還能繼續投入嗎？</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:12px 16px;border:2px solid #dc2626;">
+          <div style="font-size:0.75rem;font-weight:700;color:#dc2626;margin-bottom:3px;">2008 金融海嘯</div>
+          <div style="font-size:1rem;font-weight:700;color:#dc2626;">0050 單年 −43%</div>
+          <div style="font-size:0.68rem;color:var(--gray);margin-top:3px;">兩次大跌接連發生，定期定額 11 年仍虧損</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:12px 16px;border:2px solid #f59e0b;">
+          <div style="font-size:0.75rem;font-weight:700;color:#92400e;margin-bottom:3px;">真正的風險</div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">帳戶大跌 → 恐慌賣出 → 錯過反彈</div>
+          <div style="font-size:0.68rem;color:var(--gray);margin-top:3px;">「抱不住」才是讓複利失效的真正原因</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;">股債配置的核心邏輯</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #D4AF37;">
+            <div style="font-size:0.72rem;font-weight:700;color:#92400e;margin-bottom:3px;">股票負責增長</div>
+            <div style="font-size:0.68rem;color:var(--gray);">0050、VT、VOO 等市值型 ETF<br>長期提供 8–13% 年化報酬</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid var(--green);">
+            <div style="font-size:0.72rem;font-weight:700;color:var(--blue);margin-bottom:3px;">債券負責穩定</div>
+            <div style="font-size:0.68rem;color:var(--gray);">股市大跌時，高品質債券通常上漲或持平<br>降低整體帳戶波動，讓你不恐慌賣出</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #6366f1;">
+            <div style="font-size:0.72rem;font-weight:700;color:#4338ca;margin-bottom:3px;">兩者低相關性</div>
+            <div style="font-size:0.68rem;color:var(--gray);">股漲債跌、股跌債漲（不完全，但有緩衝效果）<br>組合後的波動遠低於兩者單獨持有</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 3. 配置比例建議 ══ -->
+<section>
+  <h2>你適合哪種配置？——比例設定建議</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <table class="alloc-table">
+        <thead>
+          <tr>
+            <th>配置類型</th>
+            <th>股:債</th>
+            <th>適合對象</th>
+            <th>特性</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>積極型</td>
+            <td style="text-align:center;"><span class="ratio-badge" style="background:rgba(220,38,38,0.1);color:#dc2626;">80:20</span></td>
+            <td>30 歲以下、高風險承受度</td>
+            <td style="text-align:center;font-size:0.68rem;color:var(--gray);">追求增長<br>接受大波動</td>
+          </tr>
+          <tr style="background:rgba(212,175,55,0.05);">
+            <td>穩健型 ★</td>
+            <td style="text-align:center;"><span class="ratio-badge" style="background:rgba(212,175,55,0.15);color:#92400e;">60:40</span></td>
+            <td>35–55 歲、均衡首選</td>
+            <td style="text-align:center;font-size:0.68rem;color:var(--gray);">經典配置<br>風險收益平衡</td>
+          </tr>
+          <tr>
+            <td>保守型</td>
+            <td style="text-align:center;"><span class="ratio-badge" style="background:rgba(46,95,163,0.1);color:var(--green);">40:60</span></td>
+            <td>接近退休或低承受度</td>
+            <td style="text-align:center;font-size:0.68rem;color:var(--gray);">穩定為主<br>報酬犧牲較多</td>
+          </tr>
+          <tr>
+            <td>年齡法則</td>
+            <td style="text-align:center;"><span class="ratio-badge" style="background:rgba(107,114,128,0.1);color:#374151;">動態</span></td>
+            <td>不想手動調整的人</td>
+            <td style="text-align:center;font-size:0.68rem;color:var(--gray);">100 − 年齡 = 股票%<br>年紀越大債越多</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note" style="margin-top:10px;">★ 60:40 是最廣泛引用的退休前配置；退休後建議進一步增加債券比例。</div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;">年齡法則試算範例</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="background:#fff;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:0.72rem;color:var(--gray);">25 歲</span>
+            <span style="font-size:0.8rem;font-weight:700;color:#dc2626;">股 75% : 債 25%</span>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:0.72rem;color:var(--gray);">35 歲</span>
+            <span style="font-size:0.8rem;font-weight:700;color:#f59e0b;">股 65% : 債 35%</span>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:0.72rem;color:var(--gray);">45 歲</span>
+            <span style="font-size:0.8rem;font-weight:700;color:var(--green);">股 55% : 債 45%</span>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:0.72rem;color:var(--gray);">60 歲（退休）</span>
+            <span style="font-size:0.8rem;font-weight:700;color:var(--blue);">股 40% : 債 60%</span>
+          </div>
+        </div>
+        <div style="font-size:0.68rem;color:#9ca3af;margin-top:8px;">部分研究改用「110 − 年齡」，因預期壽命延長，股票比例可稍高。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 4. 熊市回測：1998–2008 ══ -->
+<section>
+  <h2>熊市考驗：1998–2008（科技泡沫 + 金融海嘯）</h2>
+  <p style="margin-bottom:10px;">從 1998 年起每月投入 1 萬，投資 11 年，累積投入 <strong>132 萬</strong>，各配置的結果：</p>
+  <div class="two-col" style="align-items:center;">
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="background:#fff;border-radius:10px;padding:12px 16px;border-left:4px solid #e24b4a;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.8rem;font-weight:700;color:var(--blue);">100:0（全股票）</span>
+          <span style="font-size:1rem;font-weight:900;color:#dc2626;">108 萬</span>
+        </div>
+        <div style="font-size:0.68rem;color:var(--gray);margin-top:3px;">IRR −3.40%　虧損 −24 萬（−18.2%）</div>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:12px 16px;border-left:4px solid #f97316;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.8rem;font-weight:700;color:var(--blue);">90:10</span>
+          <span style="font-size:1rem;font-weight:900;color:#f97316;">115 萬</span>
+        </div>
+        <div style="font-size:0.68rem;color:var(--gray);margin-top:3px;">加入少量債券，損失縮小</div>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:12px 16px;border-left:4px solid #eab308;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.8rem;font-weight:700;color:var(--blue);">80:20</span>
+          <span style="font-size:1rem;font-weight:900;color:#ca8a04;">122 萬</span>
+        </div>
+        <div style="font-size:0.68rem;color:var(--gray);margin-top:3px;">接近損益平衡</div>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:12px 16px;border-left:4px solid #22c55e;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.8rem;font-weight:700;color:var(--blue);">70:30</span>
+          <span style="font-size:1rem;font-weight:900;color:#16a34a;">129 萬</span>
+        </div>
+        <div style="font-size:0.68rem;color:var(--gray);margin-top:3px;">小幅獲利，已超越投入成本</div>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:12px 16px;border-left:4px solid #3b82f6;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.8rem;font-weight:700;color:var(--blue);">60:40</span>
+          <span style="font-size:1rem;font-weight:900;color:#2563eb;">135 萬</span>
+        </div>
+        <div style="font-size:0.68rem;color:var(--gray);margin-top:3px;">最穩健，獲利 +3 萬，讓你撐過最壞時期</div>
+      </div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="bearChart"></canvas></div>
+      <p style="font-size:0.65rem;color:var(--gray);margin-top:4px;text-align:center;">累積投入 132 萬｜債券假設年報酬 3%（短債水準）｜示意數據</p>
+      <div class="note" style="margin-top:8px;">熊市結論：<strong>加入 30–40% 債券，讓虧損轉為獲利</strong>——在最壞時期仍能持續投入、不恐慌賣出。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 5. 復甦期回測：1998–2013 ══ -->
+<section>
+  <h2>復甦期：1998–2013（熬過海嘯後的報酬）</h2>
+  <p style="margin-bottom:10px;">同樣從 1998 年起，繼續投入至 2013 年（16 年），累積投入 <strong>192 萬</strong>：</p>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p style="font-size:0.78rem;margin-bottom:10px;">2008 後市場開始修復，股票開始發揮增長優勢，各配置的差距開始拉開：</p>
+      <table class="alloc-table">
+        <thead>
+          <tr>
+            <th>配置</th>
+            <th>最終資產</th>
+            <th>獲利</th>
+            <th>特點</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="ratio-badge" style="background:rgba(226,75,74,0.1);color:#e24b4a;">100:0</span></td>
+            <td style="text-align:right;font-weight:700;color:#e24b4a;">295 萬</td>
+            <td style="text-align:center;color:#e24b4a;">+103 萬</td>
+            <td style="font-size:0.68rem;color:var(--gray);">熬過去，報酬最高</td>
+          </tr>
+          <tr>
+            <td><span class="ratio-badge" style="background:rgba(249,115,22,0.1);color:#f97316;">90:10</span></td>
+            <td style="text-align:right;font-weight:700;color:#f97316;">283 萬</td>
+            <td style="text-align:center;color:#f97316;">+91 萬</td>
+            <td style="font-size:0.68rem;color:var(--gray);">略低，差距尚小</td>
+          </tr>
+          <tr>
+            <td><span class="ratio-badge" style="background:rgba(234,179,8,0.1);color:#ca8a04;">80:20</span></td>
+            <td style="text-align:right;font-weight:700;color:#ca8a04;">271 萬</td>
+            <td style="text-align:center;color:#ca8a04;">+79 萬</td>
+            <td style="font-size:0.68rem;color:var(--gray);">穩健，損失有限</td>
+          </tr>
+          <tr>
+            <td><span class="ratio-badge" style="background:rgba(34,197,94,0.1);color:#16a34a;">70:30</span></td>
+            <td style="text-align:right;font-weight:700;color:#16a34a;">258 萬</td>
+            <td style="text-align:center;color:#16a34a;">+66 萬</td>
+            <td style="font-size:0.68rem;color:var(--gray);">收益仍相當可觀</td>
+          </tr>
+          <tr>
+            <td><span class="ratio-badge" style="background:rgba(59,130,246,0.1);color:#2563eb;">60:40</span></td>
+            <td style="text-align:right;font-weight:700;color:#2563eb;">244 萬</td>
+            <td style="text-align:center;color:#2563eb;">+52 萬</td>
+            <td style="font-size:0.68rem;color:var(--gray);">最穩，代價是報酬較低</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note" style="margin-top:10px;">在熊市抱得住的人，復甦期才能享受到反彈。加了債券讓你不恐慌，最終都有正報酬。</div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="recoveryChart"></canvas></div>
+      <p style="font-size:0.65rem;color:var(--gray);margin-top:4px;text-align:center;">累積投入 192 萬｜1998–2013（16 年）｜示意數據</p>
+      <div style="margin-top:8px;background:rgba(107,114,128,0.07);border-radius:6px;padding:8px 12px;font-size:0.62rem;color:#9ca3af;border:1px solid #e5e7eb;">
+        ※ 示意數據。以 0050 歷史報酬 + 固定 3% 債券報酬估算，實際數字可在 Slow Rich app 股債配置回測中查詢。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 6. 長期回測：1998–2026 ══ -->
+<section>
+  <h2>長期報酬代價：1998–2026（29 年完整週期）</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p style="margin-bottom:10px;">持有 29 年（累積投入 <strong>348 萬</strong>），長期下來股票的增長優勢完全展現：</p>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+        <div style="background:#fff;border-radius:8px;padding:10px 14px;border-left:4px solid #e24b4a;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.78rem;font-weight:700;color:var(--blue);">100:0（全股票）</span>
+          <div style="text-align:right;">
+            <div style="font-size:1rem;font-weight:900;color:#e24b4a;">2,427 萬</div>
+            <div style="font-size:0.65rem;color:var(--gray);">IRR +11.11%</div>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:8px;padding:10px 14px;border-left:4px solid #22c55e;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.78rem;font-weight:700;color:var(--blue);">70:30</span>
+          <div style="text-align:right;">
+            <div style="font-size:1rem;font-weight:900;color:#16a34a;">約 1,650 萬</div>
+            <div style="font-size:0.65rem;color:var(--gray);">IRR 約 +8.5%</div>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:8px;padding:10px 14px;border-left:4px solid #3b82f6;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.78rem;font-weight:700;color:var(--blue);">60:40</span>
+          <div style="text-align:right;">
+            <div style="font-size:1rem;font-weight:900;color:#2563eb;">約 1,400 萬</div>
+            <div style="font-size:0.65rem;color:var(--gray);">IRR 約 +7.5%</div>
+          </div>
+        </div>
+      </div>
+      <div style="background:rgba(212,175,55,0.06);border-radius:8px;padding:12px 14px;border:1px solid rgba(212,175,55,0.25);font-size:0.72rem;">
+        <strong style="color:#92400e;">長期代價：</strong>100:0 最終 2,427 萬，60:40 約 1,400 萬，相差約 1,027 萬。<br>
+        這是你為了「抱得住」付出的代價。值不值得，取決於你能否在熊市堅持不賣出。
+      </div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="longChart"></canvas></div>
+      <p style="font-size:0.65rem;color:var(--gray);margin-top:4px;text-align:center;">累積投入 348 萬｜1998–2026（29 年）｜示意數據</p>
+      <div class="note" style="margin-top:8px;"><strong>核心取捨：</strong>加債降低了報酬，但也降低了你恐慌賣出的機率。<br>真正重要的不是「理論最高報酬」，而是「你實際能獲得的報酬」。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 7. 再平衡的效果 ══ -->
+<section>
+  <h2>再平衡——被動的「高賣低買」</h2>
+  <div class="two-col" style="align-items:start;">
+    <div>
+      <p>再平衡（Rebalancing）是股債配置的配套機制，<strong>不需要擇時，自動達到高賣低買效果</strong>。</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin:12px 0;">
+        <div style="background:#fff;border-radius:10px;padding:14px;border:2px solid #dc2626;">
+          <div style="font-size:0.78rem;font-weight:700;color:#dc2626;margin-bottom:6px;">股市大漲後</div>
+          <div style="font-size:0.7rem;color:var(--gray);">
+            原本 60:40 → 股票漲到 70%<br>
+            → <strong>賣掉多出的 10% 股票，買入債券</strong><br>
+            → 高點減碼股票，鎖定部分獲利
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px;border:2px solid #10b981;">
+          <div style="font-size:0.78rem;font-weight:700;color:#065f46;margin-bottom:6px;">股市大跌後</div>
+          <div style="font-size:0.7rem;color:var(--gray);">
+            原本 60:40 → 股票跌到 50%<br>
+            → <strong>賣掉部分債券，買入更多股票</strong><br>
+            → 低點加碼股票，增加未來反彈收益
+          </div>
+        </div>
+      </div>
+      <div class="note">再平衡頻率建議：每年一次（年底）或偏離目標 5% 以上時執行，不用頻繁操作。</div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;">再平衡範例（目標 60:40）</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="background:#fff;border-radius:8px;padding:10px 14px;">
+            <div style="font-size:0.68rem;color:var(--gray);margin-bottom:4px;">年初</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="flex:3;background:#e24b4a;height:12px;border-radius:3px;"></div>
+              <div style="flex:2;background:#3b82f6;height:12px;border-radius:3px;"></div>
+              <span style="font-size:0.7rem;color:var(--gray);">股 60% : 債 40%</span>
+            </div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:10px 14px;">
+            <div style="font-size:0.68rem;color:var(--gray);margin-bottom:4px;">股市大漲後</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="flex:4;background:#e24b4a;height:12px;border-radius:3px;"></div>
+              <div style="flex:1.5;background:#3b82f6;height:12px;border-radius:3px;"></div>
+              <span style="font-size:0.7rem;color:#dc2626;">股 72% : 債 28%（偏離）</span>
+            </div>
+          </div>
+          <div style="font-size:0.68rem;color:var(--gray);text-align:center;">↓ 賣股買債，回到目標比例</div>
+          <div style="background:#fff;border-radius:8px;padding:10px 14px;">
+            <div style="font-size:0.68rem;color:var(--gray);margin-bottom:4px;">再平衡後</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="flex:3;background:#e24b4a;height:12px;border-radius:3px;"></div>
+              <div style="flex:2;background:#3b82f6;height:12px;border-radius:3px;"></div>
+              <span style="font-size:0.7rem;color:#10b981;">股 60% : 債 40%（恢復）</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 8. 推薦標的 ══ -->
+<section>
+  <h2>指數化投資的股債標的——低費用是關鍵</h2>
+  <div class="two-col" style="align-items:start;">
+    <div>
+      <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:10px;">股票部位（ETF 為主）</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:0.78rem;font-weight:700;color:var(--blue);">0050 / 006208</div>
+            <div style="font-size:0.68rem;color:var(--gray);">台股市值型 ETF，追蹤台灣前 50 大企業</div>
+          </div>
+          <span style="font-size:0.72rem;font-weight:700;color:var(--gray);">費用 0.2%</span>
+        </div>
+        <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #3b82f6;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:0.78rem;font-weight:700;color:var(--blue);">VT</div>
+            <div style="font-size:0.68rem;color:var(--gray);">全球市值型 ETF，含美、歐、亞新興市場</div>
+          </div>
+          <span style="font-size:0.72rem;font-weight:700;color:#3b82f6;">費用 0.07%</span>
+        </div>
+        <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #f87171;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:0.78rem;font-weight:700;color:var(--blue);">VOO / SPY</div>
+            <div style="font-size:0.68rem;color:var(--gray);">S&amp;P500 ETF，追蹤美國前 500 大企業</div>
+          </div>
+          <span style="font-size:0.72rem;font-weight:700;color:#f87171;">費用 0.03%</span>
+        </div>
+      </div>
+      <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:10px;">債券部位（ETF 為主）</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #6366f1;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:0.78rem;font-weight:700;color:var(--blue);">BND / BNDW</div>
+            <div style="font-size:0.68rem;color:var(--gray);">美國 / 全球總體債券市場 ETF（中長天期）</div>
+          </div>
+          <span style="font-size:0.72rem;font-weight:700;color:#6366f1;">費用 0.03%</span>
+        </div>
+        <div style="background:rgba(212,175,55,0.08);border-radius:8px;padding:12px 14px;border-left:4px solid #D4AF37;border:2px solid rgba(212,175,55,0.4);">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:0.78rem;font-weight:700;color:#92400e;">00719B / VSB（作者偏好）</div>
+              <div style="font-size:0.68rem;color:var(--gray);">短天期債券，利率風險最低，股市大漲大跌時價格最穩定</div>
+            </div>
+            <span style="font-size:0.72rem;font-weight:700;color:#D4AF37;">低波動</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;">為什麼偏好短天期債券？</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #D4AF37;">
+            <div style="font-size:0.72rem;font-weight:700;color:#92400e;margin-bottom:3px;">不管股市漲跌，價格幾乎不動</div>
+            <div style="font-size:0.68rem;color:var(--gray);">中長天期債券在升息環境下也會大跌（2022 年），短天期幾乎不受影響</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #10b981;">
+            <div style="font-size:0.72rem;font-weight:700;color:#065f46;margin-bottom:3px;">作為「壓艙石」最穩定</div>
+            <div style="font-size:0.68rem;color:var(--gray);">目的是降低波動、提供心理安全感，短天期最能達到這個目的</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid var(--gray);">
+            <div style="font-size:0.72rem;font-weight:700;color:var(--gray);margin-bottom:3px;">中長天期債 vs 短天期債</div>
+            <div style="font-size:0.68rem;color:var(--gray);">中長天期：報酬較高，但利率風險較大<br>短天期：報酬稍低，但波動極小，目的明確</div>
+          </div>
+        </div>
+      </div>
+      <div class="note" style="margin-top:10px;">台股投資人可用 00719B 作為債券部位；海外帳戶可選 VSB（Vanguard 短期債券 ETF）。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 9. 心理素質 ══ -->
+<section>
+  <h2>股債配置最大的意義——讓你在崩盤時還能抱得住</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>長期投資最大的敵人不是市場，而是<strong>自己的恐懼</strong>。</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0;">
+        <div style="background:#fff;border-radius:10px;padding:14px;border-left:4px solid #dc2626;">
+          <div style="font-size:0.78rem;font-weight:700;color:#dc2626;margin-bottom:4px;">100% 股票，帳戶跌 −50%</div>
+          <div style="font-size:0.7rem;color:var(--gray);">1,000 萬變 500 萬，大多數人<strong>會賣出</strong>，然後錯過反彈</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px;border-left:4px solid #10b981;">
+          <div style="font-size:0.78rem;font-weight:700;color:#065f46;margin-bottom:4px;">60:40，帳戶跌 −30%</div>
+          <div style="font-size:0.7rem;color:var(--gray);">1,000 萬變 700 萬，心理壓力小得多，<strong>更容易堅持</strong>下去</div>
+        </div>
+        <div style="background:rgba(212,175,55,0.06);border-radius:10px;padding:14px;border:1px solid rgba(212,175,55,0.3);">
+          <div style="font-size:0.75rem;font-weight:700;color:#92400e;margin-bottom:4px;">真正的問題</div>
+          <div style="font-size:0.7rem;color:var(--gray);">理論上 100:0 報酬最高，但<strong>你實際能獲得多少？</strong><br>在崩盤中賣出的人，得到的報酬是 0。</div>
+        </div>
+      </div>
+      <div class="note">股債配置最大的好處是降低波動，讓投資人能在市場大跌時「抱得住」，發揮長期複利效果。<span style="font-style:italic;color:#92400e;">——EP09 核心訊息</span></div>
+    </div>
+    <div>
+      <div style="background:var(--blue);border-radius:12px;padding:24px;color:#fff;">
+        <div style="font-size:0.85rem;font-weight:700;margin-bottom:16px;color:#D4AF37;">找到你能堅持的配置</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div style="background:rgba(255,255,255,0.08);border-radius:8px;padding:14px;">
+            <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">問自己</div>
+            <div style="font-size:0.85rem;font-weight:700;">帳戶跌 30% 時，你能不賣嗎？</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.08);border-radius:8px;padding:14px;">
+            <div style="font-size:0.72rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">如果「不確定」</div>
+            <div style="font-size:0.85rem;font-weight:700;">加入 20–40% 債券，直到你答「能」</div>
+          </div>
+          <div style="background:rgba(212,175,55,0.15);border-radius:8px;padding:14px;border:1px solid rgba(212,175,55,0.4);">
+            <div style="font-size:0.72rem;color:rgba(212,175,55,0.8);margin-bottom:4px;">記住</div>
+            <div style="font-size:0.82rem;font-weight:700;color:#D4AF37;">「你能堅持的配置」比「理論最優配置」更重要</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 10. 結語 ══ -->
+<section>
+  <h2>股債配置不是保守，而是讓你走得更遠</h2>
+  <div style="display:inline-block;margin-bottom:4px;padding:8px 18px;background:rgba(27,58,107,0.05);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;">
+    <span style="font-size:0.8rem;font-style:italic;color:var(--blue);font-weight:600;">Asset allocation is the most important decision in investing.</span>
+  </div>
+  <div class="two-col" style="align-items:start;">
+    <div>
+      <p>今天的數字告訴我們：</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0;">
+        <div style="display:flex;align-items:flex-start;gap:12px;background:rgba(212,175,55,0.06);border-radius:10px;padding:14px;border:1px solid rgba(212,175,55,0.25);">
+          <span style="font-size:1.2rem;font-weight:900;color:#D4AF37;min-width:24px;">1</span>
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">加入債券，熊市從虧轉盈</div>
+            <div style="font-size:0.72rem;color:var(--gray);">100:0 在 1998–2008 虧損 −3.4%；加入 30–40% 債券後，同期仍有正報酬。</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;background:rgba(46,95,163,0.05);border-radius:10px;padding:14px;border:1px solid rgba(46,95,163,0.2);">
+          <span style="font-size:1.2rem;font-weight:900;color:var(--blue);min-width:24px;">2</span>
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">長期代價是真實存在的</div>
+            <div style="font-size:0.72rem;color:var(--gray);">29 年後，60:40 比 100:0 少約 1,000 萬。這是你為了心理穩定付出的代價。</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;background:rgba(220,38,38,0.04);border-radius:10px;padding:14px;border:1px solid rgba(220,38,38,0.15);">
+          <span style="font-size:1.2rem;font-weight:900;color:#dc2626;min-width:24px;">3</span>
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">再平衡讓你自動高賣低買</div>
+            <div style="font-size:0.72rem;color:var(--gray);">每年一次，偏離 5% 就執行，不需擇時，被動達到最佳買賣時機。</div>
+          </div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>用 Slow Rich App 試試看</strong><br>
+        股債配置回測 → 輸入你的配置比例 → 看看不同比例在歷史上的差異
+      </div>
+    </div>
+    <div style="background:var(--light);border-radius:14px;padding:22px;">
+      <div style="font-size:0.85rem;font-weight:700;color:var(--blue);margin-bottom:18px;text-align:center;">你今天的行動</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="background:#fff;border-radius:10px;padding:14px;border:2px solid #D4AF37;">
+          <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">Step 1</div>
+          <div style="font-size:0.82rem;font-weight:700;color:#92400e;">確認你的風險承受度</div>
+          <div style="font-size:0.7rem;color:var(--gray);margin-top:2px;">帳戶跌 30% 你能不賣？選 80:20<br>跌 20% 就很痛苦？先從 60:40 開始</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px;border:2px solid var(--green);">
+          <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">Step 2</div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">選擇股債標的</div>
+          <div style="font-size:0.7rem;color:var(--gray);margin-top:2px;">股：0050 / VT / VOO<br>債：00719B / VSB（短天期優先）</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px;border:2px solid rgba(212,175,55,0.6);">
+          <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">Step 3</div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">每年年底再平衡一次</div>
+          <div style="font-size:0.7rem;color:var(--gray);margin-top:2px;">偏離超過 5% 就調回，其他時間不用管</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({
+  width: 1100, height: 650,
+  margin: 0.04,
+  hash: true,
+  transition: 'slide',
+  transitionSpeed: 'fast',
+  slideNumber: true,
+});
+const _header = document.querySelector('.slide-header');
+_header.style.opacity = '0';
+Reveal.on('slidechanged', e => {
+  _header.style.opacity = e.indexh === 0 ? '0' : '1';
+});
+
+
+const ALLOC_COLORS = ['#e24b4a', '#f97316', '#eab308', '#22c55e', '#3b82f6'];
+const RATIOS = ['100:0', '90:10', '80:20', '70:30', '60:40'];
+
+/* ── 熊市比較圖（1998–2008）── */
+(function () {
+  const ctx = document.getElementById('bearChart');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: RATIOS,
+      datasets: [
+        {
+          label: '最終資產（萬）',
+          data: [108, 115, 122, 129, 135],
+          backgroundColor: ALLOC_COLORS.map(c => c + 'cc'),
+          borderRadius: 5,
+        },
+        {
+          label: '累積投入 132 萬',
+          data: [132, 132, 132, 132, 132],
+          type: 'line',
+          borderColor: '#d1d5db',
+          borderWidth: 2,
+          borderDash: [5, 4],
+          pointRadius: 0,
+          fill: false,
+          tension: 0,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 14 } },
+        tooltip: { callbacks: { label: c => `${c.dataset.label.includes('萬') ? c.dataset.label : c.dataset.label}：${c.parsed.y} 萬` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: {
+          min: 80,
+          ticks: { callback: v => v + '萬', font: { size: 10 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+})();
+
+/* ── 復甦期比較圖（1998–2013）── */
+(function () {
+  const ctx = document.getElementById('recoveryChart');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: RATIOS,
+      datasets: [
+        {
+          label: '最終資產（萬）',
+          data: [295, 283, 271, 258, 244],
+          backgroundColor: ALLOC_COLORS.map(c => c + 'cc'),
+          borderRadius: 5,
+        },
+        {
+          label: '累積投入 192 萬',
+          data: [192, 192, 192, 192, 192],
+          type: 'line',
+          borderColor: '#d1d5db',
+          borderWidth: 2,
+          borderDash: [5, 4],
+          pointRadius: 0,
+          fill: false,
+          tension: 0,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 14 } },
+        tooltip: { callbacks: { label: c => `${c.dataset.label}：${c.parsed.y} 萬` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: {
+          ticks: { callback: v => v + '萬', font: { size: 10 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+})();
+
+/* ── 長期比較圖（1998–2026）── */
+(function () {
+  const ctx = document.getElementById('longChart');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: RATIOS,
+      datasets: [
+        {
+          label: '最終資產（萬）',
+          data: [2427, 2180, 1910, 1650, 1400],
+          backgroundColor: ALLOC_COLORS.map(c => c + 'cc'),
+          borderRadius: 5,
+        },
+        {
+          label: '累積投入 348 萬',
+          data: [348, 348, 348, 348, 348],
+          type: 'line',
+          borderColor: '#d1d5db',
+          borderWidth: 2,
+          borderDash: [5, 4],
+          pointRadius: 0,
+          fill: false,
+          tension: 0,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 14 } },
+        tooltip: { callbacks: { label: c => `${c.dataset.label}：${c.parsed.y.toLocaleString()} 萬` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: {
+          ticks: { callback: v => v >= 1000 ? (v/1000).toFixed(1) + 'k萬' : v + '萬', font: { size: 10 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EP11 買高股息 比較安心？</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="data_0050_with_div.js"></script>
+<script src="data_0056_with_div.js"></script>
+<script src="data_00719b_with_div.js"></script>
+<script src="data_00878_with_div.js"></script>
+<style>
+  :root {
+    --blue:   #1B3A6B;
+    --royal:  #2E5FA3;
+    --red:    #dc2626;
+    --gray:   #6b7280;
+    --light:  #f0f4fa;
+    --accent: #D4AF37;
+    --orange: #d97706;
+  }
+  .reveal { font-family: -apple-system, "PingFang TC", sans-serif; }
+  .reveal h2 { font-size: 1.5rem; color: var(--blue); font-weight: 700; border-bottom: 3px solid var(--accent); padding-bottom: 8px; margin-bottom: 18px; }
+  .reveal p, .reveal li { font-size: 0.85rem; line-height: 1.7; }
+  .reveal .slides section { text-align: left; }
+  .reveal .slides section:not(.cover-slide) { padding-top: 52px !important; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .card { background: var(--light); border-radius: 10px; padding: 14px 18px; border-left: 4px solid var(--accent); }
+  .card-red  { background: #fff5f5; border-left-color: var(--red); }
+  .card-green{ background: #f0fdf4; border-left-color: #16a34a; }
+  .note { background: #fefce8; border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.78rem; color: #713f12; margin-top: 12px; }
+  .chart-wrap    { position: relative; height: 270px; }
+  .chart-wrap-sm { position: relative; height: 240px; }
+  .slide-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 46px; z-index: 200; pointer-events: none;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px; overflow: visible;
+    background: rgba(255,255,255,0.96);
+    border-bottom: 2px solid #D4AF37;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  :root { --r-controls-color: rgba(212,175,55,0.85); }
+  .cmp-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  .cmp-table th { background: var(--blue); color: #fff; padding: 7px 10px; text-align: center; font-weight: 700; }
+  .cmp-table th:first-child { text-align: left; padding-left: 14px; }
+  .cmp-table td { padding: 7px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; }
+  .cmp-table td:first-child { text-align: left; padding-left: 14px; font-weight: 700; color: var(--blue); }
+  .cmp-table tbody tr:nth-child(even) { background: rgba(240,244,250,0.4); }
+  .cmp-table .gold { background: rgba(212,175,55,0.1); font-weight: 800; color: #92400e; }
+  .stat-box { text-align: center; padding: 12px 10px; border-radius: 10px; }
+  .stat-num  { font-size: 1.8rem; font-weight: 900; }
+  .etf-card {
+    background: var(--light); border-radius: 10px; padding: 14px 16px;
+    border-top: 3px solid var(--accent);
+  }
+  .etf-name { font-size: 1.1rem; font-weight: 900; color: var(--blue); }
+  .etf-full { font-size: 0.7rem; color: var(--gray); margin: 2px 0 8px; }
+  .etf-tag { display: inline-block; font-size: 0.6rem; font-weight: 700; padding: 2px 7px; border-radius: 8px; background: rgba(27,58,107,0.1); color: var(--blue); margin-right: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ── 頂部品牌橫條 ── -->
+<div class="slide-header">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <svg viewBox="0 0 100 100" width="36" height="36" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-hdr"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-hdr)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="3.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:18px;color:#1B3A6B;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:7.5px;color:#888;letter-spacing:2.2px;text-transform:uppercase;margin-top:3px;">Slow Rich</div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:#6b7280;">
+    <span style="color:#D4AF37;font-weight:800;margin-right:6px;">EP.11</span>買高股息 比較安心？
+  </div>
+</div>
+
+<div class="reveal">
+<div class="slides">
+
+<!-- ══ 1. 封面 ══ -->
+<section class="cover-slide" data-background-gradient="linear-gradient(150deg,#080f1f 0%,#0d1b35 55%,#080f1f 100%)" style="padding:40px 56px;text-align:left !important;position:relative;">
+  <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;" viewBox="0 0 1100 650" preserveAspectRatio="none">
+    <defs>
+      <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g transform="translate(-73,18)">
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160 L1055,650 L680,650 Z" fill="#D4AF37" opacity="0.05"/>
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160" stroke="#D4AF37" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.05"/>
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160" stroke="#D4AF37" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
+    <circle cx="1055" cy="160" r="24" fill="#D4AF37" opacity="0.12" filter="url(#glow)"/>
+    <circle cx="1055" cy="160" r="10" fill="#D4AF37" opacity="0.55"/>
+    <circle cx="1055" cy="160" r="5" fill="#D4AF37" opacity="0.95"/>
+      </g>
+  </svg>
+  <!-- Logo -->
+  <div style="position:absolute;top:9px;right:123px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.35);border-radius:14px;padding:10px 18px 10px 12px;">
+    <svg viewBox="0 0 100 100" width="80" height="80" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-cv"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-cv)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2.5" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="4.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:26px;color:#D4AF37;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:400;font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">Slow Rich</div>
+    </div>
+  </div>
+  <!-- Badge -->
+  <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.45);border-radius:20px;padding:5px 16px;margin-bottom:30px;">
+    <span style="font-size:11px;color:#D4AF37;font-weight:800;letter-spacing:1.5px;">EP.11</span>
+    <span style="width:1px;height:10px;background:rgba(212,175,55,0.4);display:inline-block;"></span>
+    <span style="font-size:11px;color:#aaa;letter-spacing:0.5px;">高股息 ETF 的迷思</span>
+  </div>
+  <!-- Title -->
+  <div style="margin-bottom:14px;line-height:1.05;">
+    <div style="font-size:3.5rem;font-weight:900;color:#fff;margin-bottom:4px;">配息領得多，</div>
+    <div style="font-size:4.4rem;font-weight:900;color:#D4AF37;text-shadow:0 0 36px rgba(212,175,55,0.35);">報酬就比較好？</div>
+  </div>
+  <div style="margin-bottom:28px;">
+    <div style="font-size:1rem;font-weight:300;color:#aaa;letter-spacing:1px;">用數據拆解高股息 ETF 的真實報酬，對比 0050 長期含息表現</div>
+  </div>
+  <!-- Stats -->
+  <div id="cover-cards" style="display:flex;align-items:stretch;gap:12px;max-width:680px;transform:scale(0.9);transform-origin:left top;">
+    <div style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">0050 含息年化（2009–2026）</div>
+      <div style="font-size:1rem;font-weight:700;color:#D4AF37;">+15.1%</div>
+    </div>
+    <div style="background:rgba(46,95,163,0.08);border:1px solid rgba(46,95,163,0.25);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">0056 含息年化（2009–2026）</div>
+      <div style="font-size:1rem;font-weight:700;color:#2E5FA3;">+9.8%</div>
+    </div>
+    <div style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">年化報酬差距</div>
+      <div style="font-size:1rem;font-weight:700;color:#dc2626;">每年少 5.3%（複利拉開）</div>
+    </div>
+  </div>
+  <p style="position:absolute;bottom:14px;left:56px;color:#2e4a6b;font-size:0.68rem;">按 → 翻頁 &nbsp;|&nbsp; F 全螢幕 &nbsp;|&nbsp; ESC 總覽</p>
+</section>
+
+<!-- ══ 2. 什麼是高股息 ETF？ ══ -->
+<section>
+  <h2>什麼是高股息 ETF？</h2>
+  <div class="three-col" style="margin-bottom:16px;">
+    <div class="etf-card">
+      <div class="etf-name">0056</div>
+      <div class="etf-full">元大高股息 ETF</div>
+      <div style="margin-bottom:8px;">
+        <span class="etf-tag">台股高殖利率</span>
+        <span class="etf-tag">半年/季配</span>
+      </div>
+      <p style="margin:0;font-size:0.78rem;color:var(--gray);">篩選台股預測殖利率最高的 30 支股票，2007 年成立，是台灣最早的高股息 ETF。</p>
+    </div>
+    <div class="etf-card">
+      <div class="etf-name">00878</div>
+      <div class="etf-full">國泰永續高股息 ETF</div>
+      <div style="margin-bottom:8px;">
+        <span class="etf-tag">ESG + 高息</span>
+        <span class="etf-tag">季配</span>
+      </div>
+      <p style="margin:0;font-size:0.78rem;color:var(--gray);">結合 ESG 篩選與高殖利率，2020 年成立後快速成為台灣最大規模 ETF 之一。</p>
+    </div>
+    <div class="etf-card">
+      <div class="etf-name">00919</div>
+      <div class="etf-full">群益台灣精選高息 ETF</div>
+      <div style="margin-bottom:8px;">
+        <span class="etf-tag">高配息率</span>
+        <span class="etf-tag">季配</span>
+      </div>
+      <p style="margin:0;font-size:0.78rem;color:var(--gray);">主打殖利率更高，吸引追求「被動現金流」的投資人，2022 年成立後規模快速成長。</p>
+    </div>
+  </div>
+  <div style="background:rgba(212,175,55,0.07);border:1.5px solid rgba(212,175,55,0.35);border-radius:10px;padding:14px 18px;">
+    <p style="margin:0;font-size:0.82rem;"><strong style="color:#92400e;">共同賣點：</strong>殖利率 5–8%，季配或半年配，讓人感覺「穩定領息」、「比較安心」。</p>
+    <p style="margin:8px 0 0;font-size:0.8rem;color:var(--gray);">但<strong>「配息高」等於「報酬高」或「比較安全」嗎？</strong>讓我們用數據來驗證。</p>
+  </div>
+</section>
+
+<!-- ══ 3. 高配息的迷思 ══ -->
+<section>
+  <h2>高配息的迷思：錢從左口袋換右口袋</h2>
+  <div class="two-col">
+    <div>
+      <div class="card card-red" style="margin-bottom:12px;">
+        <p style="margin:0 0 6px;font-weight:700;color:var(--red);">除息機制：配息從股價扣除</p>
+        <p style="margin:0;font-size:0.8rem;">ETF 每次配息，淨值就下調相同金額。<br>配息前 25 元 → 配息 1 元 → 除息後 24 元</p>
+      </div>
+      <div class="card card-red">
+        <p style="margin:0 0 6px;font-weight:700;color:var(--red);">「高配息」≠ 多賺了錢</p>
+        <p style="margin:0;font-size:0.8rem;">配息前你有「24 元股票 + 1 元現金 = 25 元」<br>配息後還是「24 元股票 + 1 元現金 = 25 元」<br><strong>總財富不變。</strong>不是多賺，是換手。</p>
+      </div>
+    </div>
+    <div>
+      <!-- 圖解：除息示意 -->
+      <div style="background:var(--light);border-radius:12px;padding:14px 16px;">
+        <div style="font-size:0.7rem;color:var(--gray);margin-bottom:8px;font-weight:700;">除息前後示意</div>
+        <svg viewBox="0 0 400 160" style="width:100%;display:block;">
+          <!-- 除息前 -->
+          <rect x="10" y="20" width="160" height="60" rx="8" fill="#e8edf5"/>
+          <text x="90" y="42" font-size="11" fill="#1B3A6B" text-anchor="middle" font-weight="700">除息前</text>
+          <text x="90" y="62" font-size="20" fill="#1B3A6B" text-anchor="middle" font-weight="900">25 元</text>
+          <text x="90" y="78" font-size="9.5" fill="#6b7280" text-anchor="middle">股票 25 元</text>
+
+          <!-- 箭頭 -->
+          <line x1="175" y1="50" x2="220" y2="50" stroke="#D4AF37" stroke-width="2"/>
+          <polygon points="220,44 232,50 220,56" fill="#D4AF37"/>
+          <text x="203" y="44" font-size="9" fill="#dc2626" text-anchor="middle">配息 1 元</text>
+
+          <!-- 除息後 -->
+          <rect x="236" y="20" width="150" height="60" rx="8" fill="#e8edf5"/>
+          <text x="311" y="42" font-size="11" fill="#1B3A6B" text-anchor="middle" font-weight="700">除息後</text>
+          <text x="311" y="62" font-size="14" fill="#1B3A6B" text-anchor="middle" font-weight="900">24 + 1 元</text>
+          <text x="311" y="78" font-size="9.5" fill="#6b7280" text-anchor="middle">股票 24 + 現金 1</text>
+
+          <!-- 結論 -->
+          <rect x="10" y="108" width="376" height="38" rx="8" fill="rgba(212,175,55,0.12)" stroke="rgba(212,175,55,0.4)" stroke-width="1"/>
+          <text x="198" y="124" font-size="11" fill="#92400e" text-anchor="middle" font-weight="700">總資產 = 25 元（不變）</text>
+          <text x="198" y="140" font-size="10" fill="#92400e" text-anchor="middle">配息只是把資產從「股票」移到「現金」，不是憑空多出來的</text>
+        </svg>
+      </div>
+      <div class="note" style="font-size:0.76rem;">
+        <strong>正確的比較方式：</strong>假設配息全部再投入買回同一檔 ETF，用<strong>含息總報酬</strong>來比較，才能反映真實複利成長。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 4. 含息還原公式 ══ -->
+<section>
+  <h2>用含息報酬（還原股價）才能公平比較</h2>
+  <div class="two-col">
+    <div>
+      <div style="background:rgba(212,175,55,0.07);border:1.5px solid rgba(212,175,55,0.4);border-radius:10px;padding:16px 18px;margin-bottom:14px;">
+        <p style="margin:0 0 8px;font-size:0.82rem;font-weight:700;color:#92400e;">含息再投入總報酬指數（TR Index）</p>
+        <p style="margin:0;font-size:0.82rem;font-family:monospace;background:#fff;padding:8px 12px;border-radius:6px;line-height:1.7;">
+          TR[年] = TR[上一年]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;× (收盤[年] + 配息[年])<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;÷ 收盤[上一年]
+        </p>
+        <p style="margin:8px 0 0;font-size:0.75rem;color:var(--gray);">每年報酬 = 股價漲跌 + 配息殖利率，再逐年複利累積。</p>
+      </div>
+      <div class="card" style="border-left-color:var(--royal);">
+        <p style="margin:0 0 4px;font-weight:700;font-size:0.8rem;color:var(--royal);">數字例子（0050，2024→2025）</p>
+        <p style="margin:0;font-size:0.78rem;line-height:1.8;">
+          收盤：48.94 → 65.60，配息：1.035<br>
+          年度報酬 = (65.60 + 1.035) ÷ 48.94 = <strong style="color:var(--accent);">+36.2%</strong>
+        </p>
+      </div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:10px;padding:16px;">
+        <p style="margin:0 0 10px;font-size:0.8rem;font-weight:700;color:var(--blue);">為什麼不能只看原始股價？</p>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="background:#fff;border-radius:8px;padding:10px 12px;font-size:0.78rem;">
+            <span style="color:var(--red);font-weight:700;">✗ 原始股價：</span>除息後股價下跌，看起來漲幅很少
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:10px 12px;font-size:0.78rem;">
+            <span style="color:var(--accent);font-weight:700;">✓ GoodInfo 還原：</span>把除息缺口補回，K 線連貫，但年末還原 ≈ 原始（缺口年中已回補）
+          </div>
+          <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:8px;padding:10px 12px;font-size:0.78rem;">
+            <span style="color:#92400e;font-weight:700;">★ 含息再投入（本集用）：</span>配息全數買回，顯示複利真實成長，差距最大也最有意義
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 5. Case 1：含息報酬比較 ══ -->
+<section>
+  <h2>Case 1：0056 vs 0050 含息報酬（2009–2026，同期比較）</h2>
+  <div class="chart-wrap" style="height:255px;">
+    <canvas id="chartCmp"></canvas>
+  </div>
+  <div class="three-col" style="margin-top:12px;">
+    <div class="stat-box" style="background:rgba(212,175,55,0.1);border-radius:8px;">
+      <div style="font-size:0.62rem;color:#92400e;">0050 含息（2009 投入 100萬）</div>
+      <div class="stat-num" style="color:#92400e;font-size:1.6rem;">1,097 萬</div>
+      <div style="font-size:0.65rem;color:var(--gray);">年化 15.1%</div>
+    </div>
+    <div class="stat-box" style="background:rgba(27,58,107,0.07);border-radius:8px;">
+      <div style="font-size:0.62rem;color:var(--gray);">0056 含息（2009 投入 100萬）</div>
+      <div class="stat-num" style="color:var(--blue);font-size:1.6rem;">493 萬</div>
+      <div style="font-size:0.65rem;color:var(--gray);">年化 9.8%</div>
+    </div>
+    <div class="stat-box" style="background:rgba(220,38,38,0.06);border-radius:8px;">
+      <div style="font-size:0.62rem;color:var(--gray);">差距（17年後少賺）</div>
+      <div class="stat-num" style="color:var(--red);font-size:1.6rem;">604 萬</div>
+      <div style="font-size:0.65rem;color:var(--gray);">每年少 5.3%（複利拉開）</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 6. Case 2：0056 vs 0050+短債 ══ -->
+<section>
+  <h2>Case 2：加入短債後的含息報酬比較（0056 vs 0050，2019–2026）</h2>
+  <div class="chart-wrap" style="height:275px;">
+    <canvas id="chartPortfolio"></canvas>
+  </div>
+  <div class="note" style="margin-top:8px;font-size:0.76rem;">
+    <strong>基準：2019 年末各投入 100 萬，每年底再平衡。短債：00719B（元大美債1-3）。</strong>即使加入 30% 短債，0050 組合仍大幅領先 0056，且抗跌能力隨債券比例提升。
+  </div>
+</section>
+
+<!-- ══ 7. Case 2：2022 抗跌效果 vs 0056 ══ -->
+<section>
+  <h2>2022 熊市抗跌效果：0050+短債 vs 0056</h2>
+  <div class="two-col" style="gap:20px;align-items:start;">
+    <div style="position:relative;height:250px;">
+      <canvas id="chartDD"></canvas>
+    </div>
+    <div>
+      <table class="cmp-table" style="font-size:0.7rem;">
+        <thead>
+          <tr>
+            <th style="font-size:0.68rem;">投資組合</th>
+            <th style="font-size:0.68rem;">2022 年報酬</th>
+            <th style="font-size:0.68rem;">2026 末<br>（萬）</th>
+          </tr>
+        </thead>
+        <tbody id="tbDD"></tbody>
+      </table>
+      <div class="note" style="font-size:0.72rem;margin-top:10px;">
+        <strong>關鍵發現：</strong><br>
+        加入 <strong>10%</strong> 短債，抗跌效果已等同 0056<br>
+        加入 <strong>20%</strong> 短債，比 0056 更抗跌<br>
+        但任一 0050 組合的 <strong>最終報酬都遠超 0056</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 8. Case 3：00878 vs 0050 ══ -->
+<section>
+  <h2>Case 3：00878 vs 0050 含息報酬（2020–2026，同期比較）</h2>
+  <div class="two-col" style="gap:20px;align-items:start;">
+    <div>
+      <div class="chart-wrap" style="height:270px;">
+        <canvas id="chart878"></canvas>
+      </div>
+    </div>
+    <div>
+      <div style="background:rgba(212,175,55,0.07);border:1.5px solid rgba(212,175,55,0.35);border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+        <div style="font-size:0.7rem;color:#92400e;font-weight:700;margin-bottom:8px;">2020 年末各投入 100 萬</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:8px;padding:9px 12px;">
+            <span style="font-size:0.8rem;font-weight:700;color:#1B3A6B;">0050</span>
+            <div style="text-align:right;">
+              <div style="font-size:1.3rem;font-weight:900;color:#D4AF37;">367 萬</div>
+              <div style="font-size:0.65rem;color:var(--gray);">年化 +24.2%</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:8px;padding:9px 12px;">
+            <span style="font-size:0.8rem;font-weight:700;color:var(--red);">00878</span>
+            <div style="text-align:right;">
+              <div style="font-size:1.3rem;font-weight:900;color:var(--red);">246 萬</div>
+              <div style="font-size:0.65rem;color:var(--gray);">年化 +16.2%</div>
+            </div>
+          </div>
+          <div style="background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2);border-radius:8px;padding:9px 12px;text-align:center;">
+            <span style="font-size:0.8rem;font-weight:700;color:var(--red);">每年少 8.0%，6 年少賺 121 萬</span>
+          </div>
+        </div>
+      </div>
+      <div class="card card-red">
+        <p style="margin:0 0 4px;font-weight:700;color:var(--red);font-size:0.8rem;">00878 是台灣規模最大的 ETF，但…</p>
+        <ul style="margin:0;padding-left:16px;font-size:0.78rem;line-height:1.8;">
+          <li>2022 熊市表現稍佳（-9.4% vs -20.9%）</li>
+          <li>但 2023–2026 漲幅明顯落後 0050</li>
+          <li>含息報酬長期仍顯著輸給指數型</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="note" style="margin-top:8px;font-size:0.76rem;">
+    <strong>結論不變：</strong>不論是元大高股息（0056）還是國泰永續高股息（00878），長期含息報酬都無法超越 0050。高配息帶來的「安心感」是真實的，但代價是每年 4–6% 的報酬損失。
+  </div>
+</section>
+
+<!-- ══ 9. Case 4：0050+短債 vs 00878 ══ -->
+<section>
+  <h2>Case 4：加入短債後的含息報酬比較（00878 vs 0050，2020–2026）</h2>
+  <div class="chart-wrap" style="height:275px;">
+    <canvas id="chart878Bond"></canvas>
+  </div>
+  <div class="note" style="margin-top:8px;font-size:0.76rem;">
+    <strong>基準：2020 年末各投入 100 萬，每年底再平衡。</strong>即使在 0050 中加入 30% 短債來降低波動，含息報酬仍大幅超越 00878——說明「穩定配息」無法彌補指數型 ETF 的長期複利優勢。
+  </div>
+</section>
+
+<!-- ══ 10. Case 4：2022 抗跌效果 vs 00878 ══ -->
+<section>
+  <h2>2022 熊市抗跌效果：0050+短債 vs 00878</h2>
+  <div class="two-col" style="gap:20px;align-items:start;">
+    <div style="position:relative;height:250px;">
+      <canvas id="chartDD878"></canvas>
+    </div>
+    <div>
+      <table class="cmp-table" style="font-size:0.7rem;">
+        <thead>
+          <tr>
+            <th style="font-size:0.68rem;">投資組合</th>
+            <th style="font-size:0.68rem;">2022 年報酬</th>
+            <th style="font-size:0.68rem;">2026 末<br>（萬）</th>
+          </tr>
+        </thead>
+        <tbody id="tbDD878"></tbody>
+      </table>
+      <div class="note" style="font-size:0.72rem;margin-top:10px;">
+        <strong>關鍵發現：</strong><br>
+        00878 在 2022 熊市確實較抗跌（-9.5%），即使 30% 短債（-12.5%）仍未達到<br>
+        00878 的抗跌效果是真實的，但代價是長期報酬大幅落後<br>
+        且 2020–2026 最終報酬仍大幅超越 00878
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 11. 結論 ══ -->
+<section>
+  <h2>結論：高股息安心感 ≠ 高報酬，也 ≠ 更抗跌</h2>
+  <div class="two-col" style="margin-bottom:16px;">
+    <div>
+      <div class="card card-red" style="margin-bottom:12px;">
+        <p style="margin:0 0 6px;font-weight:700;color:var(--red);">高股息 ETF 的代價</p>
+        <ul style="margin:0;padding-left:16px;font-size:0.8rem;">
+          <li>錯過市場的平均報酬（成長空間受限）</li>
+          <li>2009–2026 年化比 0050 少 <strong>5.3%</strong></li>
+          <li>抗跌效果並不優於加入短債的 0050</li>
+        </ul>
+      </div>
+      <div class="card card-green">
+        <p style="margin:0 0 6px;font-weight:700;color:#16a34a;">更好的選擇</p>
+        <ul style="margin:0;padding-left:16px;font-size:0.8rem;">
+          <li>想要安心：<strong>0050(80%) + 短債(20%)</strong><br>抗跌比 0056 好，報酬仍遠超</li>
+          <li>想要報酬最大：<strong>0050(100%)</strong></li>
+          <li>中間平衡：<strong>0050(90%) + 短債(10%)</strong></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:16px;">
+        <p style="margin:0 0 10px;font-size:0.8rem;font-weight:700;color:var(--blue);">判斷 ETF 的正確方式</p>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:0.78rem;">
+          <div style="background:#fff;border-radius:8px;padding:9px 12px;">
+            <span style="color:var(--red);">✗</span> 只看配息率（殖利率）
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:9px 12px;">
+            <span style="color:var(--red);">✗</span> 覺得高配息代表「賺更多」
+          </div>
+          <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:8px;padding:9px 12px;font-weight:700;color:#92400e;">
+            ★ 比較含息總報酬（Total Return）<br>
+            ★ 依風險承受度決定股債比例
+          </div>
+        </div>
+      </div>
+      <div class="note" style="font-size:0.74rem;">高配息給你的「安心感」，用 10–20% 短債就能做到，同時保留指數投資的長期複利優勢。</div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({ width:1100, height:650, margin:0.04, hash:true, transition:'slide', transitionSpeed:'fast', controls:true, progress:false, slideNumber:true });
+const _header = document.querySelector('.slide-header');
+_header.style.opacity = '0';
+Reveal.on('slidechanged', e => {
+  _header.style.opacity = e.indexh === 0 ? '0' : '1';
+});
+
+
+// ── 投資組合 TR 計算（base=100 at years[0]）──
+const PORTFOLIO_YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
+function portfolioTR(components) {
+  const result = [100];
+  for (let i = 1; i < PORTFOLIO_YEARS.length; i++) {
+    const yr = PORTFOLIO_YEARS[i], prevYr = PORTFOLIO_YEARS[i - 1];
+    let mult = 0;
+    for (const { data, w } of components) {
+      const prev = data.find(d => d.y === prevYr);
+      const curr = data.find(d => d.y === yr);
+      mult += w * (curr.c + curr.div) / prev.c;
+    }
+    result.push(Math.round(result[i - 1] * mult * 10) / 10);
+  }
+  return result;
+}
+
+const YEARS878 = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
+function portfolioTR878(components) {
+  const result = [100];
+  for (let i = 1; i < YEARS878.length; i++) {
+    const yr = YEARS878[i], prevYr = YEARS878[i - 1];
+    let mult = 0;
+    for (const { data, w } of components) {
+      const prev = data.find(d => d.y === prevYr);
+      const curr = data.find(d => d.y === yr);
+      mult += w * (curr.c + curr.div) / prev.c;
+    }
+    result.push(Math.round(result[i - 1] * mult * 10) / 10);
+  }
+  return result;
+}
+
+// ── 通用 Chart 設定 ──
+const baseOpts = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{ legend:{ position:'top', labels:{ font:{size:11}, boxWidth:14, padding:12 } }, tooltip:{ mode:'index', intersect:false } },
+  scales:{
+    x:{ grid:{color:'rgba(0,0,0,0.04)'}, ticks:{font:{size:10}} },
+    y:{ grid:{color:'rgba(0,0,0,0.06)'}, ticks:{font:{size:10}}, beginAtZero:false }
+  }
+};
+
+Reveal.on('slidechanged', function(e) {
+  const idx = e.indexh;
+
+  // Case 1：0056 vs 0050 含息（2009-2025，normalized 2009=100）
+  if (idx === 4 && !window._cCmp) {
+    const base0050 = EP12_0050.find(d => d.y === 2009);
+    const base0056 = EP12_0056.find(d => d.y === 2009);
+    const d0050 = EP12_0050.filter(d => d.y >= 2009);
+    const d0056 = EP12_0056.filter(d => d.y >= 2009);
+    const labels = d0050.map(d => d.y);
+    const n0050tr = d0050.map(d => parseFloat((d.tr / base0050.tr * 100).toFixed(1)));
+    const n0056tr = d0056.map(d => parseFloat((d.tr / base0056.tr * 100).toFixed(1)));
+    window._cCmp = new Chart(document.getElementById('chartCmp'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: '0050 含息還原', data: n0050tr, borderColor: '#D4AF37', backgroundColor: 'rgba(212,175,55,0.06)', borderWidth: 3, pointRadius: 2.5, tension: 0.3 },
+          { label: '0056 含息還原', data: n0056tr, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.05)', borderWidth: 2.5, pointRadius: 2.5, tension: 0.3, borderDash: [5, 4] },
+        ]
+      },
+      options: { ...baseOpts, scales: {
+        x: { grid: {color: 'rgba(0,0,0,0.04)'}, ticks: {font: {size: 10}} },
+        y: { grid: {color: 'rgba(0,0,0,0.06)'}, ticks: {font: {size: 10}, callback: v => v}, beginAtZero: false }
+      }}
+    });
+  }
+
+  // Case 2：00878 vs 0050（2020-2025，2020=100）
+  if (idx === 7 && !window._c878) {
+    const YEARS_878 = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
+    const base0050 = EP12_0050.find(d => d.y === 2020);
+    const base0878 = EP12_00878.find(d => d.y === 2020);
+    const n0050 = YEARS_878.map(y => {
+      const d = EP12_0050.find(x => x.y === y);
+      return parseFloat((d.tr / base0050.tr * 100).toFixed(1));
+    });
+    const n0878 = YEARS_878.map(y => {
+      const d = EP12_00878.find(x => x.y === y);
+      return parseFloat((d.tr / base0878.tr * 100).toFixed(1));
+    });
+    window._c878 = new Chart(document.getElementById('chart878'), {
+      type: 'line',
+      data: {
+        labels: YEARS_878,
+        datasets: [
+          { label: '0050 含息還原', data: n0050, borderColor: '#D4AF37', backgroundColor: 'rgba(212,175,55,0.06)', borderWidth: 3, pointRadius: 3, tension: 0.3 },
+          { label: '00878 含息還原', data: n0878, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.05)', borderWidth: 2.5, pointRadius: 3, tension: 0.3, borderDash: [5, 4] },
+        ]
+      },
+      options: { ...baseOpts, scales: {
+        x: { grid: {color: 'rgba(0,0,0,0.04)'}, ticks: {font: {size: 11}} },
+        y: { grid: {color: 'rgba(0,0,0,0.06)'}, ticks: {font: {size: 11}, callback: v => v}, beginAtZero: false }
+      }}
+    });
+  }
+
+  // Case 4：00878 vs 0050+bond portfolios（2020-2025，2020=100）
+  if (idx === 8 && !window._c878Bond) {
+    const tr878 = portfolioTR878([{ data: EP12_00878,  w: 1   }]);
+    const tr100 = portfolioTR878([{ data: EP12_0050,   w: 1   }]);
+    const tr90  = portfolioTR878([{ data: EP12_0050,   w: 0.9 }, { data: EP12_00719B, w: 0.1 }]);
+    const tr80  = portfolioTR878([{ data: EP12_0050,   w: 0.8 }, { data: EP12_00719B, w: 0.2 }]);
+    const tr70  = portfolioTR878([{ data: EP12_0050,   w: 0.7 }, { data: EP12_00719B, w: 0.3 }]);
+    window._c878Bond = new Chart(document.getElementById('chart878Bond'), {
+      type: 'line',
+      data: {
+        labels: YEARS878,
+        datasets: [
+          { label: '00878',                data: tr878, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.05)', borderWidth: 2.5, pointRadius: 2.5, tension: 0.3, borderDash: [6, 4] },
+          { label: '0050 100%',            data: tr100, borderColor: '#1B3A6B', backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 2.5, tension: 0.3 },
+          { label: '0050(90%)+短債(10%)',  data: tr90,  borderColor: '#2E5FA3', backgroundColor: 'transparent', borderWidth: 2,   pointRadius: 2,   tension: 0.3 },
+          { label: '0050(80%)+短債(20%)',  data: tr80,  borderColor: '#4A7FD4', backgroundColor: 'transparent', borderWidth: 2,   pointRadius: 2,   tension: 0.3 },
+          { label: '0050(70%)+短債(30%)',  data: tr70,  borderColor: '#94a3b8', backgroundColor: 'transparent', borderWidth: 2,   pointRadius: 2,   tension: 0.3 },
+        ]
+      },
+      options: { ...baseOpts, scales: {
+        x: { grid: {color: 'rgba(0,0,0,0.04)'}, ticks: {font: {size: 10}} },
+        y: { grid: {color: 'rgba(0,0,0,0.06)'}, ticks: {font: {size: 10}, callback: v => v.toFixed(0)}, beginAtZero: false }
+      }}
+    });
+  }
+
+  // Case 3 line chart：0056 vs 0050+bond portfolios（2019-2025）
+  if (idx === 5 && !window._cPortfolio) {
+    const tr0056 = portfolioTR([{ data: EP12_0056, w: 1 }]);
+    const tr100  = portfolioTR([{ data: EP12_0050, w: 1 }]);
+    const tr90   = portfolioTR([{ data: EP12_0050, w: 0.9 }, { data: EP12_00719B, w: 0.1 }]);
+    const tr80   = portfolioTR([{ data: EP12_0050, w: 0.8 }, { data: EP12_00719B, w: 0.2 }]);
+    const tr70   = portfolioTR([{ data: EP12_0050, w: 0.7 }, { data: EP12_00719B, w: 0.3 }]);
+    window._cPortfolio = new Chart(document.getElementById('chartPortfolio'), {
+      type: 'line',
+      data: {
+        labels: PORTFOLIO_YEARS,
+        datasets: [
+          { label: '0056',                data: tr0056, borderColor: '#ef4444', backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 2.5, tension: 0.3, borderDash: [6, 4] },
+          { label: '0050 100%',           data: tr100,  borderColor: '#1B3A6B', backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 2.5, tension: 0.3 },
+          { label: '0050(90%)+短債(10%)', data: tr90,   borderColor: '#2E5FA3', backgroundColor: 'transparent', borderWidth: 2,   pointRadius: 2,   tension: 0.3 },
+          { label: '0050(80%)+短債(20%)', data: tr80,   borderColor: '#4A7FD4', backgroundColor: 'transparent', borderWidth: 2,   pointRadius: 2,   tension: 0.3 },
+          { label: '0050(70%)+短債(30%)', data: tr70,   borderColor: '#94a3b8', backgroundColor: 'transparent', borderWidth: 2,   pointRadius: 2,   tension: 0.3 },
+        ]
+      },
+      options: { ...baseOpts, scales: {
+        x: { grid: {color: 'rgba(0,0,0,0.04)'}, ticks: {font: {size: 10}} },
+        y: { grid: {color: 'rgba(0,0,0,0.06)'}, ticks: {font: {size: 10}, callback: v => v.toFixed(0)}, beginAtZero: false }
+      }}
+    });
+  }
+
+  // Case 3 bar chart：2022 抗跌效果
+  if (idx === 6 && !window._cDD) {
+    const SCENARIOS = [
+      { label: '0056',                components: [{ data: EP12_0056,  w: 1   }], color: '#ef4444' },
+      { label: '0050 100%',           components: [{ data: EP12_0050,  w: 1   }], color: '#1B3A6B' },
+      { label: '0050(90%)+短債(10%)', components: [{ data: EP12_0050,  w: 0.9 }, { data: EP12_00719B, w: 0.1 }], color: '#2E5FA3' },
+      { label: '0050(80%)+短債(20%)', components: [{ data: EP12_0050,  w: 0.8 }, { data: EP12_00719B, w: 0.2 }], color: '#4A7FD4' },
+      { label: '0050(70%)+短債(30%)', components: [{ data: EP12_0050,  w: 0.7 }, { data: EP12_00719B, w: 0.3 }], color: '#94a3b8' },
+    ];
+    const i2021 = PORTFOLIO_YEARS.indexOf(2021);
+    const i2022 = PORTFOLIO_YEARS.indexOf(2022);
+    const returns2022 = [], finalVals = [], colors = [];
+    for (const s of SCENARIOS) {
+      const tr = portfolioTR(s.components);
+      returns2022.push(parseFloat(((tr[i2022] / tr[i2021] - 1) * 100).toFixed(2)));
+      finalVals.push(tr[tr.length - 1]);
+      colors.push(s.color);
+    }
+    window._cDD = new Chart(document.getElementById('chartDD'), {
+      type: 'bar',
+      data: {
+        labels: SCENARIOS.map(s => s.label),
+        datasets: [{ label: '2022 年度報酬 (%)', data: returns2022, backgroundColor: colors.map(c => c + 'bb'), borderColor: colors, borderWidth: 1.5 }]
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.raw.toFixed(1) + '%' } } },
+        scales: {
+          x: { grid: {color: 'rgba(0,0,0,0.04)'}, ticks: {font: {size: 10}, callback: v => v + '%'} },
+          y: { grid: {color: 'transparent'}, ticks: {font: {size: 10}} }
+        }
+      }
+    });
+    document.getElementById('tbDD').innerHTML = SCENARIOS.map((s, i) => {
+      const r = returns2022[i];
+      const cls = r < 0 ? 'color:var(--red)' : 'color:#16a34a';
+      return `<tr><td>${s.label}</td><td style="${cls};font-weight:700">${r > 0 ? '+' : ''}${r.toFixed(1)}%</td><td>${finalVals[i].toFixed(1)} 萬</td></tr>`;
+    }).join('');
+  }
+
+  // Case 4 bar：2022 抗跌效果 vs 00878
+  if (idx === 9 && !window._cDD878) {
+    const SCENARIOS878 = [
+      { label: '00878',                components: [{ data: EP12_00878, w: 1   }], color: '#6b7280' },
+      { label: '0050 100%',            components: [{ data: EP12_0050,  w: 1   }], color: '#1B3A6B' },
+      { label: '0050(90%)+短債(10%)',  components: [{ data: EP12_0050,  w: 0.9 }, { data: EP12_00719B, w: 0.1 }], color: '#2E5FA3' },
+      { label: '0050(80%)+短債(20%)',  components: [{ data: EP12_0050,  w: 0.8 }, { data: EP12_00719B, w: 0.2 }], color: '#4A7FD4' },
+      { label: '0050(70%)+短債(30%)',  components: [{ data: EP12_0050,  w: 0.7 }, { data: EP12_00719B, w: 0.3 }], color: '#94a3b8' },
+    ];
+    const i2021 = YEARS878.indexOf(2021);
+    const i2022 = YEARS878.indexOf(2022);
+    const returns2022b = [], finalVals2 = [], colors2 = [];
+    for (const s of SCENARIOS878) {
+      const tr = portfolioTR878(s.components);
+      returns2022b.push(parseFloat(((tr[i2022] / tr[i2021] - 1) * 100).toFixed(2)));
+      finalVals2.push(tr[tr.length - 1]);
+      colors2.push(s.color);
+    }
+    window._cDD878 = new Chart(document.getElementById('chartDD878'), {
+      type: 'bar',
+      data: {
+        labels: SCENARIOS878.map(s => s.label),
+        datasets: [{ label: '2022 年度報酬 (%)', data: returns2022b, backgroundColor: colors2.map(c => c + 'bb'), borderColor: colors2, borderWidth: 1.5 }]
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.raw.toFixed(1) + '%' } } },
+        scales: {
+          x: { grid: {color: 'rgba(0,0,0,0.04)'}, ticks: {font: {size: 10}, callback: v => v + '%'} },
+          y: { grid: {color: 'transparent'}, ticks: {font: {size: 10}} }
+        }
+      }
+    });
+    document.getElementById('tbDD878').innerHTML = SCENARIOS878.map((s, i) => {
+      const r = returns2022b[i];
+      const cls = r < 0 ? 'color:var(--red)' : 'color:#16a34a';
+      return `<tr><td>${s.label}</td><td style="${cls};font-weight:700">${r > 0 ? '+' : ''}${r.toFixed(1)}%</td><td>${finalVals2[i].toFixed(1)} 萬</td></tr>`;
+    }).join('');
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EP08 退休提領法則</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue:   #1B3A6B;
+    --green:  #2E5FA3;
+    --red:    #dc2626;
+    --gray:   #6b7280;
+    --light:  #f0f4fa;
+    --accent: #D4AF37;
+  }
+  .reveal { font-family: -apple-system, "PingFang TC", sans-serif; }
+  .reveal h2 { font-size: 1.5rem; color: var(--blue); font-weight: 700; border-bottom: 3px solid var(--accent); padding-bottom: 8px; margin-bottom: 20px; }
+  .reveal p, .reveal li { font-size: 0.85rem; line-height: 1.7; }
+  .reveal .slides section { text-align: left; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .card { background: var(--light); border-radius: 10px; padding: 16px 20px; border-left: 4px solid var(--accent); }
+  .card.blue { border-left-color: var(--blue); }
+  .card.red  { border-left-color: var(--red); }
+  .note { background: #fefce8; border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.78rem; color: #713f12; margin-top: 12px; }
+  .chart-wrap { position: relative; height: 270px; }
+  .slide-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 46px; z-index: 200; pointer-events: none;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px;
+    background: rgba(255,255,255,0.96);
+    border-bottom: 2px solid #D4AF37;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .reveal .slides section:not(.cover-slide) { padding-top: 52px !important; }
+  .trinity-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  .trinity-table th { background: var(--blue); color: #fff; padding: 6px 10px; text-align: center; font-weight: 700; }
+  .trinity-table th:first-child { text-align: left; padding-left: 12px; }
+  .trinity-table td { padding: 6px 10px; text-align: center; border-bottom: 1px solid #e5e7eb; font-weight: 600; }
+  .trinity-table td:first-child { text-align: left; padding-left: 12px; font-weight: 700; color: var(--blue); }
+  .trinity-table tbody tr:nth-child(even) { background: rgba(240,244,250,0.4); }
+  .safe    { background: rgba(16,185,129,0.15); color: #065f46; }
+  .warn    { background: rgba(245,158,11,0.15); color: #92400e; }
+  .danger  { background: rgba(220,38,38,0.12);  color: #991b1b; }
+</style>
+</head>
+<body>
+
+<!-- ── 頂部品牌橫條 ── -->
+<div class="slide-header">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <svg viewBox="0 0 100 100" width="36" height="36" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-hdr"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-hdr)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="3.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:18px;color:#1B3A6B;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:7.5px;color:#888;letter-spacing:2.2px;text-transform:uppercase;margin-top:3px;">Slow Rich</div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:#6b7280;">
+    <span style="color:#D4AF37;font-weight:800;margin-right:6px;">EP.08</span>退休提領法則
+  </div>
+</div>
+
+<div class="reveal">
+<div class="slides">
+
+<!-- ══ 1. 封面 ══ -->
+<section class="cover-slide" data-background-gradient="linear-gradient(150deg,#080f1f 0%,#0d1b35 55%,#080f1f 100%)" style="padding:40px 56px;text-align:left !important;position:relative;">
+  <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;" viewBox="0 0 1100 650" preserveAspectRatio="none">
+    <defs>
+      <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g transform="translate(-73,18)">
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160 L1055,650 L680,650 Z" fill="#D4AF37" opacity="0.05"/>
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160" stroke="#D4AF37" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.05"/>
+    <path d="M680,600 L718,520 L752,578 L798,445 L838,505 L882,355 L918,428 L962,255 L998,318 L1038,195 L1055,160" stroke="#D4AF37" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
+    <circle cx="1055" cy="160" r="24" fill="#D4AF37" opacity="0.12" filter="url(#glow)"/>
+    <circle cx="1055" cy="160" r="10" fill="#D4AF37" opacity="0.55"/>
+    <circle cx="1055" cy="160" r="5" fill="#D4AF37" opacity="0.95"/>
+      </g>
+  </svg>
+  <!-- Logo -->
+  <div style="position:absolute;top:9px;right:123px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.35);border-radius:14px;padding:10px 18px 10px 12px;">
+    <svg viewBox="0 0 100 100" width="80" height="80" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-cv"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-cv)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2.5" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="4.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:26px;color:#D4AF37;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:400;font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">Slow Rich</div>
+    </div>
+  </div>
+  <!-- Badge -->
+  <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.45);border-radius:20px;padding:5px 16px;margin-bottom:30px;">
+    <span style="font-size:11px;color:#D4AF37;font-weight:800;letter-spacing:1.5px;">EP.08</span>
+    <span style="width:1px;height:10px;background:rgba(212,175,55,0.4);display:inline-block;"></span>
+    <span style="font-size:11px;color:#aaa;letter-spacing:0.5px;">指數化投資的終點</span>
+  </div>
+  <!-- Title -->
+  <div style="margin-bottom:14px;line-height:1.05;">
+    <div style="font-size:3.5rem;font-weight:900;color:#fff;margin-bottom:4px;">存到了之後，</div>
+    <div style="font-size:4.4rem;font-weight:900;color:#D4AF37;text-shadow:0 0 36px rgba(212,175,55,0.35);">怎麼領才不怕花完？</div>
+  </div>
+  <div style="margin-bottom:28px;">
+    <div style="font-size:1rem;font-weight:300;color:#aaa;letter-spacing:1px;">4% 提領法則 × Trinity Study，退休金的科學管理</div>
+  </div>
+  <!-- Stats -->
+  <div id="cover-cards" style="display:flex;align-items:stretch;gap:12px;max-width:680px;transform:scale(0.9);transform-origin:left top;">
+    <div style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">核心公式</div>
+      <div style="font-size:1rem;font-weight:700;color:#D4AF37;">年支出 × 25 = 退休目標</div>
+    </div>
+    <div style="background:rgba(46,95,163,0.08);border:1px solid rgba(46,95,163,0.25);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">Trinity Study</div>
+      <div style="font-size:1rem;font-weight:700;color:#2E5FA3;">4% 提領，30年成功率 95%+</div>
+    </div>
+    <div style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;">你的提領策略</div>
+      <div style="font-size:1rem;font-weight:700;color:#dc2626;">固定 or 動態？</div>
+    </div>
+  </div>
+  <p style="position:absolute;bottom:14px;left:56px;color:#2e4a6b;font-size:0.68rem;">按 → 翻頁 &nbsp;|&nbsp; F 全螢幕 &nbsp;|&nbsp; ESC 總覽</p>
+</section>
+
+<!-- ══ 2. 承接 EP07 ══ -->
+<section>
+  <h2>存到 1,500 萬之後——新的問題開始了</h2>
+  <div class="two-col">
+    <div>
+      <p>EP07 解答了「<strong>存得到嗎？</strong>」<br>EP08 要回答「<strong>領得完嗎？</strong>」</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0;">
+        <div style="background:#fff;border-radius:10px;padding:14px 16px;border-left:4px solid #D4AF37;">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--blue);margin-bottom:4px;">1,500 萬 × 4% 提領</div>
+          <div style="font-size:1rem;font-weight:700;color:#92400e;">每年 60 萬 ＝ 月領 <span style="font-size:1.25rem;color:#D4AF37;">5 萬</span></div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px 16px;border-left:4px solid var(--blue);">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--blue);margin-bottom:4px;">3,000 萬 × 4% 提領</div>
+          <div style="font-size:1rem;font-weight:700;color:var(--blue);">每年 120 萬 ＝ 月領 <span style="font-size:1.25rem;">10 萬</span></div>
+        </div>
+      </div>
+      <div class="note">退休不是終點，而是「換一種方式讓錢繼續工作」的起點。</div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:20px;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;">退休後的三個核心問題</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #dc2626;">
+            <div style="font-size:0.75rem;font-weight:700;color:#dc2626;margin-bottom:3px;">Q1：每年可以領多少？</div>
+            <div style="font-size:0.7rem;color:var(--gray);">3%？4%？領太少太保守，領太多本金會耗盡</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #f59e0b;">
+            <div style="font-size:0.75rem;font-weight:700;color:#92400e;margin-bottom:3px;">Q2：能撐幾年不破產？</div>
+            <div style="font-size:0.7rem;color:var(--gray);">台灣平均餘命 80+ 歲，退休可能長達 30 年</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid var(--green);">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--blue);margin-bottom:3px;">Q3：通膨怎麼辦？</div>
+            <div style="font-size:0.7rem;color:var(--gray);">今天的 5 萬，20 年後購買力約等於今天的 3.3 萬</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 3. Trinity Study ══ -->
+<section>
+  <h2>4% 法則的科學根據——Trinity Study</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>1998 年，美國三一大學（Trinity University）Cooley、Hubbard、Walz 三位教授：</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:12px 0;">
+        <div style="background:var(--light);border-radius:8px;padding:12px 14px;">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--blue);margin-bottom:3px;">研究方法</div>
+          <div style="font-size:0.7rem;color:var(--gray);">分析 1926–1995 年真實股市數據，測試各種提領率在不同年限下「資金不耗盡」的機率</div>
+        </div>
+        <div style="background:rgba(212,175,55,0.08);border-radius:8px;padding:12px 14px;border:1px solid rgba(212,175,55,0.3);">
+          <div style="font-size:0.75rem;font-weight:700;color:#92400e;margin-bottom:3px;">核心結論</div>
+          <div style="font-size:0.7rem;color:var(--gray);">股票佔 75% 以上的投資組合，以 4% 提領率，30 年內資金不耗盡的機率超過 <strong style="color:#D4AF37;font-size:0.85rem;">95%</strong></div>
+        </div>
+        <div style="background:#fff;border-radius:8px;padding:12px 14px;border:1px solid #e5e7eb;">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--blue);margin-bottom:3px;">固定提領的執行方式</div>
+          <div style="font-size:0.7rem;color:var(--gray);">退休第一年領 4%，之後每年按通膨率調升提領金額<br>（而非每年重新計算 4%）</div>
+        </div>
+      </div>
+      <div class="note">最新研究（Morningstar 2024）認為考慮當前估值後，3.7%–4.0% 是更安全的起始提領率。</div>
+    </div>
+    <div>
+      <div style="background:var(--blue);border-radius:12px;padding:20px;color:#fff;text-align:center;">
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.7);margin-bottom:8px;">公式記憶法</div>
+        <div style="font-size:1.8rem;font-weight:900;color:#D4AF37;margin-bottom:8px;">× 25</div>
+        <div style="font-size:0.85rem;margin-bottom:16px;">退休金目標 = 每年支出 × 25</div>
+        <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:14px;display:flex;flex-direction:column;gap:10px;">
+          <div style="background:rgba(212,175,55,0.15);border-radius:8px;padding:10px;">
+            <div style="font-size:0.68rem;color:rgba(255,255,255,0.65);margin-bottom:3px;">月花 5 萬 → 年花 60 萬</div>
+            <div style="font-size:1.1rem;font-weight:700;color:#D4AF37;">目標：1,500 萬</div>
+          </div>
+          <div style="background:rgba(46,95,163,0.3);border-radius:8px;padding:10px;">
+            <div style="font-size:0.68rem;color:rgba(255,255,255,0.65);margin-bottom:3px;">月花 10 萬 → 年花 120 萬</div>
+            <div style="font-size:1.1rem;font-weight:700;color:#93c5fd;">目標：3,000 萬</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 4. 反推公式 ══ -->
+<section>
+  <h2>反推你的退休目標——不同生活水準的需求</h2>
+  <div class="two-col" style="align-items:start;">
+    <div>
+      <p>依照每月花費，用 4% 法則反推需要的退休本金：</p>
+      <table class="trinity-table" style="margin:12px 0;">
+        <thead>
+          <tr>
+            <th>每月花費</th>
+            <th>年花費</th>
+            <th>退休目標（×25）</th>
+            <th>3% 更保守（×33）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>3 萬</td>
+            <td style="text-align:center;">36 萬</td>
+            <td style="text-align:center;font-weight:700;color:#10b981;">900 萬</td>
+            <td style="text-align:center;color:var(--gray);">1,188 萬</td>
+          </tr>
+          <tr>
+            <td>5 萬</td>
+            <td style="text-align:center;">60 萬</td>
+            <td style="text-align:center;font-weight:700;color:#D4AF37;">1,500 萬</td>
+            <td style="text-align:center;color:var(--gray);">1,980 萬</td>
+          </tr>
+          <tr>
+            <td>8 萬</td>
+            <td style="text-align:center;">96 萬</td>
+            <td style="text-align:center;font-weight:700;color:#2E5FA3;">2,400 萬</td>
+            <td style="text-align:center;color:var(--gray);">3,168 萬</td>
+          </tr>
+          <tr>
+            <td>10 萬</td>
+            <td style="text-align:center;">120 萬</td>
+            <td style="text-align:center;font-weight:700;color:#1B3A6B;">3,000 萬</td>
+            <td style="text-align:center;color:var(--gray);">3,960 萬</td>
+          </tr>
+          <tr>
+            <td>15 萬</td>
+            <td style="text-align:center;">180 萬</td>
+            <td style="text-align:center;font-weight:700;color:#dc2626;">4,500 萬</td>
+            <td style="text-align:center;color:var(--gray);">5,940 萬</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">×25（4% 法則）是多數人的基準；若投資保守或退休年齡較早，可改用 ×33（3% 法則）。</div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;">選擇提領率的考量</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #dc2626;">
+            <div style="font-size:0.75rem;font-weight:700;color:#dc2626;margin-bottom:3px;">4% 提領（積極）</div>
+            <div style="font-size:0.7rem;color:var(--gray);">60–65 歲退休，預期退休 25–30 年<br>需要較高的股票比例（70%+）</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #f59e0b;">
+            <div style="font-size:0.75rem;font-weight:700;color:#92400e;margin-bottom:3px;">3.5% 提領（中性）</div>
+            <div style="font-size:0.7rem;color:var(--gray);">55 歲提早退休，預期退休 35 年<br>股債均衡，抗波動性佳</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #10b981;">
+            <div style="font-size:0.75rem;font-weight:700;color:#065f46;margin-bottom:3px;">3% 提領（保守）</div>
+            <div style="font-size:0.7rem;color:var(--gray);">50 歲以下 FIRE，退休超過 40 年<br>最大安全邊際，資產可持續增長</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 5. 資產壽命模擬 ══ -->
+<section>
+  <h2>資產壽命模擬：1,500 萬 × 4% 提領 × 40 年</h2>
+  <div class="two-col" style="align-items:center;">
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <!-- 0% -->
+      <div style="background:#fff;border-radius:10px;padding:12px 16px;border:2px solid #dc2626;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.82rem;font-weight:700;color:var(--blue);">報酬率 0%（全現金）</span>
+          <span style="background:rgba(220,38,38,0.1);color:#dc2626;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:12px;">第 21 年耗盡</span>
+        </div>
+        <div style="font-size:0.68rem;color:var(--gray);margin-top:4px;">投資不滾動，通膨侵蝕提領額逐年上升，本金快速消耗</div>
+      </div>
+      <!-- 3% -->
+      <div style="background:#fff;border-radius:10px;padding:12px 16px;border:2px solid #f59e0b;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.82rem;font-weight:700;color:var(--blue);">報酬率 3%（儲蓄險 / 短債水準）</span>
+          <span style="background:rgba(245,158,11,0.12);color:#92400e;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:12px;">第 30 年耗盡</span>
+        </div>
+        <div style="font-size:0.68rem;color:var(--gray);margin-top:4px;">勉強撐過 30 年，無法應對更長壽命或意外支出</div>
+      </div>
+      <!-- 5% -->
+      <div style="background:#fff;border-radius:10px;padding:12px 16px;border:2px solid var(--green);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.82rem;font-weight:700;color:var(--blue);">報酬率 5%（均衡型股債配置）</span>
+          <span style="background:rgba(46,95,163,0.1);color:var(--green);font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:12px;">永續，第 40 年剩 896 萬</span>
+        </div>
+        <div style="font-size:0.68rem;color:var(--gray);margin-top:4px;"><span style="display:inline-block;font-size:0.6rem;font-weight:700;padding:1px 6px;border-radius:8px;background:rgba(46,95,163,0.1);color:var(--green);margin-right:4px;">均值回歸</span>均衡型股債配置，歷史保守估計可實現永續提領</div>
+      </div>
+      <!-- 7% -->
+      <div style="background:#fff;border-radius:10px;padding:12px 16px;border:2px solid #D4AF37;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.82rem;font-weight:700;color:var(--blue);">報酬率 7%（積極型股債配置）</span>
+          <span style="background:rgba(212,175,55,0.15);color:#92400e;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:12px;">複利爆發，第 40 年剩 7,142 萬</span>
+        </div>
+        <div style="font-size:0.68rem;color:var(--gray);margin-top:4px;"><span style="display:inline-block;font-size:0.6rem;font-weight:700;padding:1px 6px;border-radius:8px;background:rgba(212,175,55,0.15);color:#92400e;margin-right:4px;">長期風險溢酬</span>積極型股債配置，持有指數 ETF 歷史長期均值，資產反而愈領愈多</div>
+      </div>
+    </div>
+    <div>
+      <div class="chart-wrap" style="height:300px;"><canvas id="withdrawalSimChart"></canvas></div>
+      <p style="font-size:0.65rem;color:var(--gray);margin-top:4px;text-align:center;">退休本金 1,500 萬｜4% 提領＋通膨 2% 調升｜觀察 40 年</p>
+      <div class="note" style="margin-top:8px;">結論：<strong>年化報酬率至少需達 5%</strong>，才能讓 1,500 萬在 40 年內不耗盡。<br>全放定存 ≈ 0–1.5%，不足以支撐退休所需。</div>
+      <div style="margin-top:8px;background:rgba(107,114,128,0.07);border-radius:6px;padding:8px 12px;border:1px solid #e5e7eb;font-size:0.62rem;color:#9ca3af;line-height:1.6;">
+        ※ 以上為試算示意，採固定年化報酬率假設，實際每年報酬率不固定。<br>
+        市場波動、通膨、費用率均會影響最終結果，不構成投資建議。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 6. Trinity Study 成功率 ══ -->
+<section>
+  <h2>Trinity Study 歷史成功率——不同提領率 × 年限</h2>
+  <div class="two-col" style="align-items:start;">
+    <div>
+      <p style="margin-bottom:10px;">以 1926–1995 年真實市場數據回測，股票佔 <strong>75%</strong> 的投資組合：</p>
+      <table class="trinity-table">
+        <thead>
+          <tr>
+            <th>提領率</th>
+            <th>15 年</th>
+            <th>20 年</th>
+            <th>25 年</th>
+            <th>30 年</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>3%</td>
+            <td class="safe">100%</td>
+            <td class="safe">100%</td>
+            <td class="safe">100%</td>
+            <td class="safe">100%</td>
+          </tr>
+          <tr>
+            <td>4%</td>
+            <td class="safe">100%</td>
+            <td class="safe">100%</td>
+            <td class="safe">98%</td>
+            <td class="safe">95%</td>
+          </tr>
+          <tr>
+            <td>5%</td>
+            <td class="safe">100%</td>
+            <td class="safe">98%</td>
+            <td class="warn">88%</td>
+            <td class="warn">80%</td>
+          </tr>
+          <tr>
+            <td>6%</td>
+            <td class="safe">100%</td>
+            <td class="warn">90%</td>
+            <td class="warn">74%</td>
+            <td class="danger">66%</td>
+          </tr>
+          <tr>
+            <td>7%</td>
+            <td class="warn">98%</td>
+            <td class="warn">83%</td>
+            <td class="danger">62%</td>
+            <td class="danger">51%</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="display:flex;gap:10px;margin-top:8px;font-size:0.67rem;">
+        <span style="background:rgba(16,185,129,0.15);color:#065f46;border-radius:4px;padding:2px 8px;font-weight:600;">綠：安全（90%+）</span>
+        <span style="background:rgba(245,158,11,0.15);color:#92400e;border-radius:4px;padding:2px 8px;font-weight:600;">黃：謹慎（70–89%）</span>
+        <span style="background:rgba(220,38,38,0.12);color:#991b1b;border-radius:4px;padding:2px 8px;font-weight:600;">紅：高風險（&lt;70%）</span>
+      </div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;">關鍵數字解讀</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #10b981;">
+            <div style="font-size:0.72rem;font-weight:700;color:#065f46;margin-bottom:3px;">4%，30 年，95% 成功率</div>
+            <div style="font-size:0.68rem;color:var(--gray);">100 個退休情境中，95 個資金不耗盡。這是 4% 法則名聲大的根本原因。</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #f59e0b;">
+            <div style="font-size:0.72rem;font-weight:700;color:#92400e;margin-bottom:3px;">5%，30 年，80% 成功率</div>
+            <div style="font-size:0.68rem;color:var(--gray);">5 個情境中有 1 個會破產，不建議作為主要策略。</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #dc2626;">
+            <div style="font-size:0.72rem;font-weight:700;color:#dc2626;margin-bottom:3px;">7%，30 年，51% 成功率</div>
+            <div style="font-size:0.68rem;color:var(--gray);">幾乎等於擲硬幣，本金高機率會提前耗盡。</div>
+          </div>
+        </div>
+        <div class="note" style="margin-top:10px;">資料基於美國市場 1926–1995，台股投資人可搭配股債配置降低風險。詳見 EP09。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 7. 通膨的影響 ══ -->
+<section>
+  <h2>通膨：退休後最容易被忽略的殺手</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>退休初期的 5 萬元，<strong>20 年後購買力大幅縮水</strong>：</p>
+      <table class="trinity-table" style="margin:12px 0;">
+        <thead>
+          <tr>
+            <th>年數</th>
+            <th>通膨 0%</th>
+            <th>通膨 2%</th>
+            <th>通膨 3%</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>第 1 年</td>
+            <td style="text-align:center;">5 萬</td>
+            <td style="text-align:center;">5 萬</td>
+            <td style="text-align:center;">5 萬</td>
+          </tr>
+          <tr>
+            <td>第 10 年</td>
+            <td style="text-align:center;">5 萬</td>
+            <td style="text-align:center;color:#f59e0b;font-weight:600;">6.1 萬</td>
+            <td style="text-align:center;color:#dc2626;font-weight:600;">6.7 萬</td>
+          </tr>
+          <tr>
+            <td>第 20 年</td>
+            <td style="text-align:center;">5 萬</td>
+            <td style="text-align:center;color:#f59e0b;font-weight:600;">7.4 萬</td>
+            <td style="text-align:center;color:#dc2626;font-weight:700;">9.0 萬</td>
+          </tr>
+          <tr>
+            <td>第 30 年</td>
+            <td style="text-align:center;">5 萬</td>
+            <td style="text-align:center;color:#dc2626;font-weight:700;">9.1 萬</td>
+            <td style="text-align:center;color:#dc2626;font-weight:700;">12.1 萬</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="background:rgba(220,38,38,0.05);border-radius:8px;padding:12px 14px;border:1px solid rgba(220,38,38,0.15);font-size:0.72rem;color:#991b1b;margin-top:4px;">
+        <strong>固定領 5 萬的陷阱：</strong>30 年後通膨 2% 的情況下，5 萬的實質購買力只剩 2.74 萬，相當於生活水準縮減 45%。
+      </div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;">兩種提領方式比較</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #dc2626;">
+            <div style="font-size:0.72rem;font-weight:700;color:#dc2626;margin-bottom:3px;">固定金額提領（不調整）</div>
+            <div style="font-size:0.68rem;color:var(--gray);">每年固定領 60 萬，操作簡單，但購買力逐年下降。<br>適合：支出已固定（如固定利息、租金收入補足差額）</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #10b981;">
+            <div style="font-size:0.72rem;font-weight:700;color:#065f46;margin-bottom:3px;">通膨調整提領（推薦）</div>
+            <div style="font-size:0.68rem;color:var(--gray);">第一年 60 萬，之後每年增加 2%。維持實質生活水準，但需要更高的初始本金或報酬率。</div>
+          </div>
+        </div>
+        <div class="note" style="margin-top:12px;">Trinity Study 的 4% 法則本身就是<strong>通膨調整提領</strong>——每年按通膨調升，不是每年重算 4%。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 8. 序列風險 ══ -->
+<section>
+  <h2>序列風險——退休第一年遇到股災，最危險</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>同樣是 1,500 萬、同樣的平均報酬率，<strong>只是好壞年份順序不同</strong>，結果天差地別：</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:12px 0;">
+        <div style="background:#fff;border-radius:10px;padding:14px 16px;border:2px solid #10b981;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:0.82rem;font-weight:700;color:var(--blue);">情境 A：好年先 → 壞年後</span>
+            <span style="background:rgba(16,185,129,0.12);color:#065f46;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:12px;">資產增長</span>
+          </div>
+          <div style="font-size:0.7rem;color:var(--gray);">前 10 年報酬率高（複利快速累積）<br>→ 後期即使跌，基數大，影響可控<br>→ 30 年後資產仍有大幅增長</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px 16px;border:2px solid #dc2626;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:0.82rem;font-weight:700;color:var(--blue);">情境 B：壞年先 → 好年後</span>
+            <span style="background:rgba(220,38,38,0.1);color:#dc2626;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:12px;">提早耗盡</span>
+          </div>
+          <div style="font-size:0.7rem;color:var(--gray);">退休初期就遇到 -30% 大跌<br>→ 提領額不減，本金被「低價賣出」<br>→ 後期好年份的漲幅無法彌補早期損失</div>
+        </div>
+      </div>
+      <div class="note">平均報酬率相同，但序列不同，資產壽命可能相差超過 10 年。</div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;">應對序列風險的策略</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #D4AF37;">
+            <div style="font-size:0.72rem;font-weight:700;color:#92400e;margin-bottom:3px;">策略 1：現金緩衝（1–2 年生活費）</div>
+            <div style="font-size:0.68rem;color:var(--gray);">保留 1–2 年現金，市場大跌時用現金支應，不賣股票</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid var(--green);">
+            <div style="font-size:0.72rem;font-weight:700;color:var(--blue);margin-bottom:3px;">策略 2：股債配置（降低波動）</div>
+            <div style="font-size:0.68rem;color:var(--gray);">退休初期加重債券比例，減少帳戶大幅虧損的機率</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px 14px;border-left:4px solid #6366f1;">
+            <div style="font-size:0.72rem;font-weight:700;color:#4338ca;margin-bottom:3px;">策略 3：動態提領（下集說明）</div>
+            <div style="font-size:0.68rem;color:var(--gray);">市場下跌時自動減少提領，避免低價賣出太多資產</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;font-size:0.68rem;color:#9ca3af;">股債配置完整介紹見 EP09</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 9. 動態提領法 ══ -->
+<section>
+  <h2>動態提領法——Guyton-Klinger 規則</h2>
+  <p style="margin-bottom:14px;">固定提領太死板，動態提領根據市場表現靈活調整，<strong>降低破產風險，同時保留生活彈性</strong>。</p>
+  <div class="two-col" style="align-items:start;">
+    <div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="background:#fff;border-radius:10px;padding:14px 16px;border:2px solid #10b981;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <span style="font-size:1.3rem;font-weight:900;color:#10b981;min-width:28px;">↑</span>
+            <span style="font-size:0.82rem;font-weight:700;color:var(--blue);">市場大漲時：繁榮規則</span>
+          </div>
+          <div style="font-size:0.7rem;color:var(--gray);">當年提領金額 &lt; 初始目標的 <strong>80%</strong> 時<br>→ 提領金額增加 10%（享受市場獲利）</div>
+          <div style="font-size:0.68rem;color:#10b981;margin-top:6px;">範例：原本 60 萬 / 年，增至 66 萬 / 年</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px 16px;border:2px solid #dc2626;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <span style="font-size:1.3rem;font-weight:900;color:#dc2626;min-width:28px;">↓</span>
+            <span style="font-size:0.82rem;font-weight:700;color:var(--blue);">市場大跌時：緊縮規則</span>
+          </div>
+          <div style="font-size:0.7rem;color:var(--gray);">當年提領金額 &gt; 初始目標的 <strong>120%</strong> 時<br>→ 跳過通膨調升（凍結提領金額不增加）</div>
+          <div style="font-size:0.68rem;color:#dc2626;margin-top:6px;">市場跌 20% 年份：不加通膨，維持原金額</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px 16px;border:2px solid #6366f1;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <span style="font-size:1.3rem;font-weight:900;color:#6366f1;min-width:28px;">⊘</span>
+            <span style="font-size:0.82rem;font-weight:700;color:var(--blue);">極端狀況：資本保護規則</span>
+          </div>
+          <div style="font-size:0.7rem;color:var(--gray);">持有資產大幅虧損超過門檻<br>→ 提領金額直接減少 10%</div>
+          <div style="font-size:0.68rem;color:#6366f1;margin-top:6px;">金融海嘯等極端年份的最後防線</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:12px;padding:20px;border:1px solid #e5e7eb;">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:14px;">固定 vs 動態提領比較</div>
+        <table class="trinity-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>固定提領</th>
+              <th>動態提領</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>執行難度</td>
+              <td style="text-align:center;color:#10b981;">簡單</td>
+              <td style="text-align:center;color:#f59e0b;">中等</td>
+            </tr>
+            <tr>
+              <td>破產風險</td>
+              <td style="text-align:center;color:#f59e0b;">較高</td>
+              <td style="text-align:center;color:#10b981;">較低</td>
+            </tr>
+            <tr>
+              <td>生活穩定性</td>
+              <td style="text-align:center;color:#10b981;">高</td>
+              <td style="text-align:center;color:#f59e0b;">中（有浮動）</td>
+            </tr>
+            <tr>
+              <td>剩餘資產</td>
+              <td style="text-align:center;color:#f59e0b;">較少</td>
+              <td style="text-align:center;color:#10b981;">較多</td>
+            </tr>
+            <tr>
+              <td>適合對象</td>
+              <td style="text-align:center;font-size:0.65rem;color:var(--gray);">支出固定<br>心理安穩優先</td>
+              <td style="text-align:center;font-size:0.65rem;color:var(--gray);">可接受浮動<br>希望資產更持久</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note" style="margin-top:10px;">多數人可從 4% 固定法則出發，再視實際情況調整為動態提領。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 10. 結語 ══ -->
+<section>
+  <h2>你現在就可以算出你的退休計劃</h2>
+  <div style="display:inline-block;margin-bottom:4px;padding:8px 18px;background:rgba(27,58,107,0.05);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;">
+    <span style="font-size:0.8rem;font-style:italic;color:var(--gray);">Retirement is not the end of the road.</span>
+    <span style="font-size:0.8rem;font-style:italic;color:var(--blue);font-weight:600;margin-left:6px;">It is the beginning of the open highway.</span>
+  </div>
+  <div class="two-col" style="align-items:start;">
+    <div>
+      <p>今天的數字告訴我們：</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0;">
+        <div style="display:flex;align-items:flex-start;gap:12px;background:rgba(212,175,55,0.06);border-radius:10px;padding:14px;border:1px solid rgba(212,175,55,0.25);">
+          <span style="font-size:1.2rem;font-weight:900;color:#D4AF37;min-width:24px;">1</span>
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">4% 法則有 95%+ 的歷史成功率</div>
+            <div style="font-size:0.72rem;color:var(--gray);">股票比例 75%，30 年內幾乎不破產。這是科學，不是猜測。</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;background:rgba(46,95,163,0.05);border-radius:10px;padding:14px;border:1px solid rgba(46,95,163,0.2);">
+          <span style="font-size:1.2rem;font-weight:900;color:var(--blue);min-width:24px;">2</span>
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">報酬率需達 5% 才能讓 1,500 萬永續</div>
+            <div style="font-size:0.72rem;color:var(--gray);">全放定存不夠。指數 ETF 的股債配置是最實際的解法。</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;background:rgba(220,38,38,0.04);border-radius:10px;padding:14px;border:1px solid rgba(220,38,38,0.15);">
+          <span style="font-size:1.2rem;font-weight:900;color:#dc2626;min-width:24px;">3</span>
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">序列風險是最大威脅，股債配置是護盾</div>
+            <div style="font-size:0.72rem;color:var(--gray);">退休初期留現金緩衝、加入債券，讓你撐過第一個熊市。詳見 EP09。</div>
+          </div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>下集 EP09：股債配置回測</strong><br>
+        加入債券後，波動降低多少？在股災時如何保護退休資產？
+      </div>
+    </div>
+    <div style="background:var(--light);border-radius:14px;padding:22px;">
+      <div style="font-size:0.85rem;font-weight:700;color:var(--blue);margin-bottom:18px;text-align:center;">你今天的行動</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="background:#fff;border-radius:10px;padding:14px;border:2px solid #D4AF37;">
+          <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">Step 1</div>
+          <div style="font-size:0.82rem;font-weight:700;color:#92400e;">算出你的退休目標</div>
+          <div style="font-size:0.7rem;color:var(--gray);margin-top:2px;">月花費 × 12 × 25 = 你需要的退休金</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px;border:2px solid var(--green);">
+          <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">Step 2</div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">用提領法則模擬試算</div>
+          <div style="font-size:0.7rem;color:var(--gray);margin-top:2px;">在 Slow Rich app 模擬你的本金 × 年限 × 通膨</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px;border:2px solid rgba(212,175,55,0.6);">
+          <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">Step 3</div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--blue);">繼續累積，不要動用本金</div>
+          <div style="font-size:0.7rem;color:var(--gray);margin-top:2px;">距退休還有時間，讓複利繼續跑，不提前動用</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({
+  width: 1100, height: 650,
+  margin: 0.04,
+  hash: true,
+  transition: 'slide',
+  transitionSpeed: 'fast',
+  slideNumber: true,
+});
+const _header = document.querySelector('.slide-header');
+_header.style.opacity = '0';
+Reveal.on('slidechanged', e => {
+  _header.style.opacity = e.indexh === 0 ? '0' : '1';
+});
+
+
+/* ── 資產壽命模擬折線圖 ── */
+(function () {
+  const ctx = document.getElementById('withdrawalSimChart');
+  if (!ctx) return;
+
+  function calcSeries(principal, returnRate, withdrawalRate, maxYears, inflationRate) {
+    let annual = principal * withdrawalRate / 100;
+    const r   = returnRate / 100;
+    const inf = inflationRate / 100;
+    const pts = [principal];
+    let val = principal;
+    for (let y = 1; y <= maxYears; y++) {
+      if (y > 1) annual *= (1 + inf);
+      val = val * (1 + r) - annual;
+      pts.push(Math.max(0, val));
+    }
+    return pts;
+  }
+
+  const years   = 40;
+  const P       = 1500;
+  const wr      = 4;
+  const inf     = 2;
+  const labels  = ['退休時', ...Array.from({ length: years }, (_, i) => `第 ${i + 1} 年`)];
+
+  const series0 = calcSeries(P, 0, wr, years, inf);
+  const series3 = calcSeries(P, 3, wr, years, inf);
+  const series5 = calcSeries(P, 5, wr, years, inf);
+  const series7 = calcSeries(P, 7, wr, years, inf);
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: '0% 報酬',
+          data: series0,
+          borderColor: '#94a3b8',
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.3,
+          spanGaps: false,
+        },
+        {
+          label: '3% 報酬',
+          data: series3,
+          borderColor: '#f59e0b',
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.3,
+          spanGaps: false,
+        },
+        {
+          label: '5% 報酬',
+          data: series5,
+          borderColor: '#2E5FA3',
+          borderWidth: 2.5,
+          pointRadius: 0,
+          tension: 0.3,
+          spanGaps: false,
+        },
+        {
+          label: '7% 報酬',
+          data: series7,
+          borderColor: '#D4AF37',
+          borderWidth: 2.5,
+          pointRadius: 0,
+          tension: 0.3,
+          spanGaps: false,
+        },
+        {
+          label: '本金 1,500 萬',
+          data: Array(years + 1).fill(P),
+          borderColor: '#e5e7eb',
+          borderWidth: 1.5,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          fill: false,
+          tension: 0,
+        },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 16, padding: 12 } },
+        tooltip: {
+          backgroundColor: 'rgba(255,255,255,0.97)',
+          borderColor: '#ccc', borderWidth: 1,
+          titleColor: '#111', bodyColor: '#333', padding: 10,
+          callbacks: {
+            label: item => {
+              const v = item.parsed.y;
+              if (item.dataset.label.startsWith('本金')) return null;
+              return `  ${item.dataset.label}：${v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} 萬`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 10 }, maxTicksLimit: 10, autoSkip: true },
+        },
+        y: {
+          min: 0,
+          ticks: {
+            font: { size: 10 },
+            callback: v => v >= 10000 ? (v / 10000).toFixed(0) + '億' : v.toFixed(0) + '萬',
+          },
+          grid: { color: 'rgba(0,0,0,0.06)' }
+        }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

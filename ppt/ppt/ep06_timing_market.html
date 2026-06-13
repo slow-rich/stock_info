@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>為什麼不要猜測高低點</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue:   #1B3A6B;
+    --green:  #2E5FA3;
+    --red:    #dc2626;
+    --gray:   #6b7280;
+    --light:  #f0f4fa;
+    --accent: #D4AF37;
+  }
+  .reveal { font-family: -apple-system, "PingFang TC", sans-serif; }
+  .reveal h2 { font-size: 1.5rem; color: var(--blue); font-weight: 700; border-bottom: 3px solid var(--accent); padding-bottom: 8px; margin-bottom: 20px; }
+  .reveal p, .reveal li { font-size: 0.85rem; line-height: 1.7; }
+  .reveal .slides section { text-align: left; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+
+  .card { background: var(--light); border-radius: 10px; padding: 16px 20px; border-left: 4px solid var(--accent); }
+  .card.red  { border-left-color: var(--red); }
+  .card.blue { border-left-color: var(--blue); }
+  .note { background: #fefce8; border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.78rem; color: #713f12; margin-top: 12px; }
+  .chart-wrap { position: relative; height: 290px; }
+
+  /* 頂部品牌橫條 */
+  .slide-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 46px; z-index: 200; pointer-events: none;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px;
+    background: rgba(255,255,255,0.96);
+    border-bottom: 2px solid #D4AF37;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .reveal .slides section:not(.cover-slide) { padding-top: 52px !important; }
+
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; border-radius: 8px; margin-bottom: 6px; }
+  .badge { display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; padding: 3px 10px; font-size: 0.78rem; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="slide-header">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <svg viewBox="0 0 100 100" width="36" height="36" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-hdr"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-hdr)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="82" r="2" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="3.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:18px;color:#1B3A6B;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:7.5px;color:#888;letter-spacing:2.2px;text-transform:uppercase;margin-top:3px;">Slow Rich</div>
+    </div>
+  </div>
+  <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:12px;color:#6b7280;">
+    <span style="color:#D4AF37;font-weight:800;margin-right:6px;">EP.06</span>為什麼不要猜測高低點
+  </div>
+</div>
+
+<div class="reveal">
+<div class="slides">
+
+<!-- ── 1. 封面 ──────────────────────────────── -->
+<section class="cover-slide" data-background-gradient="linear-gradient(150deg, #080f1f 0%, #0d1b35 55%, #080f1f 100%)" style="padding:40px 56px;text-align:left !important;position:relative;">
+  <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;" viewBox="0 0 1100 650" preserveAspectRatio="none">
+    <defs>
+      <filter id="peak-glow" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g transform="translate(-73,18)">
+    <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160 L1055,650 L680,650 Z" fill="#D4AF37" opacity="0.05"/>
+    <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160" stroke="#D4AF37" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.05"/>
+    <path d="M680,620 L720,489 L749,606 L801,414 L842,517 L894,331 L928,448 L986,222 L1021,304 L1055,160" stroke="#D4AF37" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
+    <circle cx="1055" cy="160" r="24" fill="#D4AF37" opacity="0.12" filter="url(#peak-glow)"/>
+    <circle cx="1055" cy="160" r="10" fill="#D4AF37" opacity="0.55"/>
+    <circle cx="1055" cy="160" r="5" fill="#D4AF37" opacity="0.95"/>
+      </g>
+  </svg>
+  <div id="cover-logo" style="position:absolute;top:9px;right:123px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.35);border-radius:14px;padding:10px 18px 10px 12px;">
+    <svg viewBox="0 0 100 100" width="80" height="80" style="display:block;flex-shrink:0;overflow:visible">
+      <defs><clipPath id="cp-cover-1"><path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z"/></clipPath></defs>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="#1B3A6B"/>
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+      <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.3"/>
+      <g clip-path="url(#cp-cover-1)">
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15 L85,95 L14,95 Z" fill="#D4AF37" opacity="0.07"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+        <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="21" cy="63" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="26" cy="80" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="35" cy="52" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="42" cy="67" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="51" cy="40" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="57" cy="57" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="67" cy="24" r="1.8" fill="#D4AF37" opacity="0.75"/><circle cx="73" cy="36" r="1.8" fill="#D4AF37" opacity="0.75"/>
+        <circle cx="14" cy="82" r="2.5" fill="#D4AF37" opacity="0.65"/>
+      </g>
+      <circle cx="85" cy="15" r="4.5" fill="#D4AF37"/>
+      <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+    </svg>
+    <div style="line-height:1">
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:300;font-size:26px;color:#D4AF37;letter-spacing:1px;">慢富</div>
+      <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-weight:400;font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">Slow Rich</div>
+    </div>
+  </div>
+  <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.45);border-radius:20px;padding:5px 16px;margin-bottom:30px;">
+    <span style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:11px;color:#D4AF37;font-weight:800;letter-spacing:1.5px;">EP.06</span>
+    <span style="width:1px;height:10px;background:rgba(212,175,55,0.4);display:inline-block;"></span>
+    <span style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:11px;color:#aaa;letter-spacing:0.5px;">擇時交易的代價</span>
+  </div>
+  <div style="margin-bottom:14px;line-height:1.05;">
+    <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:3.5rem;font-weight:900;color:#fff;margin-bottom:4px;">為什麼不要</div>
+    <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:4.4rem;font-weight:900;color:#D4AF37;text-shadow:0 0 36px rgba(212,175,55,0.35);">猜測高低點？</div>
+  </div>
+  <div style="font-family:-apple-system,'PingFang TC',sans-serif;font-size:1rem;font-weight:300;color:#aaa;letter-spacing:1px;margin-bottom:28px;">「重要的不是進場時機，而是在市場裡的時間。」</div>
+  <div id="cover-cards" style="display:flex;align-items:stretch;gap:12px;max-width:680px;transform:scale(0.9);transform-origin:left top;">
+    <div style="background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;font-family:-apple-system,'PingFang TC',sans-serif;">2025 年最強單日漲幅</div>
+      <div style="font-size:1rem;font-weight:700;color:#dc2626;font-family:-apple-system,'PingFang TC',sans-serif;">+9.25%（一天）</div>
+    </div>
+    <div style="background:rgba(212,175,55,0.10);border:1px solid rgba(212,175,55,0.35);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;font-family:-apple-system,'PingFang TC',sans-serif;">錯過最強 6 天</div>
+      <div style="font-size:1rem;font-weight:700;color:#D4AF37;font-family:-apple-system,'PingFang TC',sans-serif;">牛市報酬變負數</div>
+    </div>
+    <div style="background:rgba(46,95,163,0.08);border:1px solid rgba(46,95,163,0.2);border-radius:10px;padding:10px 18px;">
+      <div style="font-size:0.7rem;color:#888;margin-bottom:4px;font-family:-apple-system,'PingFang TC',sans-serif;">這些最強日都在</div>
+      <div style="font-size:1rem;font-weight:700;color:#2E5FA3;font-family:-apple-system,'PingFang TC',sans-serif;">最恐慌的時候</div>
+    </div>
+  </div>
+  <p style="position:absolute;bottom:14px;left:56px;color:#2e4a6b;font-size:0.68rem;font-family:-apple-system,sans-serif;">按 → 翻頁 &nbsp;|&nbsp; F 全螢幕 &nbsp;|&nbsp; ESC 總覽</p>
+</section>
+
+<!-- ── 2. 錯過最佳 5 天後的全年報酬 ──────────── -->
+<section>
+  <h2>250 個交易日，只錯過 5 天——報酬比定存還差</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>一年約有 <strong>250 個交易日</strong>，只要錯過最強的 <strong>5 天（2%）</strong>，結果是：</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0;">
+
+        <!-- 2025 主打 -->
+        <div style="background:#fff;border-radius:12px;padding:14px 16px;border:2px solid #dc2626;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:0.85rem;font-weight:800;">2025 牛市（+25.73%）</span>
+            <span style="background:#dc2626;color:#fff;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:20px;">比定存還差</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="flex:1;">
+              <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">全程持有</div>
+              <div style="height:18px;background:#D4AF37;border-radius:4px;display:flex;align-items:center;padding-left:8px;">
+                <span style="font-size:0.78rem;font-weight:800;color:#fff;">+25.73%</span>
+              </div>
+            </div>
+            <span style="font-size:1rem;color:var(--gray);">→</span>
+            <div style="flex:1;">
+              <div style="font-size:0.68rem;color:var(--gray);margin-bottom:3px;">錯過 5 天</div>
+              <div style="height:18px;background:#dc2626;border-radius:4px;width:3.85%;min-width:60px;display:flex;align-items:center;padding-left:8px;">
+                <span style="font-size:0.78rem;font-weight:800;color:#fff;">+0.99%</span>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:0.7rem;color:#dc2626;font-weight:600;margin-top:6px;">台灣定存利率約 1.5%，+0.99% 連定存都輸</div>
+        </div>
+
+        <!-- 2024 -->
+        <div style="background:rgba(46,95,163,0.05);border-radius:10px;padding:12px 16px;border-left:4px solid var(--green);">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:0.83rem;font-weight:800;">2024 牛市（+29.89%）</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:0.78rem;color:var(--gray);">全程持有</span>
+              <span style="font-size:0.95rem;font-weight:900;color:var(--green);">+29.89%</span>
+              <span style="font-size:0.9rem;color:var(--gray);">→</span>
+              <span style="font-size:0.95rem;font-weight:900;color:#dc2626;">+10.84%</span>
+              <span style="font-size:0.78rem;color:var(--gray);">錯過5天</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2022 -->
+        <div style="background:rgba(220,38,38,0.04);border-radius:10px;padding:12px 16px;border-left:4px solid #dc2626;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:0.83rem;font-weight:800;">2022 熊市（−22.62%）</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:0.78rem;color:var(--gray);">全程持有</span>
+              <span style="font-size:0.95rem;font-weight:900;color:var(--gray);">−22.62%</span>
+              <span style="font-size:0.9rem;color:var(--gray);">→</span>
+              <span style="font-size:0.95rem;font-weight:900;color:#dc2626;">−32.95%</span>
+              <span style="font-size:0.78rem;color:var(--gray);">錯過5天</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="note">這 5 天不會預先通知你。錯過它們的人，往往是在最恐慌時出場的人。</div>
+    </div>
+    <div>
+      <div class="chart-wrap">
+        <canvas id="miss5Chart"></canvas>
+      </div>
+      <p style="font-size:0.65rem;color:var(--gray);margin-top:4px;text-align:center;">全程持有 vs. 錯過最強 5 天（年度報酬率 %）</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 3. 錯過幾天就輸大了 ─────────────────── -->
+<section>
+  <h2>錯過最佳交易日的代價（台灣加權指數 TAIEX）</h2>
+  <div class="two-col" style="align-items:center;">
+    <div>
+      <p>一年大約有 250 個交易日。市場的漲幅高度集中在<strong>極少數幾天</strong>。只要錯過這幾天，全年報酬就會大幅縮水——甚至從正轉負。</p>
+      <div style="display:flex;flex-direction:column;gap:7px;margin:14px 0;">
+        <div style="font-size:0.72rem;font-weight:700;color:var(--gray);letter-spacing:1px;margin-bottom:2px;">錯過最佳 10 天後的全年報酬</div>
+        <div class="stat-row" style="background:rgba(220,38,38,0.05);">
+          <div><span style="font-size:0.82rem;font-weight:700;">2022 熊市</span><span style="font-size:0.7rem;color:var(--gray);margin-left:6px;">原本 −22.6%</span></div>
+          <span style="font-size:0.95rem;font-weight:900;color:#dc2626;">→ −40.3%</span>
+        </div>
+        <div class="stat-row" style="background:rgba(212,175,55,0.06);">
+          <div><span style="font-size:0.82rem;font-weight:700;">2024 牛市</span><span style="font-size:0.7rem;color:var(--gray);margin-left:6px;">原本 +29.9%</span></div>
+          <span style="font-size:0.95rem;font-weight:900;color:#dc2626;">→ −2.4%</span>
+        </div>
+        <div class="stat-row" style="background:rgba(220,38,38,0.05);">
+          <div><span style="font-size:0.82rem;font-weight:700;">2025 牛市</span><span style="font-size:0.7rem;color:var(--gray);margin-left:6px;">原本 +25.7%</span></div>
+          <span style="font-size:0.95rem;font-weight:900;color:#dc2626;">→ −10.7%</span>
+        </div>
+      </div>
+      <div class="note">牛市也一樣。錯過幾天，<strong>正報酬直接變負</strong>。這些最強的幾天，往往是最黑暗、最讓人想賣出的時候。</div>
+    </div>
+    <div>
+      <div class="chart-wrap"><canvas id="missingDaysChart"></canvas></div>
+      <p style="font-size:0.65rem;color:var(--gray);margin-top:4px;text-align:center;">資料來源：台灣加權指數 TAIEX 各年度收盤價</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4. 那一天你在場嗎？ ─────────────────── -->
+<section>
+  <h2>那一天，你在場嗎？</h2>
+  <div class="two-col">
+    <div>
+      <p style="margin-bottom:12px;">以下是三個年度報酬影響最大的單日，<strong>事前完全無法預測</strong>。</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="background:rgba(220,38,38,0.04);border-radius:10px;padding:14px 16px;border-left:4px solid #D4AF37;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:0.82rem;font-weight:800;color:var(--blue);">2025/04/10</span>
+            <span style="font-size:1.2rem;font-weight:900;color:#D4AF37;">+9.25%</span>
+          </div>
+          <div style="font-size:0.75rem;color:var(--gray);">川普宣布暫停大多數國家 90 天關稅。早盤開在平盤附近，下午消息出來後直衝漲停。<br>前一天（04/09）收盤 −4.4%，很多人在前一天剛賣掉。</div>
+        </div>
+        <div style="background:rgba(220,38,38,0.04);border-radius:10px;padding:14px 16px;border-left:4px solid var(--green);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:0.82rem;font-weight:800;color:var(--blue);">2024/08/07</span>
+            <span style="font-size:1.2rem;font-weight:900;color:var(--green);">+3.87%</span>
+          </div>
+          <div style="font-size:0.75rem;color:var(--gray);">日圓升息觸發全球股市崩跌（08/05 台股 −8.4%），隔天恐慌蔓延，而 08/07 開始強力反彈。<br>在最恐慌的 08/05 賣出的人，正好錯過了整段反彈。</div>
+        </div>
+        <div style="background:rgba(220,38,38,0.04);border-radius:10px;padding:14px 16px;border-left:4px solid var(--blue);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:0.82rem;font-weight:800;color:var(--blue);">2022/11/11</span>
+            <span style="font-size:1.2rem;font-weight:900;color:var(--blue);">+3.73%</span>
+          </div>
+          <div style="font-size:0.75rem;color:var(--gray);">美國 10 月 CPI 通膨降溫，市場大反彈。2022 全年最差，但最強漲幅日也在此年。<br>年底忍不住停損的人，錯過了 11 月這波反彈。</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="background:var(--light);border-radius:14px;padding:20px;">
+        <div style="font-size:0.78rem;font-weight:700;color:var(--gray);letter-spacing:1px;margin-bottom:12px;">三年最強前 3 天一覽</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#fff;border-radius:7px;">
+            <div><span style="font-size:0.72rem;color:var(--gray);">2025年 #1</span><div style="font-size:0.8rem;font-weight:700;">04/10 關稅暫停</div></div>
+            <span style="font-size:1rem;font-weight:900;color:#D4AF37;">+9.25%</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#fff;border-radius:7px;">
+            <div><span style="font-size:0.72rem;color:var(--gray);">2025年 #2</span><div style="font-size:0.8rem;font-weight:700;">04/23 關稅談判進展</div></div>
+            <span style="font-size:1rem;font-weight:900;color:#D4AF37;">+4.50%</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#fff;border-radius:7px;">
+            <div><span style="font-size:0.72rem;color:var(--gray);">2024年 #1</span><div style="font-size:0.8rem;font-weight:700;">08/07 日圓崩盤後反彈</div></div>
+            <span style="font-size:1rem;font-weight:900;color:var(--green);">+3.87%</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#fff;border-radius:7px;">
+            <div><span style="font-size:0.72rem;color:var(--gray);">2024年 #2</span><div style="font-size:0.8rem;font-weight:700;">08/06 反彈延續</div></div>
+            <span style="font-size:1rem;font-weight:900;color:var(--green);">+3.38%</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#fff;border-radius:7px;">
+            <div><span style="font-size:0.72rem;color:var(--gray);">2022年 #1</span><div style="font-size:0.8rem;font-weight:700;">11/11 美通膨降溫</div></div>
+            <span style="font-size:1rem;font-weight:900;color:var(--blue);">+3.73%</span>
+          </div>
+        </div>
+        <div class="note" style="margin-top:12px;">這些最強的日子，都發生在<strong>最讓人害怕、最想出場</strong>的時候。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4b. 2025/04/07 跌停板真實案例 ──────── -->
+<section>
+  <h2>2025/04/07：0050 大跌——賣掉的人，3 天後看到什麼？</h2>
+  <div class="two-col">
+    <div>
+      <p style="margin-bottom:12px;">2025 年 4 月，川普宣布對等關稅，全球股市重挫。<strong>4 月 7 日，0050 直接跌停板</strong>，市場一片恐慌。</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(220,38,38,0.10);border-radius:8px;padding:10px 14px;border-left:4px solid #dc2626;">
+          <div style="min-width:56px;font-size:0.82rem;font-weight:800;color:#dc2626;">04/07</div>
+          <div style="flex:1;">
+            <div style="font-size:0.8rem;font-weight:700;color:#dc2626;">0050 大跌</div>
+            <div style="font-size:0.7rem;color:#9ca3af;">「還會更慘⋯要先賣出保本」</div>
+          </div>
+          <div style="font-size:1.2rem;font-weight:900;color:#dc2626;">−9.8%</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(220,38,38,0.05);border-radius:8px;padding:10px 14px;">
+          <div style="min-width:56px;font-size:0.82rem;font-weight:700;color:#6b7280;">04/08</div>
+          <div style="flex:1;font-size:0.78rem;color:var(--gray);">恐慌持續，觀望</div>
+          <div style="font-size:1.1rem;font-weight:800;color:#6b7280;">小反彈</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(220,38,38,0.05);border-radius:8px;padding:10px 14px;">
+          <div style="min-width:56px;font-size:0.82rem;font-weight:700;color:#6b7280;">04/09</div>
+          <div style="flex:1;font-size:0.78rem;color:var(--gray);">跌勢延續</div>
+          <div style="font-size:1.1rem;font-weight:800;color:#dc2626;">−4.4%</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(212,175,55,0.14);border-radius:8px;padding:10px 14px;border-left:4px solid #D4AF37;">
+          <div style="min-width:56px;font-size:0.82rem;font-weight:800;color:#D4AF37;">04/10</div>
+          <div style="flex:1;">
+            <div style="font-size:0.8rem;font-weight:700;color:#8B6914;">川普宣布暫停 90 天關稅</div>
+            <div style="font-size:0.7rem;color:#9ca3af;">2025 年全年最大單日漲幅</div>
+          </div>
+          <div style="font-size:1.3rem;font-weight:900;color:#D4AF37;">+9.25%</div>
+        </div>
+      </div>
+      <div class="note" style="border-left-color:#dc2626;background:#fef2f2;color:#7f1d1d;">
+        04/07 跌停板賣出的人，<strong>3 天後面對 +9.25% 的漲幅，只能空手看著</strong>。<br>這就是市值型 ETF 大跌時不能賣的原因。
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div style="background:rgba(220,38,38,0.04);border-radius:14px;padding:18px;border:1px solid rgba(220,38,38,0.12);">
+        <div style="font-size:0.75rem;font-weight:700;color:#dc2626;letter-spacing:1px;margin-bottom:8px;">04/07 恐慌時的想法</div>
+        <p style="font-size:0.85rem;color:#7f1d1d;line-height:1.8;">「跌停板了，一定還會繼續跌。<br>先賣掉，等跌完再買回來⋯」</p>
+      </div>
+      <div style="background:linear-gradient(135deg,rgba(27,58,107,0.06),rgba(212,175,55,0.08));border-radius:14px;padding:18px;border:1px solid rgba(212,175,55,0.2);">
+        <div style="font-size:0.75rem;font-weight:700;color:var(--blue);letter-spacing:1px;margin-bottom:8px;">現實：你不知道 04/10 的消息</div>
+        <p style="font-size:0.85rem;color:var(--blue);line-height:1.8;">沒有人知道 04/10 那天川普會宣布暫停關稅。賣掉當天，就是提前鎖定虧損——而且大概率會在更高點才敢買回。</p>
+      </div>
+      <div class="note">
+        市值型 ETF 跌停板，是市場用更便宜的價格讓你持有台灣 50 大企業。<strong>跌停板是考驗，不是終點。</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4. 恐慌時賣，反彈時空手 ───────────── -->
+<section>
+  <h2>擇時交易的惡性循環</h2>
+  <div class="two-col">
+    <div>
+      <p style="margin-bottom:14px;">猜高低點的人，通常陷入同一個循環：</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="background:rgba(220,38,38,0.05);border-radius:10px;padding:14px 16px;border-left:4px solid #dc2626;">
+          <div style="font-size:0.82rem;font-weight:800;color:#dc2626;margin-bottom:4px;">步驟 1：高點猶豫</div>
+          <div style="font-size:0.78rem;color:var(--gray);">市場創新高，心想「該回檔了吧」→ 不敢買 → 眼看指數繼續漲</div>
+        </div>
+        <div style="background:rgba(220,38,38,0.05);border-radius:10px;padding:14px 16px;border-left:4px solid #dc2626;">
+          <div style="font-size:0.82rem;font-weight:800;color:#dc2626;margin-bottom:4px;">步驟 2：恐慌殺低</div>
+          <div style="font-size:0.78rem;color:var(--gray);">市場大跌，心想「還會更慘」→ 認賠賣出 → 恰好賣在黑暗最深處</div>
+        </div>
+        <div style="background:rgba(220,38,38,0.05);border-radius:10px;padding:14px 16px;border-left:4px solid #dc2626;">
+          <div style="font-size:0.82rem;font-weight:800;color:#dc2626;margin-bottom:4px;">步驟 3：追高再進場</div>
+          <div style="font-size:0.78rem;color:var(--gray);">市場反彈後覺得「沒問題了」→ 在更高點買回來 → 正好買在短期高點</div>
+        </div>
+        <div style="background:rgba(220,38,38,0.04);border-radius:10px;padding:14px 16px;border-left:4px solid var(--gray);">
+          <div style="font-size:0.82rem;font-weight:800;color:var(--gray);margin-bottom:4px;">結果</div>
+          <div style="font-size:0.78rem;color:var(--gray);">買高賣低，付出手續費與稅，拿到比指數更差的報酬——即使指數本身是漲的。</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="background:linear-gradient(135deg,#1B3A6B,#2E5FA3);border-radius:14px;padding:22px;color:#fff;margin-bottom:14px;">
+        <div style="font-size:0.78rem;color:#bfdbfe;margin-bottom:8px;letter-spacing:1px;">DALBAR 研究（美國）</div>
+        <div style="font-size:1.5rem;font-weight:900;color:#D4AF37;margin-bottom:6px;">散戶實際報酬</div>
+        <div style="font-size:0.88rem;color:#e0f2fe;margin-bottom:16px;">長期遠低於指數本身</div>
+        <div style="display:flex;gap:12px;">
+          <div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;flex:1;">
+            <div style="font-size:0.68rem;color:#bfdbfe;">S&P 500 指數（30年）</div>
+            <div style="font-size:1.1rem;font-weight:800;color:#D4AF37;">年化 ~10%</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;flex:1;">
+            <div style="font-size:0.68rem;color:#bfdbfe;">散戶平均（30年）</div>
+            <div style="font-size:1.1rem;font-weight:800;color:#f87171;">年化 ~4%</div>
+          </div>
+        </div>
+      </div>
+      <div class="note">差距來自：<strong>擇時操作 + 情緒進出場 + 交易成本</strong>。<br>持有指數基金、不動是最難但最有效的事。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 5. Time in Market ──────────────────── -->
+<section>
+  <h2>Time in the Market ＞ Timing the Market</h2>
+  <p style="text-align:center;font-size:0.78rem;color:var(--gray);margin-top:-10px;margin-bottom:8px;">「待在市場裡的時間」比「猜測市場高低點」更重要</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    <div style="background:rgba(220,38,38,0.04);border-radius:12px;padding:18px;border:1px solid rgba(220,38,38,0.12);">
+      <div style="font-size:0.78rem;font-weight:800;color:#dc2626;letter-spacing:1px;margin-bottom:10px;">擇時交易（Timing）</div>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;gap:8px;font-size:0.8rem;"><span style="color:#dc2626;font-weight:700;flex-shrink:0;">✗</span><span>需要猜對進場時機</span></div>
+        <div style="display:flex;gap:8px;font-size:0.8rem;"><span style="color:#dc2626;font-weight:700;flex-shrink:0;">✗</span><span>需要猜對出場時機</span></div>
+        <div style="display:flex;gap:8px;font-size:0.8rem;"><span style="color:#dc2626;font-weight:700;flex-shrink:0;">✗</span><span>空手等待期間資金閒置</span></div>
+        <div style="display:flex;gap:8px;font-size:0.8rem;"><span style="color:#dc2626;font-weight:700;flex-shrink:0;">✗</span><span>每次交易產生費用與稅</span></div>
+        <div style="display:flex;gap:8px;font-size:0.8rem;"><span style="color:#dc2626;font-weight:700;flex-shrink:0;">✗</span><span>容易錯過少數關鍵漲幅日</span></div>
+      </div>
+    </div>
+    <div style="background:rgba(46,95,163,0.04);border-radius:12px;padding:18px;border:1px solid rgba(46,95,163,0.15);">
+      <div style="font-size:0.78rem;font-weight:800;color:#1B3A6B;letter-spacing:1px;margin-bottom:10px;">持有時間（Time in Market）</div>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;gap:8px;font-size:0.8rem;"><span style="color:#16a34a;font-weight:700;flex-shrink:0;">✓</span><span>買進後長期持有，不猜時機</span></div>
+        <div style="display:flex;gap:8px;font-size:0.8rem;"><span style="color:#16a34a;font-weight:700;flex-shrink:0;">✓</span><span>自動抓到所有關鍵漲幅日</span></div>
+        <div style="display:flex;gap:8px;font-size:0.8rem;"><span style="color:#16a34a;font-weight:700;flex-shrink:0;">✓</span><span>資金持續參與複利</span></div>
+        <div style="display:flex;gap:8px;font-size:0.8rem;"><span style="color:#16a34a;font-weight:700;flex-shrink:0;">✓</span><span>交易成本趨近於零</span></div>
+        <div style="display:flex;gap:8px;font-size:0.8rem;"><span style="color:#16a34a;font-weight:700;flex-shrink:0;">✓</span><span>排除情緒干擾</span></div>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;padding:14px;background:linear-gradient(135deg,rgba(27,58,107,0.06),rgba(212,175,55,0.08));border-radius:12px;border:1px solid rgba(212,175,55,0.25);">
+    <div style="font-size:1rem;font-weight:700;color:var(--blue);">最強漲幅的幾天，你根本不知道是哪天。</div>
+    <div style="font-size:1rem;font-weight:900;color:#D4AF37;margin-top:4px;">唯一確保不錯過的方法，就是一直在場。</div>
+  </div>
+  <div style="text-align:center;margin-top:12px;">
+    <div style="font-size:0.88rem;color:#6b7280;">"Time in the market beats timing the market." — 華爾街格言</div>
+  </div>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({
+  width: 1100, height: 650,
+  margin: 0.04,
+  hash: true,
+  transition: 'slide',
+  transitionSpeed: 'fast',
+  slideNumber: true,
+});
+const _header = document.querySelector('.slide-header');
+_header.style.opacity = '0';
+Reveal.on('slidechanged', e => {
+  _header.style.opacity = e.indexh === 0 ? '0' : '1';
+});
+
+const _bc = new BroadcastChannel('ep06_sync');
+Reveal.on('slidechanged', e => { _bc.postMessage({ slide: e.indexh }); });
+_bc.onmessage = e => { if (e.data.slide !== Reveal.getIndices().h) Reveal.slide(e.data.slide); };
+
+
+/* ── 錯過最佳 5 天橫條圖 ── */
+(function () {
+  const ctx = document.getElementById('miss5Chart');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['2025（牛市）', '2024（牛市）', '2022（熊市）'],
+      datasets: [
+        {
+          label: '全程持有',
+          data: [25.73, 29.89, -22.62],
+          backgroundColor: ['rgba(212,175,55,0.7)', 'rgba(46,95,163,0.7)', 'rgba(107,114,128,0.5)'],
+          borderRadius: 5,
+        },
+        {
+          label: '錯過最強 5 天',
+          data: [0.99, 10.84, -32.95],
+          backgroundColor: ['rgba(220,38,38,0.7)', 'rgba(220,38,38,0.7)', 'rgba(220,38,38,0.7)'],
+          borderRadius: 5,
+        },
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 14 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}：${ctx.parsed.x > 0 ? '+' : ''}${ctx.parsed.x}%`
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: '年度報酬率 (%)', font: { size: 11 } },
+          ticks: { callback: v => v + '%', font: { size: 10 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { font: { size: 11 } }
+        }
+      }
+    }
+  });
+})();
+
+/* ── 錯過最佳交易日折線圖 ── */
+(function () {
+  const ctx = document.getElementById('missingDaysChart');
+  if (!ctx) return;
+
+  const labels = ['0天', '1天', '2天', '3天', '4天', '5天', '6天', '7天', '8天', '9天', '10天'];
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: '2025（牛市）',
+          data: [25.73, 15.09, 10.13, 6.73, 3.80, 0.99, -1.75, -4.36, -6.58, -8.70, -10.72],
+          borderColor: '#D4AF37',
+          backgroundColor: 'rgba(212,175,55,0.08)',
+          tension: 0.3, pointRadius: 4, borderWidth: 2.5,
+        },
+        {
+          label: '2024（牛市）',
+          data: [29.89, 25.05, 20.96, 17.40, 14.03, 10.84, 7.86, 5.01, 2.31, -0.31, -2.39],
+          borderColor: '#2E5FA3',
+          backgroundColor: 'rgba(46,95,163,0.06)',
+          tension: 0.3, pointRadius: 4, borderWidth: 2.5,
+        },
+        {
+          label: '2022（熊市）',
+          data: [-22.62, -25.40, -27.57, -29.46, -31.26, -32.95, -34.57, -36.14, -37.60, -38.99, -40.29],
+          borderColor: '#dc2626',
+          backgroundColor: 'rgba(220,38,38,0.05)',
+          tension: 0.3, pointRadius: 4, borderWidth: 2.5,
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 14 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}：${ctx.parsed.y > 0 ? '+' : ''}${ctx.parsed.y}%`
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: '錯過最佳交易日天數', font: { size: 11 } },
+          grid: { display: false },
+          ticks: { font: { size: 10 } }
+        },
+        y: {
+          title: { display: true, text: '年度報酬率 (%)', font: { size: 11 } },
+          ticks: { callback: v => v + '%', font: { size: 10 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

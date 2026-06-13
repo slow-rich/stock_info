@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>EP03 旁白 Teleprompter</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0d1520; color:#dde6f0; font-family:-apple-system,"PingFang TC",sans-serif; height:100vh; overflow:hidden; display:flex; flex-direction:column; user-select:none; }
+  .header { padding:14px 32px; background:rgba(212,175,55,0.08); border-bottom:2px solid rgba(212,175,55,0.25); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .ep-label { font-size:0.8rem; color:#D4AF37; font-weight:800; letter-spacing:2px; }
+  .slide-title { font-size:0.95rem; color:#94a3b8; font-weight:500; text-align:center; flex:1; padding:0 24px; }
+  .counter { font-size:0.82rem; color:#475569; font-weight:600; min-width:48px; text-align:right; }
+  .content { flex:1; overflow-y:auto; padding:52px 80px 40px; scroll-behavior:smooth; }
+  .narration { max-width:860px; margin:0 auto; font-size:1.55rem; line-height:2.0; color:#e2eaf5; }
+  .narration p { margin-bottom:1.1em; }
+  .narration p:last-child { margin-bottom:0; }
+  @keyframes slideIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .slide-anim { animation:slideIn 0.28s ease; }
+  .content::-webkit-scrollbar { width:5px; }
+  .content::-webkit-scrollbar-track { background:transparent; }
+  .content::-webkit-scrollbar-thumb { background:rgba(212,175,55,0.2); border-radius:3px; }
+  .footer { padding:12px 32px; background:rgba(0,0,0,0.35); border-top:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:20px; flex-shrink:0; }
+  .nav-hint { font-size:0.72rem; color:#334155; white-space:nowrap; }
+  .progress-bar { flex:1; height:3px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,#D4AF37,#f0d060); border-radius:2px; transition:width 0.35s ease; }
+  .btn-row { display:flex; gap:8px; }
+  .btn { background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.25); color:#D4AF37; border-radius:6px; padding:4px 14px; font-size:0.75rem; cursor:pointer; font-family:inherit; }
+  .btn:hover { background:rgba(212,175,55,0.22); }
+</style>
+</head>
+<body>
+<div class="header">
+  <span class="ep-label">EP.03</span>
+  <span class="slide-title" id="slideTitle">—</span>
+  <span class="counter" id="counter">1 / 7</span>
+</div>
+<div class="content" id="content">
+  <div class="narration slide-anim" id="narration"></div>
+</div>
+<div class="footer">
+  <div class="btn-row">
+    <button class="btn" onclick="prev()">← 上一頁</button>
+    <button class="btn" onclick="next()">下一頁 →</button>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <span class="nav-hint">← → Space 換頁 &nbsp;|&nbsp; 滾輪捲動</span>
+</div>
+<script>
+const slides = [
+  { title:'第 1 頁 — 封面', text:[
+    '這一集，我們來聊一個巴菲特說過最有名的一句話——',
+    '「人生就像滾雪球，重要的是找到濕的雪，和很長的坡道。」',
+    '這句話說的不只是人生哲學，它其實是在解釋複利的運作原理。',
+    '聽完這集，你會知道雪球理論的三個要素是什麼，以及怎麼把它直接套進指數化投資裡。',
+  ]},
+  { title:'第 2 頁 — 雪球理論的三個要素', text:[
+    '雪球理論有三個核心要素。',
+    '第一，濕的雪。雪越濕，滾動的時候能黏住的雪就越多。套在投資上，代表的是穩定的年化報酬率。指數化投資的年化報酬大約 8 到 10%，就是那個剛剛好的濕度——不高不低，但非常穩固。',
+    '第二，很長的坡道。坡道越長，雪球滾的距離越遠。套在投資上，就是投資的時間長度。越早開始，坡道越長；越晚開始，坡道越短，雪球就越小。',
+    '第三，初始雪球。雪球的起點越大，滾動時接觸面越廣，黏住的雪越多，達到目標就越快。套在投資上，就是你的本金。提高儲蓄率、持續投入，就是不斷往雪球裡塞新雪。',
+    '三個要素缺一不可。但時間是唯一買不到的東西。報酬率可以優化，本金可以累積，但錯過的時間永遠回不來。',
+  ]},
+  { title:'第 3 頁 — 把雪球套進 0050 / VT', text:[
+    '那這個理論怎麼套進實際的投資？',
+    '濕的雪，就是 0050 或 VT 的穩定報酬。指數化投資不需要挑到飆股，而是透過分散投資和汰弱留強，參與整體經濟的成長。股息再投入，就等於是把掉下來的雪片重新捏回雪球，讓雪球越來越大。',
+    '很長的坡道，就是待在場內。這裡有一個很重要的概念，叫做 72 法則。如果年化報酬率是 10%，用 72 除以 10，等於 7.2——也就是每 7.2 年，你的資產就翻一倍。',
+    '30 年的坡道，資產大約翻 16 倍。但如果只有 10 年，連 1 倍都翻不到。差距不是 3 倍，是 10 倍以上。',
+    '遇到市場大跌就賣出，就像雪球滾到一半跳出坡道。一旦中斷，複利的計時器就必須重來。',
+  ]},
+  { title:'第 4 頁 — 複利試算工具', text:[
+    '我們直接來算你自己的數字。',
+    '把你每個月能投入的金額拉進去，再設定你打算投資幾年，年化報酬率預設是 8%，這是保守估計。',
+    '你會看到，本金和複利終值的差距——也就是那兩條線之間的空間——在後期會越來越大。',
+    '這個空間，就是雪球效應。不是你多努力，而是時間在幫你工作。',
+    '越早開始，後半段的差距就越驚人。這就是為什麼巴菲特說「很長的坡道」是最關鍵的要素。',
+  ]},
+  { title:'第 5 頁 — 初始雪球的威力', text:[
+    '剛才算的是「從零開始」的情況。但如果你手上已經有一些存款，那就不一樣了。',
+    '以 100 萬的初始本金為例，年化 8%，30 年後這 100 萬會複利放大成大約 1,000 萬。雪球從更大的起點出發，後期的差距會非常驚人。',
+    '假設你是 35 歲的工程師，想在 55 歲退休。把投資年限調成 20 年，初始本金設 300 萬，每月投入 3 萬，年化報酬率 8%。算出來，你 55 歲的時候，會存到大約 3,000 萬的退休金。',
+    '再看另一個情境。假設你 40 歲，手上已經存了 1,000 萬，但之後每個月沒法再投入。把初始本金設 1,000 萬，每月投入設 0，年限 15 年，年化 8%。算出來，光靠這 1,000 萬複利滾動，就能到達大約 3,170 萬。',
+  ]},
+  { title:'第 6 頁 — 真實市場的樣貌', text:[
+    '不過，這裡要跟你說一件重要的事。',
+    '剛才的試算用的是固定的年化報酬率。但真實的市場，根本不是每年給你 8 到 10%。',
+    '你看這張圖——台股加權指數從 2007 到 2026 年的每一年報酬率。',
+    '2009 年漲了 73%，2008 年跌了 46%，2022 年跌了 23%，最近幾年又大漲。',
+    '20 年裡面，真正落在 8 到 12% 這個「理想範圍」的，只有 6 年。其他 70% 的年份，不是大漲就是大跌。',
+    '所以「年化 8%」不是每年保證給你 8%，而是長期平均下來是 8%。短期的大幅波動，才是市場的常態。',
+    '這也是為什麼「待在場內」那麼重要——你需要有能力撐過那些大跌的年份，才能拿到長期複利的結果。',
+  ]},
+  { title:'第 7 頁 — 不論你的起點在哪', text:[
+    '最後，我想說：不管你現在幾歲，從什麼狀態出發，都可以開始。',
+    '如果你剛畢業，沒有什麼本金——沒關係，你有最長的坡道。從第一份薪水開始定期定額，哪怕每個月只投入 3,000 到 5,000 元，30 年後的複利效果仍然驚人。你最大的優勢，就是時間。',
+    '如果你已經工作了一段時間，手上有一些存款——你的本金就是那顆比別人大的初始雪球。一次投入加上持續定期定額，在剩下的坡道上，你的雪球會滾得更快。',
+    '雪球理論的核心訊息只有一個：濕的雪，也就是 0050 或 VT，已經準備好了。坡道，也就是時間，每天都在縮短。',
+    '你唯一需要做的，就是讓雪球開始滾動。',
+    '我們下集見，bye-bye。',
+  ]},
+];
+let current = 0;
+function render(animate=true) {
+  const slide = slides[current], total = slides.length;
+  document.getElementById('slideTitle').textContent = slide.title;
+  document.getElementById('counter').textContent = `${current+1} / ${total}`;
+  document.getElementById('progressFill').style.width = `${((current+1)/total)*100}%`;
+  const el = document.getElementById('narration');
+  el.innerHTML = slide.text.map(t=>`<p>${t}</p>`).join('');
+  document.getElementById('content').scrollTop = 0;
+  if (animate) { el.classList.remove('slide-anim'); void el.offsetWidth; el.classList.add('slide-anim'); }
+}
+function next() { if (current < slides.length-1) { current++; render(); _bc.postMessage({ slide: current }); } }
+function prev() { if (current > 0) { current--; render(); _bc.postMessage({ slide: current }); } }
+document.addEventListener('keydown', e => {
+  if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); next(); }
+  else if (['ArrowLeft','ArrowUp'].includes(e.key)) { e.preventDefault(); prev(); }
+});
+const _bc = new BroadcastChannel('ep03_sync');
+_bc.onmessage = e => { const i=e.data.slide; if(i>=0&&i<slides.length&&i!==current){current=i;render();} };
+render(false);
+</script>
+</body>
+</html>

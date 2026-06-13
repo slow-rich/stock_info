@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>EP01 旁白 Teleprompter</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0d1520; color:#dde6f0; font-family:-apple-system,"PingFang TC",sans-serif; height:100vh; overflow:hidden; display:flex; flex-direction:column; user-select:none; }
+  .header { padding:14px 32px; background:rgba(212,175,55,0.08); border-bottom:2px solid rgba(212,175,55,0.25); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .ep-label { font-size:0.8rem; color:#D4AF37; font-weight:800; letter-spacing:2px; }
+  .slide-title { font-size:0.95rem; color:#94a3b8; font-weight:500; text-align:center; flex:1; padding:0 24px; }
+  .counter { font-size:0.82rem; color:#475569; font-weight:600; min-width:48px; text-align:right; }
+  .content { flex:1; overflow-y:auto; padding:52px 80px 40px; scroll-behavior:smooth; }
+  .narration { max-width:860px; margin:0 auto; font-size:1.55rem; line-height:2.0; color:#e2eaf5; }
+  .narration p { margin-bottom:1.1em; }
+  .narration p:last-child { margin-bottom:0; }
+  @keyframes slideIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .slide-anim { animation:slideIn 0.28s ease; }
+  .content::-webkit-scrollbar { width:5px; }
+  .content::-webkit-scrollbar-track { background:transparent; }
+  .content::-webkit-scrollbar-thumb { background:rgba(212,175,55,0.2); border-radius:3px; }
+  .footer { padding:12px 32px; background:rgba(0,0,0,0.35); border-top:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:20px; flex-shrink:0; }
+  .nav-hint { font-size:0.72rem; color:#334155; white-space:nowrap; }
+  .progress-bar { flex:1; height:3px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,#D4AF37,#f0d060); border-radius:2px; transition:width 0.35s ease; }
+  .btn-row { display:flex; gap:8px; }
+  .btn { background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.25); color:#D4AF37; border-radius:6px; padding:4px 14px; font-size:0.75rem; cursor:pointer; font-family:inherit; }
+  .btn:hover { background:rgba(212,175,55,0.22); }
+</style>
+</head>
+<body>
+<div class="header">
+  <span class="ep-label">EP.01</span>
+  <span class="slide-title" id="slideTitle">—</span>
+  <span class="counter" id="counter">1 / 9</span>
+</div>
+<div class="content" id="content">
+  <div class="narration slide-anim" id="narration"></div>
+</div>
+<div class="footer">
+  <div class="btn-row">
+    <button class="btn" onclick="prev()">← 上一頁</button>
+    <button class="btn" onclick="next()">下一頁 →</button>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <span class="nav-hint">← → Space 換頁 &nbsp;|&nbsp; 滾輪捲動</span>
+</div>
+<script>
+const slides = [
+  { title:'第 1 頁 — 封面', text:[
+    '你有沒有想過，你手上的錢，每年都在悄悄縮水？',
+    '通膨每年會讓你的現金購買力縮水 2 到 3%。以前手搖飲料一杯 25 元，現在要 50 元以上。雞排從 35 元漲到 70 元。20 年，物價悄悄翻了一倍。',
+    '如果 25 歲開始，每個月投入 1 萬元，連續 30 年，有機會存到 1,360 萬。但如果 35 歲才開始，同樣每個月 1 萬，只有 20 年，結果只剩 550 萬——差了將近 2.5 倍。',
+    '這一集，我們來聊一件事：為什麼現在就要開始投資？',
+  ]},
+  { title:'第 2 頁 — 為什麼要投資？', text:[
+    '先說兩個殘酷的事實。',
+    '第一，你的工作能力是有限的。體力會下降，到了退休之後你可能就無法繼續工作。停止工作，收入就停止。有一天，你沒有辦法再用時間換錢。如果你是在高壓的科技業或金融業，很有可能在 55 到 60 歲就會遇到中年危機，比你預期的還早。',
+    '第二，通膨不會停。每年 2 到 3% 的侵蝕，20 年下來物價翻倍。你把錢放在定存或帳戶裡不動，其實是在慢慢虧損。',
+    '那解法是什麼？',
+    '指數化投資。讓台灣、全世界最優秀的公司，24 小時替你工作——不用休假，不會老，退休後資產還是繼續幫你賺。這才是真正對抗通膨的方法。',
+  ]},
+  { title:'第 3 頁 — 主動收入 → 被動收入', text:[
+    '大多數人的人生軌跡是這樣的：剛畢業，用勞動換取薪資。把剩下的錢儲蓄起來，買入市值型 ETF，持有並再投入，讓資產慢慢增值。',
+    '複利有一個很直覺的算法，叫做 72 法則。72 除以年化報酬率 10%，等於 7.2 年——也就是說，你的資產每 7.2 年就翻一倍。',
+    '但有三件事非常重要。',
+    '第一，複利不是線性的。第 30 年的成長，遠遠大於第 1 年的成長，後期的爆發力才是最驚人的。',
+    '第二，時間是最關鍵的資源。25 歲開始和 35 歲開始，退休時的差距不是 10 年，而是 2 到 3 倍的資產。',
+    '第三，不需要選股。買市值型 ETF，就能參與市場的平均報酬，長期下來反而打敗 8 成的主動型基金。',
+  ]},
+  { title:'第 4 頁 — 複利的威力', text:[
+    '讓我們看一個具體的數字對比。同樣每個月投入 1 萬元，年化報酬率 8%，差別只在開始時間。',
+    '25 歲開始，投資 40 年，退休時大約有 3,000 萬。總投入只有 480 萬。',
+    '35 歲開始，投資 30 年，退休時大約有 1,360 萬。晚了 10 年，資產少了一半以上。',
+    '45 歲開始，投資 20 年，退休時大約只有 550 萬。',
+    '晚 10 年，差距超過 2 倍。這不是投資技巧的差距，這是時間的差距。',
+  ]},
+  { title:'第 5 頁 — 1,500 萬試算工具', text:[
+    '這裡有一個互動工具，讓你可以根據自己的狀況算出來。',
+    '試著把「每月投入」調到你現在能存的金額。再把「投資年限」換成你打算投資的年數。「年化報酬率」預設是 8%，這是保守估計。',
+    '你可以看到，隨著年限拉長，複利終值和總投入本金之間的差距會越來越大——那個空間，就是時間幫你賺的錢。',
+    '有人可能會問：真實市場真的每年都能給你 8% 嗎？',
+  ]},
+  { title:'第 6 頁 — 台股真實報酬率', text:[
+    '答案是：不一定，但長期平均下來是的。',
+    '這張圖是台股加權指數 2007 到 2026 年，每一年的實際報酬率。',
+    '2009 年大漲 73%，2008 年大跌 46%，2022 年跌了 23%，最近幾年又大漲。',
+    '在過去 20 年裡，真正落在 8 到 12% 這個範圍的，只有 6 年，也就是 30%。其他 70% 的年份，不是大漲就是大跌。',
+    '市場每年的報酬率非常不規律，8% 是長期平均，不是每年的保證。短期的大幅波動，才是市場的常態。',
+    '所以你需要的，是放夠長的時間——至少 15 年以上——才能讓這個平均值發揮作用。',
+  ]},
+  { title:'第 7 頁 — 退休後：4% 提領法則', text:[
+    '那存到了退休金之後，要怎麼花，才能讓錢花不完？',
+    '答案是 4% 提領法則。每年只提領資產的 4%，因為資產本身還在繼續成長，理論上可以永遠不用擔心錢花完。',
+    '以 1,500 萬為例，年提領 4%，每年可以花 60 萬，也就是每個月 5 萬元。',
+    '如果你的目標是 3,000 萬，同樣 4% 提領，每個月可以花 10 萬元。',
+    '根據 Trinity Study，以美國股市歷史數據，4% 提領率持續 30 年的存活率超過 95%。後面的集數會用台股真實的極端情境，例如 1998 到 2008 那段最暗淡的 10 年，來模擬看看這個方法能不能撐過去。',
+  ]},
+  { title:'第 8 頁 — 三個可以開始的方向', text:[
+    '最後，分享三件我自己也在做的事，你可以參考看看。',
+    '第一，先看懂再投。跟著系列影片了解指數化投資是什麼、報酬率波動的真相、為什麼不要選股也不要猜高低點。多花一點時間建立觀念，之後才能在市場大跌時穩住。',
+    '第二，定期定額開始。台灣可以從 0050 出發，美國可以買 VOO，想更分散可以考慮 VT。不用等到時機「對」——每個月固定投入，不管市場漲跌。',
+    '第三，跌的時候繼續買。這是最難做到、也最重要的一件事。市場下跌時感覺很恐慌，但那其實是在用更便宜的價格買進。時間，是你最大的優勢。',
+  ]},
+  { title:'第 9 頁 — 結語', text:[
+    '讓時間和複利替你工作。',
+    '工具很簡單：0050、VOO、或 VT。操作也很簡單：定期定額，長期持有，不預測市場。',
+    '最難的其實不是找到方法——難的是相信它，然後在市場最難看的時候，繼續堅持下去。',
+    '感謝大家看到這裡。如果這集對你有幫助，歡迎訂閱慢富頻道，分享給親朋好友並留言。我們下集見，bye-bye。',
+  ]},
+];
+let current = 0;
+function render(animate=true) {
+  const slide = slides[current], total = slides.length;
+  document.getElementById('slideTitle').textContent = slide.title;
+  document.getElementById('counter').textContent = `${current+1} / ${total}`;
+  document.getElementById('progressFill').style.width = `${((current+1)/total)*100}%`;
+  const el = document.getElementById('narration');
+  el.innerHTML = slide.text.map(t=>`<p>${t}</p>`).join('');
+  document.getElementById('content').scrollTop = 0;
+  if (animate) { el.classList.remove('slide-anim'); void el.offsetWidth; el.classList.add('slide-anim'); }
+}
+function next() { if (current < slides.length-1) { current++; render(); _bc.postMessage({ slide: current }); } }
+function prev() { if (current > 0) { current--; render(); _bc.postMessage({ slide: current }); } }
+document.addEventListener('keydown', e => {
+  if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); next(); }
+  else if (['ArrowLeft','ArrowUp'].includes(e.key)) { e.preventDefault(); prev(); }
+});
+const _bc = new BroadcastChannel('ep01_sync');
+_bc.onmessage = e => { const i=e.data.slide; if(i>=0&&i<slides.length&&i!==current){current=i;render();} };
+render(false);
+</script>
+</body>
+</html>

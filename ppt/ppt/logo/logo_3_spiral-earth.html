@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Slow Rich — Spiral Logo</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #EDE8DF;
+    min-height: 100vh;
+    padding: 44px 32px;
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  }
+  input[type=range] { cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+/* ── 大地色系 ──────────────────────────────── */
+const C = {
+  walnut : '#3D2B1F',   // 深胡桃木（主文字）
+  brown  : '#8B5E3C',   // 暖棕（螺旋 / 副文字）
+  gold   : '#C9A96E',   // 柔金（頂點光點 / 強調）
+  sand   : '#E8DDD0',   // 暖沙（淺底）
+  cream  : '#F5F0E8',   // 奶油白
+  dark   : '#2A1F14',   // 深夜木（深底背景）
+  darkFg : '#D4C9BC',   // 深底前景文字
+};
+
+/* ── 黃金螺旋計算 ─────────────────────────── */
+// r(θ) = r0 × φ^(θ / (π/2))，每轉 90° 擴大 φ 倍
+// angleOffset：使外端指向右上方（約 315°）
+function goldenSpiral(cx, cy, endR, turns = 2.5, angleOffset = 2.355, n = 450) {
+  const PHI  = (1 + Math.sqrt(5)) / 2;
+  const k    = Math.log(PHI) / (Math.PI / 2);
+  const tMax = turns * 2 * Math.PI;
+  const r0   = endR / Math.exp(k * tMax);
+  return Array.from({ length: n + 1 }, (_, i) => {
+    const t = (i / n) * tMax;
+    const r = r0 * Math.exp(k * t);
+    const a = t + angleOffset;
+    return [+(cx + r * Math.cos(a)).toFixed(2), +(cy + r * Math.sin(a)).toFixed(2)];
+  });
+}
+
+function pathD(pts) {
+  return pts.map((p, i) => `${i ? 'L' : 'M'}${p[0]},${p[1]}`).join(' ');
+}
+
+/* ── 圖標 SVG ──────────────────────────────── */
+const Icon = ({ size = 80, dark = false }) => {
+  const fg  = dark ? C.darkFg : C.brown;
+  const dot = dark ? C.sand   : C.gold;
+
+  // 只計算一次
+  const pts = useMemo(() => goldenSpiral(50, 50, 37, 2.5, 2.355), []);
+  const tip = pts[pts.length - 1];
+
+  return (
+    <svg viewBox="0 0 100 100" width={size} height={size}
+         style={{ display: 'block', overflow: 'visible', flexShrink: 0 }}>
+
+      {/* 外圓框 */}
+      <circle cx="50" cy="50" r="44"
+              fill="none" stroke={fg} strokeWidth="1.8"/>
+
+      {/* 黃金螺旋主線 */}
+      <path d={pathD(pts)}
+            stroke={fg} strokeWidth="2.1"
+            fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+
+      {/* 螺旋外端：光點 + 光暈 */}
+      <circle cx={tip[0]} cy={tip[1]} r="5.8"
+              fill="none" stroke={dot} strokeWidth="0.9" opacity="0.35"/>
+      <circle cx={tip[0]} cy={tip[1]} r="3.4" fill={dot}/>
+
+      {/* 圓心極小點（螺旋起源） */}
+      <circle cx="50" cy="50" r="1.4" fill={fg} opacity="0.45"/>
+    </svg>
+  );
+};
+
+/* ── 字體 ──────────────────────────────────── */
+const FF = '-apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang TC", Arial, sans-serif';
+
+/* ── 水平版 ────────────────────────────────── */
+const LogoH = ({ iconSize = 64, dark = false }) => {
+  const main = dark ? C.darkFg : C.walnut;
+  const sub  = dark ? C.gold   : C.brown;
+  return (
+    <div style={{ display: 'inline-flex', alignItems: 'center',
+                  gap: iconSize * 0.22,
+                  padding: `${iconSize * 0.18}px ${iconSize * 0.28}px` }}>
+      <Icon size={iconSize} dark={dark}/>
+      <div>
+        <div style={{ fontFamily: FF, fontWeight: 800,
+                      fontSize: iconSize * 0.50, color: main,
+                      letterSpacing: '-0.3px', lineHeight: 1 }}>
+          Slow Rich
+        </div>
+        <div style={{ fontFamily: FF, fontWeight: 300,
+                      fontSize: iconSize * 0.165, color: sub,
+                      letterSpacing: '3px', marginTop: iconSize * 0.09,
+                      textTransform: 'uppercase' }}>
+          Investment &amp; Education
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── 垂直版 ────────────────────────────────── */
+const LogoV = ({ iconSize = 80, dark = false }) => {
+  const main = dark ? C.darkFg : C.walnut;
+  const sub  = dark ? C.gold   : C.brown;
+  return (
+    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center',
+                  gap: iconSize * 0.15,
+                  padding: `${iconSize * 0.22}px ${iconSize * 0.3}px` }}>
+      <Icon size={iconSize} dark={dark}/>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontFamily: FF, fontWeight: 800,
+                      fontSize: iconSize * 0.44, color: main,
+                      letterSpacing: '-0.3px', lineHeight: 1 }}>
+          Slow Rich
+        </div>
+        <div style={{ fontFamily: FF, fontWeight: 300,
+                      fontSize: iconSize * 0.148, color: sub,
+                      letterSpacing: '3.5px', marginTop: iconSize * 0.1,
+                      textTransform: 'uppercase' }}>
+          Investment &amp; Education
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── 投影片模擬 ──────────────────────────────── */
+const Slide = ({ dark = false, pos = 'header', iconSize = 36 }) => {
+  const bg     = dark ? C.dark   : '#F7F4EF';
+  const titleC = dark ? '#E8DDD0' : C.walnut;
+  const noteC  = dark ? '#7A6252' : '#9B7B62';
+  const borderC = dark ? 'none' : '1px solid #e0d9d0';
+
+  const logo = <LogoH iconSize={iconSize} dark={dark}/>;
+
+  return (
+    <div style={{ background: bg, borderRadius: 10,
+                  width: '100%', aspectRatio: '16/9',
+                  position: 'relative', overflow: 'hidden',
+                  boxShadow: '0 4px 28px rgba(0,0,0,0.12)',
+                  border: borderC }}>
+
+      {pos === 'header' &&
+        <div style={{ position: 'absolute', top: 10, left: 14 }}>{logo}</div>}
+
+      <div style={{ position: 'absolute', top: '50%', left: '50%',
+                    transform: 'translate(-50%,-50%)', textAlign: 'center', width: '68%' }}>
+        <div style={{ fontFamily: FF, fontSize: 17, fontWeight: 300,
+                      color: titleC, letterSpacing: '1.5px', lineHeight: 1.5 }}>
+          時間是最強大的投資工具
+        </div>
+        <div style={{ fontFamily: FF, fontSize: 9.5, fontWeight: 400,
+                      color: noteC, letterSpacing: '0.5px', marginTop: 8 }}>
+          複利需要時間，而不是技巧
+        </div>
+      </div>
+
+      {pos === 'footer' &&
+        <div style={{ position: 'absolute', bottom: 9, right: 14 }}>{logo}</div>}
+
+      <div style={{ position: 'absolute', bottom: 9, left: 16,
+                    fontSize: 9, color: noteC, letterSpacing: '0.5px' }}>
+        01 / 12
+      </div>
+    </div>
+  );
+};
+
+/* ── 標籤 ──────────────────────────────────── */
+const Label = ({ t }) => (
+  <p style={{ fontSize: 11, color: '#a0948a', textTransform: 'uppercase',
+              letterSpacing: '1.5px', marginBottom: 10 }}>{t}</p>
+);
+
+/* ── 主 App ────────────────────────────────── */
+function App() {
+  const [size, setSize] = useState(72);
+
+  return (
+    <div style={{ maxWidth: 980, margin: '0 auto' }}>
+
+      {/* 頁首 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 36,
+                    borderBottom: `2px solid ${C.brown}`, paddingBottom: 14 }}>
+        <Icon size={42}/>
+        <div>
+          <h1 style={{ color: C.walnut, fontSize: 18, fontWeight: 700 }}>
+            Slow Rich — Spiral Logo
+          </h1>
+          <p style={{ color: C.brown, fontSize: 11, marginTop: 3 }}>
+            黃金螺旋 × 時間複利 × 暖大地色系
+          </p>
+        </div>
+      </div>
+
+      {/* 尺寸滑桿 */}
+      <div style={{ background: '#fff', borderRadius: 10, padding: '14px 20px',
+                    marginBottom: 32, display: 'flex', alignItems: 'center', gap: 16,
+                    boxShadow: '0 1px 10px rgba(0,0,0,0.06)' }}>
+        <span style={{ fontSize: 12, color: C.walnut, fontWeight: 600, minWidth: 72 }}>
+          圖標尺寸
+        </span>
+        <input type="range" min="32" max="180" step="4" value={size}
+               onChange={e => setSize(+e.target.value)}
+               style={{ flex: 1, accentColor: C.brown }}/>
+        <span style={{ fontSize: 14, fontWeight: 700, color: C.brown,
+                       minWidth: 56, textAlign: 'right' }}>
+          {size} px
+        </span>
+        {/* 即時預覽 */}
+        <Icon size={size * 0.28 + 20}/>
+      </div>
+
+      {/* 排版展示 */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 32 }}>
+
+        <div>
+          <Label t="水平版 — 淺色背景"/>
+          <div style={{ background: C.cream, borderRadius: 10, display: 'inline-block',
+                        boxShadow: '0 2px 14px rgba(0,0,0,0.07)' }}>
+            <LogoH iconSize={size}/>
+          </div>
+        </div>
+
+        <div>
+          <Label t="水平版 — 深色背景"/>
+          <div style={{ background: C.dark, borderRadius: 10, display: 'inline-block' }}>
+            <LogoH iconSize={size} dark={true}/>
+          </div>
+        </div>
+
+        <div>
+          <Label t="垂直版 — 淺色背景"/>
+          <div style={{ background: C.cream, borderRadius: 10, display: 'inline-block',
+                        boxShadow: '0 2px 14px rgba(0,0,0,0.07)' }}>
+            <LogoV iconSize={size}/>
+          </div>
+        </div>
+
+        <div>
+          <Label t="垂直版 — 深色背景"/>
+          <div style={{ background: C.dark, borderRadius: 10, display: 'inline-block' }}>
+            <LogoV iconSize={size} dark={true}/>
+          </div>
+        </div>
+
+        {/* 透明背景（棋盤格）*/}
+        <div>
+          <Label t="透明背景（投影片角落用）"/>
+          <div style={{
+            background: 'repeating-conic-gradient(#d0c8c0 0% 25%, #f0ece6 0% 50%) 0 0 / 14px 14px',
+            borderRadius: 10, display: 'inline-block' }}>
+            <LogoH iconSize={size}/>
+          </div>
+        </div>
+
+        {/* Icon only */}
+        <div>
+          <Label t="Icon 各尺寸"/>
+          <div style={{ background: C.cream, borderRadius: 10, padding: '18px 22px',
+                        display: 'flex', alignItems: 'flex-end', gap: 18, flexWrap: 'wrap' }}>
+            {[20, 28, 40, 56, 80, 120].map(s => (
+              <div key={s} style={{ textAlign: 'center' }}>
+                <Icon size={s}/>
+                <div style={{ color: '#bbb', fontSize: 8, marginTop: 4 }}>{s}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+
+      {/* 投影片情境預覽 */}
+      <Label t="投影片情境預覽"/>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 22 }}>
+        <div>
+          <p style={{ fontSize: 10, color: '#b0a090', marginBottom: 6 }}>淺色 — 頁首左上</p>
+          <Slide dark={false} pos="header" iconSize={Math.max(24, size * 0.38)}/>
+        </div>
+        <div>
+          <p style={{ fontSize: 10, color: '#b0a090', marginBottom: 6 }}>深色 — 頁首左上</p>
+          <Slide dark={true}  pos="header" iconSize={Math.max(24, size * 0.38)}/>
+        </div>
+        <div>
+          <p style={{ fontSize: 10, color: '#b0a090', marginBottom: 6 }}>淺色 — 頁尾右下</p>
+          <Slide dark={false} pos="footer" iconSize={Math.max(24, size * 0.38)}/>
+        </div>
+        <div>
+          <p style={{ fontSize: 10, color: '#b0a090', marginBottom: 6 }}>深色 — 頁尾右下</p>
+          <Slide dark={true}  pos="footer" iconSize={Math.max(24, size * 0.38)}/>
+        </div>
+      </div>
+
+      {/* 設計說明 */}
+      <div style={{ marginTop: 32, background: '#fff', borderRadius: 10,
+                    padding: '18px 22px', borderLeft: `4px solid ${C.gold}`,
+                    boxShadow: '0 1px 10px rgba(0,0,0,0.05)' }}>
+        <p style={{ color: C.walnut, fontWeight: 600, fontSize: 12, marginBottom: 8 }}>
+          設計邏輯
+        </p>
+        <ul style={{ color: C.brown, fontSize: 11.5, lineHeight: 2.1,
+                     paddingLeft: 18, listStyleType: 'disc' }}>
+          <li>
+            <strong>黃金螺旋</strong>：以費波那契數列的對數螺旋公式
+            r(θ) = r₀ × φ^(θ/(π/2)) 生成，每轉 90° 半徑擴大 1.618 倍
+          </li>
+          <li>
+            <strong>起點與終點</strong>：螺旋從圓心附近開始，向外旋轉 2.5 圈，
+            頂端指向右上方，象徵財富隨時間緩慢而巨大的成長
+          </li>
+          <li>
+            <strong>配色</strong>：暖棕 #8B5E3C × 柔金 #C9A96E × 深胡桃 #3D2B1F，
+            營造放鬆、不焦慮的長期投資氛圍
+          </li>
+          <li>
+            <strong>使用方式</strong>：在投影片每一頁的頁首或頁尾放置，
+            建議尺寸 32–48 px，不搶奪內容焦點
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>EP14 旁白 Teleprompter</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0d1520; color:#dde6f0; font-family:-apple-system,"PingFang TC",sans-serif; height:100vh; overflow:hidden; display:flex; flex-direction:column; user-select:none; }
+  .header { padding:14px 32px; background:rgba(212,175,55,0.08); border-bottom:2px solid rgba(212,175,55,0.25); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .ep-label { font-size:0.8rem; color:#D4AF37; font-weight:800; letter-spacing:2px; }
+  .slide-title { font-size:0.95rem; color:#94a3b8; font-weight:500; text-align:center; flex:1; padding:0 24px; }
+  .counter { font-size:0.82rem; color:#475569; font-weight:600; min-width:48px; text-align:right; }
+  .content { flex:1; overflow-y:auto; padding:52px 80px 40px; scroll-behavior:smooth; }
+  .narration { max-width:860px; margin:0 auto; font-size:1.55rem; line-height:2.0; color:#e2eaf5; }
+  .narration p { margin-bottom:1.1em; }
+  .narration p:last-child { margin-bottom:0; }
+  @keyframes slideIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .slide-anim { animation:slideIn 0.28s ease; }
+  .content::-webkit-scrollbar { width:5px; }
+  .content::-webkit-scrollbar-track { background:transparent; }
+  .content::-webkit-scrollbar-thumb { background:rgba(212,175,55,0.2); border-radius:3px; }
+  .footer { padding:12px 32px; background:rgba(0,0,0,0.35); border-top:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:20px; flex-shrink:0; }
+  .nav-hint { font-size:0.72rem; color:#334155; white-space:nowrap; }
+  .progress-bar { flex:1; height:3px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,#D4AF37,#f0d060); border-radius:2px; transition:width 0.35s ease; }
+  .btn-row { display:flex; gap:8px; }
+  .btn { background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.25); color:#D4AF37; border-radius:6px; padding:4px 14px; font-size:0.75rem; cursor:pointer; font-family:inherit; }
+  .btn:hover { background:rgba(212,175,55,0.22); }
+</style>
+</head>
+<body>
+<div class="header">
+  <span class="ep-label">EP.14</span>
+  <span class="slide-title" id="slideTitle">—</span>
+  <span class="counter" id="counter">1 / 11</span>
+</div>
+<div class="content" id="content">
+  <div class="narration slide-anim" id="narration"></div>
+</div>
+<div class="footer">
+  <div class="btn-row">
+    <button class="btn" onclick="prev()">← 上一頁</button>
+    <button class="btn" onclick="next()">下一頁 →</button>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <span class="nav-hint">← → Space 換頁 &nbsp;|&nbsp; 滾輪捲動</span>
+</div>
+<script>
+const slides = [
+  { title:'第 1 頁 — 封面', text:[
+    '你有沒有想過，如果不買 0050，改買正2，報酬率會不會真的翻倍？',
+    '這個問題我猜很多人都想過。畢竟「2 倍槓桿」聽起來很吸引人——大盤漲 20%，我漲 40%；大盤五年翻倍，我早就翻四倍了。',
+    '但事情沒有這麼簡單。今天我想帶你一起看，正2 在不同市場環境下的真實表現，還有一個讓很多人意外的結論。',
+  ]},
+  { title:'第 2 頁 — 正2（00631L）是什麼？', text:[
+    '先快速說明一下。正2，代號 00631L，全名是元大台灣50正2，是一支追蹤「台灣50指數單日 2 倍報酬」的槓桿 ETF，2014 年 10 月上市。',
+    '注意，它追蹤的是「單日」2 倍——不是年度，不是長期，是每一天的 2 倍。這個細節很重要，後面會解釋為什麼。',
+    '另外有一個很多人不知道的優勢。台灣的加權指數是「純價格指數」，每次除息，指數就自動下跌。但正2 追蹤的是含股息的台灣50總報酬指數——那些除息點數，透過期貨轉倉機制，會被吃回來。台灣年均殖利率大概是 3.5%，在 2 倍曝險下，等於每年多了將近 7% 的系統性優勢。',
+  ]},
+  { title:'第 3 頁 — 年度真實表現', text:[
+    '我們先來看一些真實的年度數字。',
+    '2019 年，大盤漲了 23%，正2 漲了 69%，大約 3 倍。2020 年，大盤漲 22%，正2 漲了 67%，也是約 3 倍。',
+    '2022 年，大盤跌了 23%，正2 跌了 37%，跌幅只有 1.6 倍，比 2 倍還小。2024 年，大盤漲 28%，正2 漲 58%，超過 2 倍。',
+    '你有沒有發現一個規律？漲的時候，正2 往往超過大盤的 2 倍；跌的時候，卻小於 2 倍。這不是偶然，背後有兩個原因。',
+  ]},
+  { title:'第 4 頁 — 兩大原因', text:[
+    '第一個原因，是每日複利效應。',
+    '正2 每天都是「今天的 2 倍」重新計算。在趨勢明顯的牛市裡，這個複利會一直滾——昨天漲了 2%，正2 漲 4%；今天又漲 2%，正2 是在「昨天已經漲 4%」的基礎上再加 4%。複利滾起來，漲幅就會越來越大，遠超過大盤的 2 倍。',
+    '跌的時候反過來。跌了之後，本金變小了，接下來的下跌是在更小的基礎上計算 2 倍，自然「減速」。所以總跌幅會小於 2 倍。',
+    '第二個原因是含息優勢。正2 追蹤含股息的總報酬指數，台灣年均 3.5% 的殖利率，在 2 倍曝險下被放大成將近 7% 的年化優勢。所以正2 能超越大盤 2 倍，是每日複利效應加上含息優勢，兩個因素同時在推動。',
+  ]},
+  { title:'第 5 頁 — 延伸：自己買台指期', text:[
+    '這時候有人可能會問：既然台指期也有含息優勢，那我自己買台指期開 2 倍槓桿，效果不是一樣嗎？',
+    '我簡單比較一下。含息優勢兩者確實相同，都透過期貨定價機制實現。',
+    '但關鍵的差別在於「每日再平衡」——正2 每天自動調整回 2 倍槓桿，自己操作的話你得每天手動執行，幾乎不可能做到一模一樣。',
+    '更重要的是，如果不再平衡，市場大跌的時候，你的槓桿比例反而會升高，虧損可能超過 2 倍，還可能碰到保證金追繳被強制平倉。所以自己買台指期，在機制上是類似的，但在實際執行上，00631L 方便很多。',
+  ]},
+  { title:'第 6 頁 — 波動損耗', text:[
+    '好，現在來講一個正2 最大的風險。',
+    '假設市場連續兩天，第一天漲 10%，第二天跌 10%。大盤：100 漲到 110，再跌回 99，虧 1%。正2：100 漲到 120，再跌回 96，虧 4%。',
+    '大盤只虧 1%，正2 虧了 4%。這就是「波動損耗」，英文叫 Volatility Decay。',
+    '在橫盤震盪的市場裡，每天漲漲跌跌，正2 就一直在「消耗」。就算大盤最終沒跌，正2 也可能悄悄虧損。',
+    '而台灣股市，偏偏就有過一個漫長的橫盤震盪期。',
+  ]},
+  { title:'第 7 頁 — 真實的十年考驗', text:[
+    '先說一個很多人不知道的事：00631L 本來就含息。它追蹤的是含股息的總報酬指數，透過期貨轉倉把除息點數吃回來。所以用含息版模擬，才是真實的 00631L 行為。',
+    '如果 1997 年底投入 100 萬，用含息模擬看看會發生什麼事。',
+    '2001 年，dot-com 崩跌，大盤含息剩 64.8，正2 含息只剩 28.6。',
+    '2007 年，含息正2 已經回到起點了，116.6，只花了 10 年。不是 23 年，是 10 年。',
+    '2008 年，金融海嘯，含息正2 再次被打回 27.9。',
+    '但這不代表沒有風險。如果你在 2000 年高點進場，帳面最深曾虧損超過 70%，含息幫你，但還是要撐過 dot-com 崩跌加上 2008 海嘯，才能解套。',
+  ]},
+  { title:'第 8 頁 — 定期定額：含息版的長期比較', text:[
+    '用定期定額、含息模式，比較正2 和大盤的長期結果。',
+    '正2（00631L，含費含息）：2.71 倍。大盤（含息 3.5%）：2.45 倍。正2 略勝。',
+    '正2 勝出的主因，不是槓桿，是「股息乘以 2」的系統性加成。台灣年均 3.5% 的殖利率，在 2 倍曝險下放大成每年約 7% 的優勢，長期複利滾下來，差距就出來了。',
+    '不過有個重要的前提——這個結果包含了 2014 到 2026 年的大多頭。如果只看 1997 到 2013 年的失落年代，即使是含息版，正2 的定期定額還是落後大盤。波動損耗在那段橫盤震盪期太大，連含息都補不回來。',
+    '長期勝出，靠的是後來的大多頭把前面損失都拉回來了。',
+  ]},
+  { title:'第 9 頁 — 23年落後，2020才翻身', text:[
+    '來看這張圖。灰色線是大盤含息再投入——也就是你買 0050，把股息全部再投入的結果。橘色虛線是含費含息的正2，從 1997 年底一起出發，兩條線都從 100 開始。',
+    '你可以看到，從 1998 年一直到 2019 年，橘色的正2 幾乎都在灰色的大盤下方。整整 23 年，含費含息的正2 一直落後 0050 含息再投入。',
+    '含息優勢是真實的，每年大概 7%——但問題是，失落年代橫盤震盪，波動損耗把這 7% 都吃掉，還不夠。',
+    '直到 2020 年 12 月，COVID 之後的大反彈，正2 才第一次超越大盤。之後 2021 到 2025 的大多頭，正2 因為每日複利加上含息，快速拉開差距。這才是含息優勢真正爆發的時候。',
+    '所以關鍵不只是「持有夠久」，而是「等到大多頭來臨」。失落年代再長，都等不到。',
+  ]},
+  { title:'第 10 頁 — 兩股力量的拉鋸', text:[
+    '00631L 同時有兩股力量在影響它。',
+    '第一股，波動損耗。橫盤震盪時，每天漲漲跌跌，2 倍槓桿不斷消耗本金，市場越震盪侵蝕越快。',
+    '第二股，含息優勢。台灣 3.5% 殖利率，在 2 倍曝險下每年貢獻約 7%，長期複利持續累積。',
+    '這兩股力量誰佔上風，決定了正2 的命運。單邊多頭，含息複利佔上風，正2 大幅超越大盤。橫盤震盪，波動損耗佔上風，正2 跑輸甚至虧損。大跌後長牛，先被損耗，然後含息慢慢追回來。',
+    '台灣高殖利率是 00631L 最重要的結構性優勢——但它無法抵消所有市場環境下的波動損耗，只能在時間夠長的情況下逐漸扳回。',
+  ]},
+  { title:'第 11 頁 — 結論', text:[
+    '現在來看數據。同樣是單筆投入加定期定額，只是時間長短不同，結果完全翻轉。',
+    '失落年代，1997 到 2013 年。正2 是 1.50 倍，大盤是 1.78 倍——正2 輸了。不是輸一點，是明顯輸。',
+    '但如果你撐下去，撐到 2020 年——正2 是 4.88 倍，大盤是 3.39 倍。正2 大幅勝出。',
+    '所以問題的答案不是「正2 贏還是輸」，而是「你能不能撐到大多頭」。失落年代，任何策略都輸；大多頭來臨，正2 的含息加上每日複利，差距急速拉開。',
+    '最大的風險不是正2 本身，是你在帳面一直落後、帳面虧損超過 70% 的時候，能不能繼續持有。撐不住出場，就等於把大多頭讓給了別人。',
+  ]},
+  { title:'第 12 頁 — 結語', text:[
+    '00631L 不是禁忌，也不是必勝。',
+    '含息是它的結構性優勢，台灣 3.5% 殖利率，在 2 倍曝險下每年貢獻約 7%，這是真實的。',
+    '但勝負的關鍵，不是你用 DCA 還是單筆，不是含息還是不含息——關鍵是你遇到什麼市場，還有你能不能撐到大多頭。失落年代：正2 1.50 倍，大盤 1.78 倍，輸。持有到大多頭：正2 4.88 倍，大盤 3.39 倍，大幅贏。',
+    '含息幫你縮短了回本的時間，但它無法替你撐過失落年代的煎熬。那段時間，你的帳面一直落後，心裡一直懷疑——這才是真正的考驗。',
+    '感謝大家看到這裡。影片中的互動圖表可以在文章連結找到，可以自己調整參數、看不同時間區間的結果。如果這集對你有幫助，歡迎訂閱慢富頻道，留言分享你的想法。我們下集見。',
+  ]},
+];
+
+let current = 0;
+function render(animate=true) {
+  const slide = slides[current], total = slides.length;
+  document.getElementById('slideTitle').textContent = slide.title;
+  document.getElementById('counter').textContent = `${current+1} / ${total}`;
+  document.getElementById('progressFill').style.width = `${((current+1)/total)*100}%`;
+  const el = document.getElementById('narration');
+  el.innerHTML = slide.text.map(t => `<p>${t}</p>`).join('');
+  document.getElementById('content').scrollTop = 0;
+  if (animate) { el.classList.remove('slide-anim'); void el.offsetWidth; el.classList.add('slide-anim'); }
+}
+function next() { if (current < slides.length-1) { current++; render(); _bc.postMessage({ slide: current }); } }
+function prev() { if (current > 0) { current--; render(); _bc.postMessage({ slide: current }); } }
+document.addEventListener('keydown', e => {
+  if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); next(); }
+  else if (['ArrowLeft','ArrowUp'].includes(e.key)) { e.preventDefault(); prev(); }
+});
+const _bc = new BroadcastChannel('ep14_sync');
+_bc.onmessage = e => { const i=e.data.slide; if(i>=0&&i<slides.length&&i!==current){current=i;render();} };
+render(false);
+</script>
+</body>
+</html>
