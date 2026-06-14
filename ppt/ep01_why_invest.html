@@ -218,7 +218,7 @@
     </div>
   </div>
   <div class="note" style="margin-top:16px;line-height:1.8;">
-    <strong>解法：指數化投資。</strong>
+    <strong>其中一個方法：指數化投資。</strong>
     讓台灣、全世界最優秀的公司 24 小時替你工作——不用休假、不會老。<br>
     退休後，資產還在幫你賺，不怕通膨，不怕錢不夠用。
   </div>
@@ -418,7 +418,7 @@
 
 <!-- ── 8. 行動建議 ─────────────────────────── -->
 <section>
-  <h2>從今天開始的三個步驟</h2>
+  <h2>三個可以開始的方向</h2>
   <div class="three-col">
     <div class="card green">
       <div class="label" style="font-size:1.5rem">① 先懂，再投</div>
@@ -527,6 +527,10 @@ _header.style.opacity = '0';
 Reveal.on('slidechanged', e => {
   _header.style.opacity = e.indexh === 0 ? '0' : '1';
 });
+
+const _bc = new BroadcastChannel('ep01_sync');
+Reveal.on('slidechanged', e => { _bc.postMessage({ slide: e.indexh }); });
+_bc.onmessage = e => { if (e.data.slide !== Reveal.getIndices().h) Reveal.slide(e.data.slide); };
 
 // ── 圖表初始化（每張投影片顯示時才建立，避免 canvas 尺寸為 0） ──
 
