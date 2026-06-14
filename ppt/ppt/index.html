@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>慢富 Slow Rich — 投影片總覽</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, "PingFang TC", "Heiti TC", "Microsoft JhengHei", sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 48px 24px 80px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .logo-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .logo-text {
+      line-height: 1.15;
+    }
+    .logo-zh {
+      font-size: 22px;
+      font-weight: 300;
+      color: #D4AF37;
+      letter-spacing: 1px;
+    }
+    .logo-en {
+      font-size: 9px;
+      color: #888;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .page-title {
+      font-size: 15px;
+      color: #94a3b8;
+      letter-spacing: 0.5px;
+    }
+
+    .grid {
+      max-width: 780px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 16px;
+    }
+
+    .ep-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 22px 20px;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .ep-card:hover {
+      border-color: #D4AF37;
+      transform: translateY(-2px);
+    }
+    .ep-num {
+      font-size: 11px;
+      font-weight: 700;
+      color: #D4AF37;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+    }
+    .ep-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #f1f5f9;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+    .ep-arrow {
+      font-size: 13px;
+      color: #475569;
+      margin-top: 14px;
+    }
+    .ep-card:hover .ep-arrow {
+      color: #D4AF37;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 52px;
+      font-size: 12px;
+      color: #475569;
+    }
+    .footer a {
+      color: #64748b;
+      text-decoration: none;
+    }
+    .footer a:hover { color: #D4AF37; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo-row">
+      <svg viewBox="0 0 100 100" width="40" height="40" style="flex-shrink:0;overflow:visible">
+        <line x1="50" y1="6" x2="50" y2="94" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+        <line x1="88.10" y1="28" x2="11.90" y2="72" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+        <line x1="88.10" y1="72" x2="11.90" y2="28" stroke="#2E5FA3" stroke-width="1.8" opacity="0.3"/>
+        <path d="M50,32 L65.59,41 L65.59,59 L50,68 L34.41,59 L34.41,41 Z" fill="#2E5FA3" stroke="#4A7FD4" stroke-width="0.8" opacity="0.35"/>
+        <g transform="translate(0,2)">
+          <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+          <path d="M14,82 L21,63 L26,80 L35,52 L42,67 L51,40 L57,57 L67,24 L73,36 L85,15" stroke="#D4AF37" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        <path d="M50,6 L88.10,28 L88.10,72 L50,94 L11.90,72 L11.90,28 Z" fill="none" stroke="#D4AF37" stroke-width="2.6"/>
+      </svg>
+      <div class="logo-text">
+        <div class="logo-zh">慢富</div>
+        <div class="logo-en">Slow Rich</div>
+      </div>
+    </div>
+    <div class="page-title">投影片總覽</div>
+  </div>
+
+  <div class="grid">
+
+    <a class="ep-card" href="ep01_why_invest.html" target="_blank" rel="noopener">
+      <div class="ep-num">EP.01</div>
+      <div class="ep-title">為什麼要投資</div>
+      <div class="ep-arrow">查看投影片 →</div>
+    </a>
+
+    <a class="ep-card" href="ep02_index_investing.html" target="_blank" rel="noopener">
+      <div class="ep-num">EP.02</div>
+      <div class="ep-title">指數化投資是什麼？</div>
+      <div class="ep-arrow">查看投影片 →</div>
+    </a>
+
+    <a class="ep-card" href="ep03_snowball.html" target="_blank" rel="noopener">
+      <div class="ep-num">EP.03</div>
+      <div class="ep-title">巴菲特雪球理論</div>
+      <div class="ep-arrow">查看投影片 →</div>
+    </a>
+
+  </div>
+
+  <div class="footer">
+    <a href="https://www.youtube.com/@slowrich.invest" target="_blank" rel="noopener">YouTube @slowrich.invest</a>
+    &nbsp;·&nbsp;
+    <a href="https://alvin5468.github.io/stock_info/" target="_blank" rel="noopener">投資分析工具</a>
+  </div>
+
+</body>
+</html>
