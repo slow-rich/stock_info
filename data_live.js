@@ -1,21 +1,21 @@
 const DATA_LIVE = {
   taiex: {
-    current: 44017.15,
-    currentDate: '2026-06-12',
+    current: 45337.84,
+    currentDate: '2026-06-15',
     ath: 46552.16,
     athDate: '2026-06-03',
-    dropFromAth: -5.45,
+    dropFromAth: -2.61,
     athYtdCount: 43,
     athYtdYear: 2026,
   },
   vt: {
-    current: 155.55,
-    currentDate: '2026-06-11',
+    current: 158.68,
+    currentDate: '2026-06-15',
     ath: 159.41,
     athDate: '2026-06-02',
-    dropFromAth: -2.42,
+    dropFromAth: -0.46,
     athYtdCount: 28,
     athYtdYear: 2026,
   },
-  updatedAt: '2026-06-12 19:58',
+  updatedAt: '2026-06-15 22:41',
 };
