@@ -175,35 +175,28 @@
     <div>
       <p>自 0050 成立以來，共有 <strong>108 支</strong>個股曾是成分股。<br>看看它們的實際報酬分佈：</p>
       <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">
-        <div style="display:flex;align-items:center;gap:12px;background:rgba(220,38,38,0.06);border-radius:8px;padding:10px 14px;">
-          <div style="width:44px;height:44px;border-radius:50%;background:#dc2626;display:flex;align-items:center;justify-content:center;font-size:0.95rem;font-weight:900;color:#fff;flex-shrink:0;">40支</div>
-          <div>
-            <div style="font-size:0.85rem;font-weight:700;color:#dc2626;">負報酬（含 3 支 −100% 下市）</div>
-            <div style="font-size:0.72rem;color:var(--gray);">看似穩健的大公司，最終也可能虧損或下市</div>
-          </div>
-        </div>
         <div style="display:flex;align-items:center;gap:12px;background:var(--light);border-radius:8px;padding:10px 14px;">
-          <div style="width:44px;height:44px;border-radius:50%;background:#93c5fd;display:flex;align-items:center;justify-content:center;font-size:0.95rem;font-weight:900;color:#1B3A6B;flex-shrink:0;">50支</div>
+          <div style="width:44px;height:44px;border-radius:50%;background:#93c5fd;display:flex;align-items:center;justify-content:center;font-size:0.95rem;font-weight:900;color:#1B3A6B;flex-shrink:0;">84支</div>
           <div>
-            <div style="font-size:0.85rem;font-weight:700;color:var(--blue);">正報酬、但低於 0050</div>
-            <div style="font-size:0.72rem;color:var(--gray);">有獲利，但跑輸指數的整體報酬</div>
+            <div style="font-size:0.85rem;font-weight:700;color:var(--blue);">低於 0050（含 40 支負報酬、3 支下市）</div>
+            <div style="font-size:0.72rem;color:var(--gray);">有獲利的也跑輸指數；看似穩健的大公司也可能虧損</div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:12px;background:rgba(212,175,55,0.08);border-radius:8px;padding:10px 14px;">
-          <div style="width:44px;height:44px;border-radius:50%;background:#D4AF37;display:flex;align-items:center;justify-content:center;font-size:0.95rem;font-weight:900;color:#fff;flex-shrink:0;">18支</div>
+          <div style="width:44px;height:44px;border-radius:50%;background:#D4AF37;display:flex;align-items:center;justify-content:center;font-size:0.95rem;font-weight:900;color:#fff;flex-shrink:0;">24支</div>
           <div>
-            <div style="font-size:0.85rem;font-weight:700;color:#8B6914;">打敗 0050（報酬 > 869%）</div>
+            <div style="font-size:0.85rem;font-weight:700;color:#8B6914;">打敗 0050</div>
             <div style="font-size:0.72rem;color:var(--gray);">台光電 +62,053%、金像電 +23,067%、致茂 +9,087% 等</div>
           </div>
         </div>
       </div>
-      <div class="note">108 支中僅 18 支（17%）報酬超過 0050。報酬分佈極度不均，少數飆股撐起整體。<br>選股的難題不是「能不能贏」，而是<strong>事先選到對的那幾支</strong>。</div>
+      <div class="note">108 支中僅 24 支（22%）報酬超過 0050。報酬分佈極度不均，少數飆股撐起整體。<br>選股的難題不是「能不能贏」，而是<strong>事先選到對的那幾支</strong>。</div>
     </div>
     <div>
       <div class="chart-wrap" style="height:310px;">
         <canvas id="stockDistChart"></canvas>
       </div>
-      <p style="font-size:0.65rem;color:var(--gray);margin-top:4px;text-align:center;">各報酬區間成分股數量分佈（含現任與歷任成分股）</p>
+      <p style="font-size:0.65rem;color:var(--gray);margin-top:4px;text-align:center;">各報酬區間成分股數量分佈（含現任與歷任成分股）&nbsp;｜&nbsp;統計截至 2026/06/15</p>
     </div>
   </div>
 </section>
@@ -213,7 +206,7 @@
   <h2>獲利集中在少數飆股：你事先選得到嗎？</h2>
   <div class="two-col">
     <div>
-      <p style="margin-bottom:10px;">表面上有 23 支打敗指數，但<strong>報酬極度不均</strong>。<br>頂端少數幾支幾乎貢獻了所有超額報酬。</p>
+      <p style="margin-bottom:10px;">表面上有 24 支打敗指數，但<strong>報酬極度不均</strong>。<br>頂端少數幾支幾乎貢獻了所有超額報酬。</p>
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
         <div style="font-size:0.72rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:1px;padding:0 4px;">報酬最高前 5 支</div>
         <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(212,175,55,0.10);border-radius:7px;padding:7px 12px;">
@@ -272,7 +265,7 @@
         </div>
       </div>
       <div class="note" style="border-left-color:#dc2626;background:#fef2f2;color:#7f1d1d;">「整併下市」不等於股票歸零（股東有換股或現金補償），但真正破產的中華映管，持股確實一文不值。這些在事前都無法預知。</div>
-      <p style="font-size:0.62rem;color:#9ca3af;margin-top:8px;text-align:right;">資料統計日：2026/04/28</p>
+      <p style="font-size:0.62rem;color:#9ca3af;margin-top:8px;text-align:right;">資料統計日：2026/06/15</p>
     </div>
   </div>
   <div style="margin-top:14px;padding:14px 20px;background:linear-gradient(135deg,rgba(27,58,107,0.06),rgba(212,175,55,0.08));border-radius:12px;border-left:4px solid var(--accent);display:flex;align-items:flex-start;gap:14px;">
@@ -439,12 +432,9 @@ _bc.onmessage = e => { if (e.data.slide !== Reveal.getIndices().h) Reveal.slide(
   const ctx = document.getElementById('stockDistChart');
   if (!ctx) return;
 
-  /* 分桶（正確數據：14 / 26 / 50 / 18） */
   const buckets = [
-    { label: '虧損 50% 以上',        count: 14, color: '#dc2626' },
-    { label: '小幅虧損\n(0 ~ −50%)', count: 26, color: '#f87171' },
-    { label: '正報酬\n未超過 0050',   count: 50, color: '#93c5fd' },
-    { label: '打敗 0050\n(>869%)',    count: 18, color: '#D4AF37' },
+    { label: '低於 0050\n（含負報酬）', count: 84, color: '#93c5fd' },
+    { label: '打敗 0050',               count: 24, color: '#D4AF37' },
   ];
 
   const counts = buckets.map(b => b.count);
@@ -466,7 +456,7 @@ _bc.onmessage = e => { if (e.data.slide !== Reveal.getIndices().h) Reveal.slide(
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label: ctx => `${ctx.parsed.y} 支（${Math.round(ctx.parsed.y/108*100)}%）`
+            label: ctx => `${ctx.parsed.y} 支（${Math.round(ctx.parsed.y / 108 * 100)}%）`
           }
         }
       },
