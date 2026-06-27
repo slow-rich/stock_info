@@ -18,20 +18,30 @@ ANALYSIS_DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.
 # ── TAIEX ────────────────────────────────────────────────────────────────────
 
 def _fetch_taiex_yfinance():
-    """用 yfinance 抓 ^TWII，約 15 分鐘延遲，可從非台灣 IP 存取。"""
+    """用 yfinance 抓 ^TWII。
+    交易時段（平日 9-13:30）用 5m 盤中資料，其餘用日線官方收盤價。
+    """
     try:
         import yfinance as yf
         ticker = yf.Ticker('^TWII')
-        # 優先抓今日 5 分鐘盤中資料
-        hist = ticker.history(period='1d', interval='5m')
-        if not hist.empty:
-            date  = hist.index[-1].strftime('%Y-%m-%d')
-            close = round(float(hist['Close'].iloc[-1]), 2)
-            high  = round(float(hist['High'].max()), 2)
-            low   = round(float(hist['Low'].min()), 2)
-            print(f'TAIEX yfinance 盤中 {date} 現值={close} 今日高={high}')
-            return date, close, high, low
-        # 日線 fallback（取最近一個完整交易日）
+        now_tw = datetime.now(TW_TZ)
+        in_session = (
+            now_tw.weekday() < 5 and
+            9 <= now_tw.hour < 14 and
+            not (now_tw.hour == 13 and now_tw.minute >= 35)
+        )
+
+        if in_session:
+            intra = ticker.history(period='1d', interval='5m')
+            if not intra.empty:
+                date  = intra.index[-1].strftime('%Y-%m-%d')
+                close = round(float(intra['Close'].iloc[-1]), 2)
+                high  = round(float(intra['High'].max()), 2)
+                low   = round(float(intra['Low'].min()), 2)
+                print(f'TAIEX yfinance 盤中 {date} 現值={close} 今日高={high}')
+                return date, close, high, low
+
+        # 盤後 / 週末 / 假日：用日線官方收盤
         hist = ticker.history(period='5d')
         if not hist.empty:
             last  = hist.iloc[-1]
@@ -153,6 +163,30 @@ def append_ohlc_year(path, year, o, c, h, l):
     print(f'{os.path.basename(path)} 已新增 {year} 年資料')
 
 
+# ── Taiwan ETF（0050 / 006208 / 00631L）────────────────────────────────────
+
+def fetch_tw_etf(code):
+    """抓台股 ETF 的最新收盤價與歷史最高點。"""
+    try:
+        import yfinance as yf
+        ticker = yf.Ticker(f'{code}.TW')
+        full = ticker.history(period='max')
+        if full.empty:
+            return None, None, None, None
+        ath_val  = round(float(full['High'].max()), 2)
+        ath_date = full['High'].idxmax().strftime('%Y-%m-%d')
+        recent = ticker.history(period='5d')
+        if recent.empty:
+            return None, None, ath_val, ath_date
+        date  = recent.index[-1].strftime('%Y-%m-%d')
+        close = round(float(recent['Close'].iloc[-1]), 2)
+        print(f'{code} yfinance {date} 收盤={close}  ATH={ath_val} @ {ath_date}')
+        return date, close, ath_val, ath_date
+    except Exception as e:
+        print(f'{code} fetch error: {e}')
+    return None, None, None, None
+
+
 # ── SPY ──────────────────────────────────────────────────────────────────────
 
 def fetch_spy_ytd(year):
@@ -264,6 +298,13 @@ def read_stored():
     tx = section('taiex')
     vx = section('vt')
 
+    def etf_section(name):
+        s = section(name)
+        return {
+            'current': val_f(s, 'current'), 'currentDate': val_s(s, 'currentDate'),
+            'ath': val_f(s, 'ath'), 'athDate': val_s(s, 'athDate'),
+        } if s else {'current': 0, 'currentDate': '', 'ath': 0, 'athDate': ''}
+
     return {
         'taiex': {
             'current': val_f(tx, 'current'), 'currentDate': val_s(tx, 'currentDate'),
@@ -275,10 +316,13 @@ def read_stored():
             'ath': val_f(vx, 'ath'), 'athDate': val_s(vx, 'athDate'),
             'athYtdCount': val_i(vx, 'athYtdCount'), 'athYtdYear': val_i(vx, 'athYtdYear'),
         },
+        'etf0050':   etf_section('etf0050'),
+        'etf006208': etf_section('etf006208'),
+        'etf00631L': etf_section('etf00631L'),
     }
 
 
-def write_live(taiex, vt):
+def write_live(taiex, vt, etf0050, etf006208, etf00631L):
     updated_at = datetime.now(TW_TZ).strftime('%Y-%m-%d %H:%M')
     content = f"""const DATA_LIVE = {{
   taiex: {{
@@ -298,6 +342,27 @@ def write_live(taiex, vt):
     dropFromAth: {vt['dropFromAth']},
     athYtdCount: {vt['athYtdCount']},
     athYtdYear: {vt['athYtdYear']},
+  }},
+  etf0050: {{
+    current: {etf0050['current']},
+    currentDate: '{etf0050['currentDate']}',
+    ath: {etf0050['ath']},
+    athDate: '{etf0050['athDate']}',
+    dropFromAth: {etf0050['dropFromAth']},
+  }},
+  etf006208: {{
+    current: {etf006208['current']},
+    currentDate: '{etf006208['currentDate']}',
+    ath: {etf006208['ath']},
+    athDate: '{etf006208['athDate']}',
+    dropFromAth: {etf006208['dropFromAth']},
+  }},
+  etf00631L: {{
+    current: {etf00631L['current']},
+    currentDate: '{etf00631L['currentDate']}',
+    ath: {etf00631L['ath']},
+    athDate: '{etf00631L['athDate']}',
+    dropFromAth: {etf00631L['dropFromAth']},
   }},
   updatedAt: '{updated_at}',
 }};
@@ -410,12 +475,27 @@ def main():
         else:
             print('無法取得 TWSE 批次價格，略過 analysis_data.js')
 
+    # ── Taiwan ETFs ──
+    def build_etf(code, stored_key):
+        e_date, e_close, e_ath, e_ath_date = fetch_tw_etf(code)
+        if e_close is None:
+            print(f'{code} 無資料，保留上次數值')
+            s = stored[stored_key]
+            e_close, e_date, e_ath, e_ath_date = s['current'], s['currentDate'], s['ath'], s['athDate']
+        e_drop = round((e_close - e_ath) / e_ath * 100, 2) if e_ath and e_close else 0
+        return {'current': e_close, 'currentDate': e_date, 'ath': e_ath, 'athDate': e_ath_date, 'dropFromAth': e_drop}
+
+    etf0050   = build_etf('0050',   'etf0050')
+    etf006208 = build_etf('006208', 'etf006208')
+    etf00631L = build_etf('00631L', 'etf00631L')
+
     t_drop = round((t_close - t_ath) / t_ath * 100, 2) if t_ath and t_close else 0
     v_drop = round((v_close - v_ath) / v_ath * 100, 2) if v_ath and v_close else 0
 
     write_live(
         taiex={'current': t_close, 'currentDate': t_date, 'ath': t_ath, 'athDate': t_ath_date, 'dropFromAth': t_drop, 'athYtdCount': t_ytd_count, 'athYtdYear': t_ytd_year},
         vt=   {'current': v_close, 'currentDate': v_date, 'ath': v_ath, 'athDate': v_ath_date, 'dropFromAth': v_drop, 'athYtdCount': v_ytd_count, 'athYtdYear': v_ytd_year},
+        etf0050=etf0050, etf006208=etf006208, etf00631L=etf00631L,
     )
     print('data_live.js 已更新')
 

@@ -481,6 +481,34 @@
   }
   @keyframes ptr-spin { to { transform: rotate(360deg); } }
 
+  /* ════════════════════════════
+       跌幅對照表區塊
+    ════════════════════════════ */
+    .dd-table-wrap { overflow-x: auto; margin-top: 16px; }
+    .dd-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 420px; }
+    .dd-table th {
+      background: #1e2a3a; color: #a0b4cc;
+      padding: 10px 14px; text-align: center;
+      font-weight: 500; font-size: 13px;
+      border: 1px solid #2e3f52;
+    }
+    .dd-table th:first-child { text-align: left; }
+    .dd-table td {
+      padding: 9px 14px; text-align: center;
+      border: 1px solid #2e3f52;
+      font-size: 14px; color: #94a3b8;
+    }
+    .dd-table td:first-child { text-align: left; color: #8aa0b4; font-size: 13px; }
+    .dd-table tr:hover td { background: rgba(255,255,255,0.03); }
+    .dd-table tr.dd-ath td { background: rgba(212,175,55,0.08); color: #D4AF37; font-weight: 600; }
+    .dd-table tr.dd-ath td:first-child { color: #D4AF37; }
+    .dd-table tr.dd-current td { background: rgba(59,130,246,0.1); }
+    .dd-table tr.dd-current td:first-child { color: #60a5fa; font-weight: 600; }
+    .dd-table .dd-pct-badge { font-size: 11px; display: inline-block; margin-top: 2px; }
+    .dd-table .dd-pct-neg { color: #f87171; }
+    .dd-table .dd-pct-pos { color: #34d399; }
+    .dd-table td.dd-crossed { color: #1e293b; font-weight: 600; }
+
   </style>
 </head>
 <body>
@@ -499,6 +527,7 @@
   .nav-logo-en { font-size:9px;font-weight:300;color:rgba(212,175,55,0.6);letter-spacing:2px;text-transform:uppercase; }
   .nav-yt-icon { display:block;flex-shrink:0;opacity:0.85;transition:opacity 0.15s,transform 0.15s; }
   .nav-logo:hover .nav-yt-icon { opacity:1;transform:scale(1.12); }
+  .dd-table-wrap{overflow-x:auto;margin-top:16px} .dd-table{width:100%;border-collapse:collapse;font-size:14px;min-width:420px} .dd-table th{background:#1e2a3a;color:#a0b4cc;padding:10px 14px;text-align:center;font-weight:500;font-size:13px;border:1px solid #2e3f52} .dd-table th:first-child{text-align:left} .dd-table td{padding:9px 14px;text-align:center;border:1px solid #2e3f52;font-size:14px;color:#dce6f0} .dd-table td:first-child{text-align:left;color:#8aa0b4;font-size:13px} .dd-table tr:hover td{background:rgba(255,255,255,0.03)} .dd-table tr.dd-ath td{background:rgba(212,175,55,0.08);color:#D4AF37;font-weight:600} .dd-table tr.dd-ath td:first-child{color:#D4AF37} .dd-table tr.dd-current td{background:rgba(59,130,246,0.1)} .dd-table tr.dd-current td:first-child{color:#60a5fa;font-weight:600} .dd-table .dd-pct-badge{font-size:11px;display:inline-block;margin-top:2px} .dd-table .dd-pct-neg{color:#f87171} .dd-table .dd-pct-pos{color:#34d399} .dd-table td.dd-crossed{color:#6b8099}
 </style>
 <!-- ════════════════════════════════════════
      固定導覽列
@@ -531,6 +560,7 @@
     <a href="#sec-live"       class="nav-link active" data-section="sec-live">最新行情</a>
     <a href="#sec-simulator"  class="nav-link"        data-section="sec-simulator">投資試算</a>
     <a href="#sec-withdrawal" class="nav-link"        data-section="sec-withdrawal">提領法則</a>
+    <a href="#sec-drawdown"   class="nav-link"        data-section="sec-drawdown">跌幅對照</a>
     <a href="ppt/index.html" class="nav-link" target="_blank" rel="noopener" style="margin-left:4px">投影片 ↗</a>
   </div>
   <div class="nav-views">已瀏覽 <span id="pageViewCount">—</span> 次</div>
@@ -681,6 +711,25 @@
     <div id="wdConclusion" style="margin-top:20px"></div>
 
     <p class="data-note">每年提領金額以退休本金計算，通膨率 &gt; 0 時逐年調升；不含稅金與配息再投入；4% 法則源自 1998 年 Trinity Study</p>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     Section：跌幅對照表
+════════════════════════════════════════ -->
+<section id="sec-drawdown" class="page-section">
+  <div class="section-inner">
+    <div class="section-header">
+      <h2>跌幅對照表</h2>
+      <span class="section-sub">從歷史最高點出發，各跌幅區間對應的股價參考</span>
+    </div>
+    <div class="dd-table-wrap">
+      <table class="dd-table" id="ddTable">
+        <thead><tr><th>跌幅</th><th>0050</th><th>006208</th><th>VT</th><th>00631L</th></tr></thead>
+        <tbody id="ddTbody"><tr><td colspan="5" style="text-align:center;color:#666;padding:20px">載入中…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="data-note">最高點為 yfinance 歷史最高收盤價；跌幅由最新收盤價計算；VT 以美元計</p>
   </div>
 </section>
 
@@ -1194,7 +1243,7 @@ function buildConclusion(principal, monthly1, investYears1, monthly2, investYear
 }
 
 // 頁面載入時自動執行一次
-runSimulator();
+try { runSimulator(); } catch(e) { console.error('[投資試算]', e); }
 
 // ════════════════════════════════════════
 // 提領法則模擬
@@ -1523,6 +1572,71 @@ runSimulator();
   };
 
   runWithdrawal();
+})();
+
+// ════════════════════════════════════════
+// 跌幅對照表
+// ════════════════════════════════════════
+(function initDrawdown() {
+  const ETFS = [
+    { key: 'etf0050',   label: '0050',   usd: false },
+    { key: 'etf006208', label: '006208', usd: false },
+    { key: 'vt',        label: 'VT',     usd: true  },
+    { key: 'etf00631L', label: '00631L', usd: false },
+  ];
+  const LEVELS = [0, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50];
+
+  function fmt(val, usd) {
+    if (usd) return '$' + val.toFixed(2);
+    return val >= 100 ? val.toFixed(1) : val.toFixed(2);
+  }
+
+  function build() {
+    const tbody = document.getElementById('ddTbody');
+    if (!tbody) return;
+    if (typeof DATA_LIVE === 'undefined') {
+      tbody.innerHTML = '<tr><td colspan="5" style="color:#f87171;padding:16px;text-align:center">DATA_LIVE 未載入</td></tr>';
+      return;
+    }
+    const d = DATA_LIVE;
+
+    let html = '';
+
+    // ATH 列
+    html += '<tr class="dd-ath"><td>最高點</td>';
+    ETFS.forEach(e => {
+      const s = d[e.key];
+      html += s ? `<td>${fmt(s.ath, e.usd)}<br><small style="font-weight:400;font-size:11px;opacity:0.6">${s.athDate}</small></td>` : '<td>—</td>';
+    });
+    html += '</tr>';
+
+    // 目前 列（顯示股價 + 跌幅%）
+    html += '<tr class="dd-current"><td>目前</td>';
+    ETFS.forEach(e => {
+      const s = d[e.key];
+      if (!s) { html += '<td>—</td>'; return; }
+      const neg = s.dropFromAth < 0;
+      html += `<td><span style="font-size:15px;font-weight:700;color:#D4AF37">${fmt(s.current, e.usd)}</span><br><span class="dd-pct-badge" style="color:#34d399">${s.dropFromAth}%</span></td>`;
+    });
+    html += '</tr>';
+
+    // 各跌幅列
+    LEVELS.slice(1).forEach(lv => {
+      html += `<tr><td>${lv}%</td>`;
+      ETFS.forEach(e => {
+        const s = d[e.key];
+        if (!s) { html += '<td>—</td>'; return; }
+        const price = s.ath * (1 + lv / 100);
+        const crossed = s.dropFromAth <= lv;
+        html += `<td${crossed ? ' class="dd-crossed"' : ''}>${fmt(price, e.usd)}</td>`;
+      });
+      html += '</tr>';
+    });
+
+    tbody.innerHTML = html;
+  }
+
+  build();
 })();
 
 // ════════════════════════════════════════
