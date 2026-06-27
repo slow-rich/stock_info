@@ -520,6 +520,9 @@
 <style>
   .top-nav { flex-wrap: wrap; height: auto; min-height: 52px; row-gap: 0; }
   .nav-links { order: 2; }
+  .nav-row-1, .nav-row-2 { display: flex; gap: 4px; }
+  @media (min-width: 601px) { .nav-row-1, .nav-row-2 { display: contents; } }
+  @media (max-width: 600px) { .nav-links { flex-wrap: wrap; padding-bottom: 4px; } .nav-row-1 { width: 100%; } }
   .nav-views { order: 3; width: 100%; padding: 2px 0 6px; }
   .nav-logo { display:flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap;flex-shrink:0; }
   .nav-logo-text { display:flex;flex-direction:column;line-height:1.2; }
@@ -557,11 +560,15 @@
     </svg>
   </a>
   <div class="nav-links">
-    <a href="#sec-live"       class="nav-link active" data-section="sec-live">最新行情</a>
-    <a href="#sec-simulator"  class="nav-link"        data-section="sec-simulator">投資試算</a>
-    <a href="#sec-withdrawal" class="nav-link"        data-section="sec-withdrawal">提領法則</a>
-    <a href="#sec-drawdown"   class="nav-link"        data-section="sec-drawdown">跌幅對照</a>
-    <a href="ppt/index.html" class="nav-link" target="_blank" rel="noopener" style="margin-left:4px">投影片 ↗</a>
+    <div class="nav-row-1">
+      <a href="#sec-live"       class="nav-link active" data-section="sec-live">最新行情</a>
+      <a href="#sec-simulator"  class="nav-link"        data-section="sec-simulator">投資試算</a>
+      <a href="#sec-withdrawal" class="nav-link"        data-section="sec-withdrawal">提領法則</a>
+    </div>
+    <div class="nav-row-2">
+      <a href="#sec-drawdown"   class="nav-link"        data-section="sec-drawdown">跌幅對照</a>
+      <a href="ppt/index.html" class="nav-link" target="_blank" rel="noopener">投影片 ↗</a>
+    </div>
   </div>
   <div class="nav-views">已瀏覽 <span id="pageViewCount">—</span> 次</div>
 </nav>
