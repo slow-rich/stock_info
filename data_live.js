@@ -1,19 +1,19 @@
 const DATA_LIVE = {
   taiex: {
-    current: 44999.9,
-    currentDate: '2026-06-29',
+    current: 44571.76,
+    currentDate: '2026-06-26',
     ath: 48218.87,
     athDate: '2026-06-23',
-    dropFromAth: -6.68,
+    dropFromAth: -7.56,
     athYtdCount: 46,
     athYtdYear: 2026,
   },
   vt: {
-    current: 153.8,
-    currentDate: '2026-06-26',
+    current: 155.3,
+    currentDate: '2026-06-29',
     ath: 158.84,
     athDate: '2026-06-02',
-    dropFromAth: -3.17,
+    dropFromAth: -2.23,
     athYtdCount: 28,
     athYtdYear: 2026,
   },
@@ -25,11 +25,11 @@ const DATA_LIVE = {
     dropFromAth: -6.99,
   },
   etf006208: {
-    current: 242.75,
+    current: nan,
     currentDate: '2026-06-29',
     ath: 260.1,
     athDate: '2026-06-23',
-    dropFromAth: -6.67,
+    dropFromAth: nan,
   },
   etf00631L: {
     current: 36.28,
@@ -38,5 +38,5 @@ const DATA_LIVE = {
     athDate: '2026-06-23',
     dropFromAth: -13.18,
   },
-  updatedAt: '2026-06-29 20:45',
+  updatedAt: '2026-06-30 00:46',
 };
