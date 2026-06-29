@@ -175,7 +175,7 @@ def fetch_tw_etf(code):
             return None, None, None, None
         ath_val  = round(float(full['High'].max()), 2)
         ath_date = full['High'].idxmax().strftime('%Y-%m-%d')
-        recent = ticker.history(period='5d')
+        recent = ticker.history(period='5d').dropna(subset=['Close'])
         if recent.empty:
             return None, None, ath_val, ath_date
         date  = recent.index[-1].strftime('%Y-%m-%d')
